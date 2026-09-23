@@ -16,8 +16,8 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.effect.EffectRegistry;
 import org.gwfx.zuoyanmod.fluid.FluidRegistry;
+import org.gwfx.zuoyanmod.item.HallowedSet;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
-import org.gwfx.zuoyanmod.util.HallowedSet;
 
 import java.util.ArrayList;
 import java.util.List;

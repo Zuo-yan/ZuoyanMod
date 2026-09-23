@@ -14,7 +14,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import org.gwfx.zuoyanmod.client.klein.AmountFormat;
+import org.gwfx.zuoyanmod.core.AmountFormat;
+import org.gwfx.zuoyanmod.core.KleinTerminalLayout;
 import org.gwfx.zuoyanmod.client.klein.KleinAmountRenderer;
 import org.gwfx.zuoyanmod.client.klein.KleinScrollbar;
 import org.gwfx.zuoyanmod.client.klein.KleinSearchBox;
@@ -24,7 +25,6 @@ import org.gwfx.zuoyanmod.item.FourDimensionalSpace;
 import org.gwfx.zuoyanmod.menu.KleinBottleMenu;
 import org.gwfx.zuoyanmod.network.KleinBottleSyncPacket;
 import org.gwfx.zuoyanmod.network.PacketHandler;
-import org.gwfx.zuoyanmod.util.KleinTerminalLayout;
 
 import java.util.List;
 

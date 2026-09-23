@@ -1,8 +1,7 @@
-package org.gwfx.zuoyanmod.util;
+package org.gwfx.zuoyanmod.item;
 
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import org.gwfx.zuoyanmod.item.ItemRegistry;
 
 /**
  * 圣辉套装（紫金神装四件）判定。

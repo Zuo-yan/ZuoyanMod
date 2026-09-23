@@ -5,13 +5,12 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Relative;
 import net.minecraft.world.level.Level;
+import org.gwfx.zuoyanmod.platform.Teleports;
 import org.slf4j.Logger;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -71,8 +70,9 @@ public final class RealmTransitionManager {
     private static void teleport(ServerPlayer player, ServerLevel level, Position destination) {
         LOGGER.info("[Realm] teleporting {} to {} at {}, {}, {}", player.getName().getString(),
                 level.dimension().identifier(), destination.x(), destination.y(), destination.z());
-        // 匹配 26.x 签名：teleportTo(ServerLevel, double, double, double, Set<Relative>, float, float, boolean)
-        player.teleportTo(level, destination.x(), destination.y(), destination.z(), Set.<Relative>of(), destination.yRot(), destination.xRot(), false);
+        // 传送签名随版本变化，统一走 platform 适配层
+        Teleports.crossDimension(player, level, destination.x(), destination.y(), destination.z(),
+                destination.yRot(), destination.xRot());
     }
 
     private record Position(ResourceKey<Level> dimension, double x, double y, double z, float yRot, float xRot) {

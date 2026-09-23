@@ -1,9 +1,12 @@
-package org.gwfx.zuoyanmod.util;
-
-import org.gwfx.zuoyanmod.item.FourDimensionalSpace;
+package org.gwfx.zuoyanmod.core;
 
 /**
  * 克莱因瓶终端界面的**布局常量**。
+ *
+ * <p>属于 {@code core} 纯逻辑层：不依赖任何 Minecraft / NeoForge API，
+ * 跨版本迁移时无需改动。终端网格的形状（{@link #COLUMNS} × {@link #ROWS}）
+ * 也以这里为**单一事实来源**，数据模型侧的 {@code FourDimensionalSpace}
+ * 通过别名引用这里的常量，保证两侧永不错开。
  *
  * <p>这里的每一个数字都必须和三处保持一致，改一处必改另两处：
  * <ul>
@@ -45,8 +48,10 @@ import org.gwfx.zuoyanmod.item.FourDimensionalSpace;
  */
 public final class KleinTerminalLayout {
 
-    public static final int COLUMNS = FourDimensionalSpace.COLUMNS;
-    public static final int ROWS = FourDimensionalSpace.DEFAULT_ROWS;
+    /** 终端网格的列数（单一事实来源：{@code FourDimensionalSpace.COLUMNS} 引用这里） */
+    public static final int COLUMNS = 9;
+    /** 终端网格的行数（单一事实来源：{@code FourDimensionalSpace.DEFAULT_ROWS} 引用这里） */
+    public static final int ROWS = 6;
     public static final int CELL = 18;
     public static final int WINDOW_SLOTS = COLUMNS * ROWS;
 

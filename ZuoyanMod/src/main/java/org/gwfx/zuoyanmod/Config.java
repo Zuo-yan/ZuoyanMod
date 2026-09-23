@@ -1,17 +1,15 @@
 package org.gwfx.zuoyanmod;
 
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import org.gwfx.zuoyanmod.platform.RegistryLookup;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,8 +42,7 @@ public class Config {
 
     private static boolean validateItemName(final Object obj) {
         if (obj instanceof String itemName) {
-            Identifier id = Identifier.tryParse(itemName);
-            return id != null && BuiltInRegistries.ITEM.containsKey(id);
+            return RegistryLookup.hasItem(Identifier.tryParse(itemName));
         }
         return false;
     }
@@ -56,13 +53,12 @@ public class Config {
         magicNumber = MAGIC_NUMBER.get();
         magicNumberIntroduction = MAGIC_NUMBER_INTRODUCTION.get();
 
-        // 适配 26.3：通过 Optional 解包并提取 Holder.Reference 的具体 Item
+        // 注册表按 ID 查询的返回类型随版本变化（26.3 是 Optional<Holder.Reference>），
+        // 解包细节统一封装在 platform 适配层的 RegistryLookup 里
         items = ITEM_STRINGS.get().stream()
                 .map(Identifier::tryParse)
                 .filter(Objects::nonNull)
-                .map(BuiltInRegistries.ITEM::get)
-                .flatMap(Optional::stream)
-                .map(Holder.Reference::value)
+                .flatMap(id -> RegistryLookup.item(id).stream())
                 .collect(Collectors.toSet());
     }
 }

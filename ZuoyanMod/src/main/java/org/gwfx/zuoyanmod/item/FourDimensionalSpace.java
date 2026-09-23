@@ -19,6 +19,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.gwfx.zuoyanmod.Zuoyanmod;
+import org.gwfx.zuoyanmod.core.KleinTerminalLayout;
 import org.gwfx.zuoyanmod.menu.KleinBottleMenu;
 import org.slf4j.Logger;
 
@@ -54,9 +55,9 @@ public class FourDimensionalSpace {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    /** 终端的列数（与 GUI 布局常量绑定，改这里必须同步改界面） */
-    public static final int COLUMNS = 9;
-    public static final int DEFAULT_ROWS = 6;
+    /** 终端的列数（单一事实来源在 core 的 KleinTerminalLayout，与 GUI 布局常量绑定） */
+    public static final int COLUMNS = KleinTerminalLayout.COLUMNS;
+    public static final int DEFAULT_ROWS = KleinTerminalLayout.ROWS;
 
     /** 终端排序方式。语义与 AE2 的 SortOrder / RS2 的 GridSortingTypes 对应。 */
     public enum SortMode {
