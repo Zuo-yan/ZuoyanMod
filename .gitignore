@@ -6,6 +6,9 @@
 .gradle/
 build/
 
+# maven-publish 任务发布到项目目录内的本地仓库
+repo/
+
 # IDE - Eclipse
 bin/
 .settings/

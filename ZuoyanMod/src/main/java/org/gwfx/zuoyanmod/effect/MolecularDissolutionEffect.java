@@ -5,7 +5,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import org.gwfx.zuoyanmod.damage.DarkMatterDamageSource;
-import org.gwfx.zuoyanmod.util.HallowedSet;
+import org.gwfx.zuoyanmod.item.HallowedSet;
 
 /**
  * 【分子离解】：暗物质侵蚀效果。**两条施加入口共用这一个效果**：

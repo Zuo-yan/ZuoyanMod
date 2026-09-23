@@ -49,7 +49,7 @@ public class Zuoyanmod {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        LOGGER.info("ZuoyanMod initialized successfully for NeoForge 26.3!");
+        LOGGER.info("ZuoyanMod initialized successfully!");
     }
 
     @SubscribeEvent

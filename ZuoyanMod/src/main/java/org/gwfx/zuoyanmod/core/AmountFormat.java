@@ -1,9 +1,12 @@
-package org.gwfx.zuoyanmod.client.klein;
+package org.gwfx.zuoyanmod.core;
 
 import java.util.Locale;
 
 /**
  * 数量的显示格式。
+ *
+ * <p>属于 {@code core} 纯逻辑层：不依赖任何 Minecraft / NeoForge API，
+ * 跨版本迁移时无需改动。
  *
  * <p>槽位右下角放的是 {@link #compact(long)}（{@code 1.2k} / {@code 3.4M}），
  * tooltip 里放的是 {@link #grouped(long)}（{@code 1,234,567}，带千分位）。

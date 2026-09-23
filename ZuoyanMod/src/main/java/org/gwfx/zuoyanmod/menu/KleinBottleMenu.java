@@ -28,10 +28,10 @@ import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import org.gwfx.zuoyanmod.core.KleinTerminalLayout;
 import org.gwfx.zuoyanmod.item.FourDimensionalSpace;
 import org.gwfx.zuoyanmod.item.KleinFurnace;
 import org.gwfx.zuoyanmod.network.KleinBottleSyncPacket;
-import org.gwfx.zuoyanmod.util.KleinTerminalLayout;
 
 import java.util.ArrayList;
 import java.util.List;
