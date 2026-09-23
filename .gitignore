@@ -13,9 +13,8 @@
 # Gradle 生成的运行配置
 ZuoyanMod/.eclipse/
 
-# 第三方参考源码（Curios / JEI 的稀疏克隆，不进仓库）
-/mcsrc/curios/
-/mcsrc/jei/
+# 第三方参考源码（Minecraft 反编译源码 + Curios / JEI 稀疏克隆，仅本机查阅，不进仓库）
+/mcsrc/
 
 # Gradle
 .gradle/
