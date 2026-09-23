@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "zuoyanmod:block/micro_hadron_collider"
+    },
+    "facing=east": {
+      "model": "zuoyanmod:block/micro_hadron_collider",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "zuoyanmod:block/micro_hadron_collider",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "zuoyanmod:block/micro_hadron_collider",
+      "y": 270
+    }
+  }
+}

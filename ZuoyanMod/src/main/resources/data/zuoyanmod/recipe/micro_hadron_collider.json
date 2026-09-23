@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "C": "minecraft:copper_block",
+    "L": "minecraft:lightning_rod",
+    "G": "minecraft:tinted_glass",
+    "S": "minecraft:nether_star",
+    "R": "minecraft:redstone_block",
+    "N": "minecraft:netherite_block"
+  },
+  "pattern": [
+    "CLC",
+    "GSG",
+    "RNR"
+  ],
+  "result": {
+    "id": "zuoyanmod:micro_hadron_collider",
+    "count": 1
+  },
+  "category": "misc"
+}
