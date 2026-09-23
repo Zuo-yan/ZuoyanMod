@@ -1,8 +1,10 @@
 # WorkBuddy
 .workbuddy/
 
-# Python 脚本（美术资源为程序生成，脚本仅在本机留存）
+# 生成工具脚本（美术资源/代码为程序生成，脚本仅在本机留存，不进仓库）
 *.py
+/ZuoyanMod/tools/GenSpaceAnchorTexture.java
+/tools/Extract.java
 
 # 项目根目录的预览图
 /*_preview.png
