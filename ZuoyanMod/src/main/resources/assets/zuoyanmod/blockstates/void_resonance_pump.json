@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "zuoyanmod:block/void_resonance_pump"
+    },
+    "facing=east": {
+      "model": "zuoyanmod:block/void_resonance_pump",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "zuoyanmod:block/void_resonance_pump",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "zuoyanmod:block/void_resonance_pump",
+      "y": 270
+    }
+  }
+}

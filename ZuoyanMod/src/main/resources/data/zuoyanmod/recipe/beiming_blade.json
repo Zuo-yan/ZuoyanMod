@@ -1,0 +1,18 @@
+﻿{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "V": "zuoyanmod:violet_gold_ingot",
+    "C": "zuoyanmod:relic_core",
+    "N": "minecraft:netherite_ingot"
+  },
+  "pattern": [
+    " V ",
+    " C ",
+    " N "
+  ],
+  "result": {
+    "id": "zuoyanmod:beiming_blade",
+    "count": 1
+  },
+  "category": "equipment"
+}

@@ -1,0 +1,18 @@
+﻿{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "V": "zuoyanmod:violet_gold_ingot",
+    "I": "minecraft:string",
+    "C": "zuoyanmod:relic_core"
+  },
+  "pattern": [
+    " VI",
+    "V C",
+    " VI"
+  ],
+  "result": {
+    "id": "zuoyanmod:hercules_bow",
+    "count": 1
+  },
+  "category": "equipment"
+}

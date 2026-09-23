@@ -1,0 +1,38 @@
+# WorkBuddy
+.workbuddy/
+.py
+
+# Gradle
+.gradle/
+build/
+
+# IDE - Eclipse
+bin/
+.settings/
+.metadata/
+.classpath
+.project
+.annotationprocessing
+
+# IDE - IntelliJ IDEA
+.idea/
+out/
+*.ipr
+*.iws
+*.iml
+
+# IDE - VS Code
+.vscode/
+
+# Java
+hs_err_*.log
+replay_*.log
+
+# Minecraft 运行目录（客户端/服务端测试生成的世界、日志、缓存）
+run/
+runs/
+logs/
+
+# 操作系统
+Thumbs.db
+.DS_Store

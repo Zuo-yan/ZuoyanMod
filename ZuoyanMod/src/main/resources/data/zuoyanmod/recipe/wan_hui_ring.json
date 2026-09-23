@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "V": "zuoyanmod:violet_gold_ingot",
+    "T": "minecraft:totem_of_undying"
+  },
+  "pattern": [
+    " V ",
+    "VTV",
+    " V "
+  ],
+  "result": {
+    "id": "zuoyanmod:wan_hui_ring",
+    "count": 1
+  }
+}

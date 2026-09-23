@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "V": "zuoyanmod:violet_gold_ingot",
+    "F": "minecraft:fermented_spider_eye"
+  },
+  "pattern": [
+    " V ",
+    "VFV",
+    " V "
+  ],
+  "result": {
+    "id": "zuoyanmod:yemengade_venom_fang",
+    "count": 1
+  }
+}

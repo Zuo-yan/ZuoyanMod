@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "PPP",
+    "PPP"
+  ],
+  "key": {
+    "P": "zuoyanmod:dark_matter_particle"
+  },
+  "result": {
+    "id": "zuoyanmod:dark_matter",
+    "count": 1
+  }
+}
