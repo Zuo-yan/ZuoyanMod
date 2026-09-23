@@ -69,6 +69,7 @@ public final class CreativeTabRegistry {
                         // 微型强子对撞机与奇点核心（克莱因瓶的获取链）
                         output.accept(ItemRegistry.MICRO_HADRON_COLLIDER_ITEM.get());
                         output.accept(ItemRegistry.SINGULARITY_CORE.get());
+                        output.accept(ItemRegistry.ANTIMATTER_PARTICLE.get());
 
                         // 真空衰变（万能挖掘锤：负熵灌注 / 分子离解 / 对称破缺）
                         output.accept(ItemRegistry.VACUUM_DECAY.get());
