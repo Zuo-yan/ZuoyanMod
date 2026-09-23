@@ -12,6 +12,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
+import org.gwfx.zuoyanmod.util.AccessoryChecks;
 
 import java.util.Map;
 import java.util.UUID;
@@ -82,12 +83,7 @@ public class RingEventHandler {
     }
 
     private static boolean hasRingInInventory(Player player) {
-        if (player.getMainHandItem().is(ItemRegistry.RING_OF_KILLS.get())) return true;
-        if (player.getOffhandItem().is(ItemRegistry.RING_OF_KILLS.get())) return true;
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            if (player.getInventory().getItem(i).is(ItemRegistry.RING_OF_KILLS.get())) return true;
-        }
-        return false;
+        return AccessoryChecks.isEquipped(player, ItemRegistry.RING_OF_KILLS.get());
     }
 
     private static void updateHealthModifier(Player player, float bonus) {

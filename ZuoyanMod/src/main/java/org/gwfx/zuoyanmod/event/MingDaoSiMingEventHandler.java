@@ -13,6 +13,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
+import org.gwfx.zuoyanmod.util.AccessoryChecks;
 
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
 public final class MingDaoSiMingEventHandler {
@@ -73,18 +74,6 @@ public final class MingDaoSiMingEventHandler {
     }
 
     private static ItemStack getMingDaoSiMingStack(Player player) {
-        if (player.getMainHandItem().is(ItemRegistry.MING_DAO_SI_MING.get())) {
-            return player.getMainHandItem();
-        }
-        if (player.getOffhandItem().is(ItemRegistry.MING_DAO_SI_MING.get())) {
-            return player.getOffhandItem();
-        }
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack item = player.getInventory().getItem(i);
-            if (item.is(ItemRegistry.MING_DAO_SI_MING.get())) {
-                return item;
-            }
-        }
-        return ItemStack.EMPTY;
+        return AccessoryChecks.findEquippedStack(player, ItemRegistry.MING_DAO_SI_MING.get());
     }
 }

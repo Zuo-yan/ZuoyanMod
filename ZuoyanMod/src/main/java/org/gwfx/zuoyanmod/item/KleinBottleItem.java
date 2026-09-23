@@ -60,6 +60,8 @@ public class KleinBottleItem extends Item {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
                                 Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§7右键或按 §fK §7打开 §d四维空间"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.klein_bottle.desc1"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.klein_bottle.desc2"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.klein_bottle.desc3"));
     }
 }

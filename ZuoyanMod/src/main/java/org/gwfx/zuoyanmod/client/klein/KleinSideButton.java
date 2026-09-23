@@ -47,15 +47,13 @@ public final class KleinSideButton extends AbstractButton {
     @Override
     protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         boolean hovered = isHovered();
-        // **不画边框**（v8 改的，玩家点名要 RS2 那种"四个浮空控件"）：
-        // 平时只有图标本身；hover 时才给一层极淡的底 + 底部一条青色下划线，
-        // 告诉你"这里能点"，但不至于变成一个方块按钮。
+        // **无边框、无底板**（v8，玩家点名要 RS2 那种"四个浮空控件"）：
+        // 平时只有图标本身；hover 时也**只画一条青色下划线**，连淡底都不给——
+        // 之前留过一层 0.55 alpha 的紫底，玩家看到的还是"一个紫色方块按钮"。
         if (hovered) {
-            graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(),
-                    KleinTheme.withAlpha(KleinTheme.BUTTON_FILL_HOVER, 0.55F));
-            graphics.fill(getX() + 2, getY() + getHeight() - 2,
-                    getX() + getWidth() - 2, getY() + getHeight() - 1,
-                    KleinTheme.withAlpha(KleinTheme.CYAN, 0.8F));
+            graphics.fill(getX() + 1, getY() + getHeight() - 2,
+                    getX() + getWidth() - 1, getY() + getHeight() - 1,
+                    KleinTheme.withAlpha(KleinTheme.CYAN, 0.85F));
         }
         icon.draw(graphics, getX(), getY(), getWidth(), hovered, KleinTheme.now());
     }
