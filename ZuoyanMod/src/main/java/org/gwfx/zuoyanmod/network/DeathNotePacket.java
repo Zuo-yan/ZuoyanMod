@@ -1,65 +1,72 @@
 package org.gwfx.zuoyanmod.network;
 
 import com.mojang.logging.LogUtils;
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.gwfx.zuoyanmod.Zuoyanmod;
+import net.minecraftforge.network.NetworkEvent;
 import org.gwfx.zuoyanmod.effect.EffectRegistry;
 import org.slf4j.Logger;
 
-public record DeathNotePacket(String targetName, int durationSeconds) implements CustomPacketPayload {
+import java.util.function.Supplier;
+
+public class DeathNotePacket {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final Type<DeathNotePacket> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "death_note"));
+    public final String targetName;
+    public final int durationSeconds;
 
-    public static final StreamCodec<ByteBuf, DeathNotePacket> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.STRING_UTF8, DeathNotePacket::targetName,
-            ByteBufCodecs.VAR_INT, DeathNotePacket::durationSeconds,
-            DeathNotePacket::new
-    );
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public DeathNotePacket(String targetName, int durationSeconds) {
+        this.targetName = targetName;
+        this.durationSeconds = durationSeconds;
     }
 
-    public static void handle(DeathNotePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (!(context.player() instanceof ServerPlayer sender)) return;
-            if (!(sender.level() instanceof ServerLevel serverLevel)) return;
+    public static void encode(DeathNotePacket msg, FriendlyByteBuf buf) {
+        buf.writeUtf(msg.targetName, 64);
+        buf.writeVarInt(msg.durationSeconds);
+    }
+
+    public static DeathNotePacket decode(FriendlyByteBuf buf) {
+        return new DeathNotePacket(buf.readUtf(64), buf.readVarInt());
+    }
+
+    public static void handle(DeathNotePacket msg, Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
+            ServerPlayer sender = ctx.get().getSender();
+            if (sender == null) {
+                return;
+            }
+            if (!(sender.level() instanceof ServerLevel serverLevel)) {
+                return;
+            }
             MinecraftServer server = serverLevel.getServer();
             if (server == null) {
                 sender.sendSystemMessage(Component.literal("§c服务器信息不可用"));
                 return;
             }
-            ServerPlayer target = server.getPlayerList().getPlayerByName(packet.targetName());
+            ServerPlayer target = server.getPlayerList().getPlayerByName(msg.targetName);
             if (target == null) {
-                sender.sendSystemMessage(Component.literal("§c未找到目标玩家：" + packet.targetName()));
+                sender.sendSystemMessage(Component.literal("§c未找到目标玩家：" + msg.targetName));
                 return;
             }
-            int durationTicks = Math.max(1, packet.durationSeconds()) * 20;
+            int durationTicks = Math.max(1, msg.durationSeconds) * 20;
             target.addEffect(new MobEffectInstance(
-                    EffectRegistry.MAMBA_FORCE_DEFENSE,
+                    EffectRegistry.MAMBA_FORCE_DEFENSE.get(),
                     durationTicks,
                     0,
                     false,
                     true,
                     true
             ));
-            sender.sendSystemMessage(Component.literal("§a已写入死亡笔记：" + target.getName().getString() + "，剩余" + packet.durationSeconds() + "秒"));
+            sender.sendSystemMessage(Component.literal("§a已写入死亡笔记：" + target.getName().getString() + "，剩余" + msg.durationSeconds + "秒"));
             target.sendSystemMessage(Component.literal("§4你已被写入死亡笔记，心脏麻痹倒计时开始"));
-            LOGGER.info("[DeathNote] {} wrote {} for {} seconds", sender.getName().getString(), target.getName().getString(), packet.durationSeconds());
+            LOGGER.info("[DeathNote] {} wrote {} for {} seconds", sender.getName().getString(), target.getName().getString(), msg.durationSeconds);
         });
+        ctx.get().setPacketHandled(true);
     }
 }
+

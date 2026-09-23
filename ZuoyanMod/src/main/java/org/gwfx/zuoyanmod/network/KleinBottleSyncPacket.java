@@ -1,17 +1,12 @@
 package org.gwfx.zuoyanmod.network;
 
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.gwfx.zuoyanmod.Zuoyanmod;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 import org.gwfx.zuoyanmod.client.ClientKleinBottleView;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * 服务端 → 客户端：终端的**视图快照**。
@@ -24,42 +19,42 @@ import java.util.List;
  * <p>总量超过 {@link Integer#MAX_VALUE} 时按上限截断——真实场景到不了，
  * 但别让溢出把数字画成负数。
  *
- * @param scrollRow    当前滚动到第几行（服务端权威值，客户端据此校正滚动条）
- * @param visibleRows  当前一屏显示几行
- * @param viewSize     过滤之后的物**种类**数
- * @param totalItems   整顿空间里的总个数（页脚统计）
- * @param search       服务端记住的搜索词（重开界面时回填搜索框）
- * @param sortOrdinal  排序方式序号，对应 {@code FourDimensionalSpace.SortMode#VALUES}
- * @param descending   是否倒序
- * @param windowTotals 当前窗口每格的总量（长度 = 可见槽位数）
+ * <p>26.x 就是 record payload；Forge 1.20.1 没有自动编解码，所以保留 record
+ * 数据体，encode/decode/handle 改为静态方法（SimpleChannel 注册用）。
  */
-public record KleinBottleSyncPacket(
-        int scrollRow,
-        int visibleRows,
-        int viewSize,
-        long totalItems,
-        String search,
-        int sortOrdinal,
-        boolean descending,
-        List<Integer> windowTotals) implements CustomPacketPayload {
+public record KleinBottleSyncPacket(int scrollRow, int visibleRows, int viewSize, long totalItems,
+                                    String search, int sortOrdinal, boolean descending,
+                                    List<Integer> windowTotals) {
 
-    public static final Type<KleinBottleSyncPacket> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "klein_bottle_sync"));
+    public static void encode(KleinBottleSyncPacket msg, FriendlyByteBuf buf) {
+        buf.writeVarInt(msg.scrollRow);
+        buf.writeVarInt(msg.visibleRows);
+        buf.writeVarInt(msg.viewSize);
+        buf.writeVarLong(msg.totalItems);
+        buf.writeUtf(msg.search, KleinBottleViewPacket.MAX_SEARCH_LENGTH);
+        buf.writeVarInt(msg.sortOrdinal);
+        buf.writeBoolean(msg.descending);
+        buf.writeVarInt(msg.windowTotals.size());
+        for (int total : msg.windowTotals) {
+            buf.writeVarInt(total);
+        }
+    }
 
-    public static final StreamCodec<ByteBuf, KleinBottleSyncPacket> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT, KleinBottleSyncPacket::scrollRow,
-            ByteBufCodecs.VAR_INT, KleinBottleSyncPacket::visibleRows,
-            ByteBufCodecs.VAR_INT, KleinBottleSyncPacket::viewSize,
-            ByteBufCodecs.VAR_LONG, KleinBottleSyncPacket::totalItems,
-            ByteBufCodecs.stringUtf8(KleinBottleViewPacket.MAX_SEARCH_LENGTH), KleinBottleSyncPacket::search,
-            ByteBufCodecs.VAR_INT, KleinBottleSyncPacket::sortOrdinal,
-            ByteBufCodecs.BOOL, KleinBottleSyncPacket::descending,
-            ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list(256)), KleinBottleSyncPacket::windowTotals,
-            KleinBottleSyncPacket::new);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public static KleinBottleSyncPacket decode(FriendlyByteBuf buf) {
+        int scrollRow = buf.readVarInt();
+        int visibleRows = buf.readVarInt();
+        int viewSize = buf.readVarInt();
+        long totalItems = buf.readVarLong();
+        String search = buf.readUtf(KleinBottleViewPacket.MAX_SEARCH_LENGTH);
+        int sortOrdinal = buf.readVarInt();
+        boolean descending = buf.readBoolean();
+        int size = buf.readVarInt();
+        List<Integer> totals = new ArrayList<>(Math.min(256, size));
+        for (int i = 0; i < size; i++) {
+            totals.add(buf.readVarInt());
+        }
+        return new KleinBottleSyncPacket(scrollRow, visibleRows, viewSize, totalItems,
+                search, sortOrdinal, descending, totals);
     }
 
     /** 当前窗口第 slot 格的总量。界面每帧都会问，做成 O(1)。 */
@@ -67,12 +62,8 @@ public record KleinBottleSyncPacket(
         return slot >= 0 && slot < windowTotals.size() ? windowTotals.get(slot) : 0L;
     }
 
-    public static void handle(KleinBottleSyncPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientKleinBottleView.apply(packet));
-    }
-
-    /** 服务端发送入口 */
-    public static void send(ServerPlayer player, KleinBottleSyncPacket packet) {
-        PacketDistributor.sendToPlayer(player, packet);
+    public static void handle(KleinBottleSyncPacket msg, Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> ClientKleinBottleView.apply(msg));
+        ctx.get().setPacketHandled(true);
     }
 }

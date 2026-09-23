@@ -1,8 +1,10 @@
 {
-  "type": "neoforge:add_table",
-  "condition": {
-    "type": "neoforge:loot_table_id",
-    "loot_table_id": "minecraft:chests/end_city_treasure"
-  },
+  "type": "zuoyanmod:add_table",
+  "conditions": [
+    {
+      "condition": "forge:loot_table_id",
+      "loot_table_id": "minecraft:chests/end_city_treasure"
+    }
+  ],
   "table": "zuoyanmod:inject/hallowed_template"
 }

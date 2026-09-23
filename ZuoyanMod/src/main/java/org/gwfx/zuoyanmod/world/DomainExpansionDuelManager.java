@@ -52,7 +52,7 @@ public final class DomainExpansionDuelManager {
         DomainExpansionWorldGen.generateArena(domainLevel);
         DomainExpansionWorldState.teleportPair(domainLevel, caster, target);
 
-        caster.addEffect(new MobEffectInstance(EffectRegistry.FIGHT_AGAIN, FIGHT_AGAIN_DURATION_TICKS, 0, false, false, true));
+        caster.addEffect(new MobEffectInstance(EffectRegistry.FIGHT_AGAIN.get(), FIGHT_AGAIN_DURATION_TICKS, 0, false, false, true));
         playDuelAudio(domainLevel);
         return true;
     }
@@ -137,3 +137,4 @@ public final class DomainExpansionDuelManager {
 
     }
 }
+

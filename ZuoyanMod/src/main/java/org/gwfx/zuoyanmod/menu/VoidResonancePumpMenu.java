@@ -129,3 +129,4 @@ public class VoidResonancePumpMenu extends AbstractContainerMenu {
         container.stopOpen(player);
     }
 }
+

@@ -1,25 +1,26 @@
 package org.gwfx.zuoyanmod.event;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Relative;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.gwfx.zuoyanmod.platform.Teleports;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 致命伤害保护的共享仲裁器。
  * <p>
- * 解决的问题：名刀司命与空间锚点都订阅 {@code LivingIncomingDamageEvent}，
- * 事件处理顺序取决于 NeoForge 的扫描顺序（不可控），会出现"名刀先取消事件 → 锚点直接 return → 保命生效但不传送"。
+ * 解决的问题：名刀司命与空间锚点都订阅伤害事件，
+ * 事件处理顺序取决于 Forge 的扫描顺序（不可控），会出现"名刀先取消事件 → 锚点直接 return → 保命生效但不传送"。
  * 这里把顺序改成显式的事件优先级 + 共享状态：
  * <ul>
  *   <li>名刀司命：{@code EventPriority.HIGH}，先行判定</li>
@@ -29,6 +30,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * 传送不在伤害事件内直接执行，而是排队到玩家 tick 末尾执行——伤害事件中玩家实体正处在受伤流程里，
  * 此时做跨维度切换（会移除并重建实体）容易与伤害源的后续逻辑打架。
+ * <p>
+ * 1.20.1 适配：Identifier → ResourceLocation；8 参 teleportTo 换成
+ * {@link Teleports#crossDimension}（1.20.1 是 6 参签名，平台层统一封装）。
  */
 public final class FatalProtection {
 
@@ -99,20 +103,22 @@ public final class FatalProtection {
             if (server == null) {
                 return false;
             }
-            ResourceKey<Level> dimensionKey = ResourceKey.create(Registries.DIMENSION, Identifier.parse(dimensionId));
+            ResourceLocation dimensionLocation = ResourceLocation.tryParse(dimensionId);
+            if (dimensionLocation == null) {
+                player.sendSystemMessage(Component.literal("§7空间锚点记录的维度 ID 无效"));
+                return false;
+            }
+            ResourceKey<Level> dimensionKey = ResourceKey.create(Registries.DIMENSION, dimensionLocation);
             ServerLevel target = server.getLevel(dimensionKey);
             if (target == null) {
-                player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§7空间锚点所在的维度不可用"));
+                player.sendSystemMessage(Component.literal("§7空间锚点所在的维度不可用"));
                 return false;
             }
             // 骑乘状态下传送会丢载具，先解除
             serverPlayer.stopRiding();
-            // 跨维度分支内部是"创建新实体 + 移除旧实体"，可能失败，必须检查返回值
-            boolean success = serverPlayer.teleportTo(target, x, y, z, Set.<Relative>of(), yRot, xRot, false);
-            if (!success) {
-                return false;
-            }
-            serverPlayer.playSound(net.minecraft.sounds.SoundEvents.CHORUS_FRUIT_TELEPORT, 1.0F, 1.0F);
+            // 1.20.1 的 teleportTo 返回 void，跨维度失败（维度不存在）已在上面拦截
+            Teleports.crossDimension(serverPlayer, target, x, y, z, yRot, xRot);
+            serverPlayer.playSound(SoundEvents.CHORUS_FRUIT_TELEPORT, 1.0F, 1.0F);
             return true;
         }
     }

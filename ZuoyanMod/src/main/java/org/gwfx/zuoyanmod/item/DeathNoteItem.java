@@ -1,7 +1,7 @@
 package org.gwfx.zuoyanmod.item;
 
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -14,15 +14,18 @@ public class DeathNoteItem extends Item {
         super(properties);
     }
 
+    // 1.20.1 的 Item#use 返回 InteractionResultHolder<ItemStack>
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        if (level.isClientSide()) {
-            openScreen(player.getItemInHand(hand));
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (level.isClientSide) {
+            openScreen(stack);
         }
-        return InteractionResult.SUCCESS;
+        return InteractionResultHolder.success(stack);
     }
 
     private static void openScreen(ItemStack stack) {
-        net.minecraft.client.Minecraft.getInstance().gui.setScreen(new DeathNoteScreen(stack));
+        // 1.20.1 直接在 Minecraft 上 setScreen（26.x 的 .gui.setScreen 是 26.x 的新分层）
+        net.minecraft.client.Minecraft.getInstance().setScreen(new DeathNoteScreen(stack));
     }
 }

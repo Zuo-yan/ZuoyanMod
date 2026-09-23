@@ -1,0 +1,23 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "L":  {
+                          "item":  "minecraft:leather"
+                      },
+                "V":  {
+                          "item":  "zuoyanmod:violet_gold_ingot"
+                      },
+                "C":  {
+                          "item":  "minecraft:cactus"
+                      }
+            },
+    "pattern":  [
+                    "LLL",
+                    "VCV",
+                    "LLL"
+                ],
+    "result":  {
+                   "count":  1,
+                   "item":  "zuoyanmod:counter_belt"
+               }
+}

@@ -9,82 +9,83 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
+
 import java.util.Set;
 
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredBlock;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.registries.DeferredRegister;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.fluid.DarkMatterLiquidBlock;
 import org.gwfx.zuoyanmod.fluid.FluidRegistry;
 
 public final class BlockRegistry {
-    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Zuoyanmod.MODID);
+    public static final DeferredRegister<Block> BLOCKS =
+            DeferredRegister.create(Registries.BLOCK, Zuoyanmod.MODID);
 
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, Zuoyanmod.MODID);
 
     // ===== 紫金矿石（主世界深层稀有，掉落经验） =====
-    public static final DeferredBlock<Block> VIOLET_GOLD_ORE = BLOCKS.registerBlock(
+    public static final RegistryObject<Block> VIOLET_GOLD_ORE = BLOCKS.register(
             "violet_gold_ore",
-            props -> new DropExperienceBlock(UniformInt.of(3, 7), props),
-            () -> BlockBehaviour.Properties.of()
+            // 1.20.1 的参数顺序是 (Properties, IntProvider)（26.x 反过来）
+            () -> new DropExperienceBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.STONE)
                     .requiresCorrectToolForDrops()
-                    .strength(3.0F, 3.0F)
+                    .strength(3.0F, 3.0F), UniformInt.of(3, 7))
     );
 
-    public static final DeferredBlock<Block> DEEPSLATE_VIOLET_GOLD_ORE = BLOCKS.registerBlock(
+    public static final RegistryObject<Block> DEEPSLATE_VIOLET_GOLD_ORE = BLOCKS.register(
             "deepslate_violet_gold_ore",
-            props -> new DropExperienceBlock(UniformInt.of(3, 7), props),
-            () -> BlockBehaviour.Properties.of()
+            () -> new DropExperienceBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.DEEPSLATE)
                     .requiresCorrectToolForDrops()
                     .strength(4.5F, 3.0F)
-                    .sound(SoundType.DEEPSLATE)
+                    .sound(SoundType.DEEPSLATE), UniformInt.of(3, 7))
     );
 
     // ===== 紫金块（存储方块） =====
-    public static final DeferredBlock<Block> VIOLET_GOLD_BLOCK = BLOCKS.registerBlock(
+    public static final RegistryObject<Block> VIOLET_GOLD_BLOCK = BLOCKS.register(
             "violet_gold_block",
-            Block::new,
-            () -> BlockBehaviour.Properties.of()
+            () -> new Block(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.GOLD)
                     .requiresCorrectToolForDrops()
                     .strength(3.0F, 6.0F)
-                    .sound(SoundType.METAL)
+                    .sound(SoundType.METAL))
     );
 
     // ===== 液态暗物质（高密度奇异流体，见 DarkMatterEventHandler 惩罚逻辑） =====
-    public static final DeferredBlock<DarkMatterLiquidBlock> DARK_MATTER_BLOCK = BLOCKS.registerBlock(
+    public static final RegistryObject<DarkMatterLiquidBlock> DARK_MATTER_BLOCK = BLOCKS.register(
             "dark_matter",
-            props -> new DarkMatterLiquidBlock(FluidRegistry.DARK_MATTER.get(), props),
-            () -> BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_BLACK)
-                    .replaceable()
-                    .noCollision()
-                    .strength(100.0F)
-                    .pushReaction(PushReaction.POPPED)
-                    .noLootTable()
-                    .liquid()
-                    .sound(SoundType.EMPTY)
+            () -> new DarkMatterLiquidBlock(
+                    (net.minecraft.world.level.material.FlowingFluid) FluidRegistry.DARK_MATTER.get(),
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_BLACK)
+                            .replaceable()
+                            .noCollission()   // 1.20.1 拼写是 noCollission（双 l）
+                            .strength(100.0F)
+                            .pushReaction(PushReaction.DESTROY)
+                            .noLootTable()
+                            .liquid()
+                            .sound(SoundType.EMPTY))
     );
 
     // ===== 虚空共振泵（末地悬空处把过剩物转化为暗物质粒子） =====
-    public static final DeferredBlock<VoidResonancePumpBlock> VOID_RESONANCE_PUMP = BLOCKS.registerBlock(
+    public static final RegistryObject<VoidResonancePumpBlock> VOID_RESONANCE_PUMP = BLOCKS.register(
             "void_resonance_pump",
-            VoidResonancePumpBlock::new,
-            () -> BlockBehaviour.Properties.of()
+            () -> new VoidResonancePumpBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_PURPLE)
                     .requiresCorrectToolForDrops()
                     .strength(3.5F, 6.0F)
-                    .sound(SoundType.METAL)
+                    .sound(SoundType.METAL))
     );
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VoidResonancePumpBlockEntity>> VOID_RESONANCE_PUMP_BE =
+    // 1.20.1 的 BlockEntityType 泛型在 RegistryObject 里要用通配（BlockEntity 基类的构造参数也是 BlockEntityType<?>）；
+    // 构造器第三个参数是 datafixer Type，模组惯例传 null
+    public static final RegistryObject<BlockEntityType<?>> VOID_RESONANCE_PUMP_BE =
             BLOCK_ENTITY_TYPES.register("void_resonance_pump",
-                    () -> new BlockEntityType<>(VoidResonancePumpBlockEntity::new, Set.of(VOID_RESONANCE_PUMP.get())));
+                    () -> new BlockEntityType<>(VoidResonancePumpBlockEntity::new, Set.of(VOID_RESONANCE_PUMP.get()), null));
 
     private BlockRegistry() {}
 

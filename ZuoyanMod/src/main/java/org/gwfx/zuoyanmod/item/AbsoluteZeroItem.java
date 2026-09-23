@@ -4,15 +4,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import org.gwfx.zuoyanmod.event.TimeFreezeManager;
 
-import java.util.function.Consumer;
+import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * 绝对零度：右键释放「玻色-爱因斯坦凝聚」。
@@ -36,35 +37,35 @@ public class AbsoluteZeroItem extends Item {
         super(properties);
     }
 
+    // 1.20.1 的 Item#use 返回 InteractionResultHolder<ItemStack>（26.x 才是 InteractionResult）
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (level.isClientSide) {
+            return InteractionResultHolder.success(stack);
         }
         if (!(level instanceof ServerLevel serverLevel)) {
-            return InteractionResult.PASS;
+            return InteractionResultHolder.pass(stack);
         }
         // 场上已有未消散的凝聚场：拒绝，避免连点白白烧掉一次耐久
         if (TimeFreezeManager.hasActiveField(player)) {
             player.sendSystemMessage(Component.literal("§7凝聚场尚未消散"));
-            return InteractionResult.FAIL;
+            return InteractionResultHolder.fail(stack);
         }
 
         TimeFreezeManager.cast(serverLevel, player);
 
-        ItemStack stack = player.getItemInHand(hand);
-        stack.hurtAndBreak(1, player, hand);
-        return InteractionResult.CONSUME;
+        stack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(hand));
+        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§3绝对零度"));
-        tooltip.accept(Component.literal("§7右键: 释放「玻色-爱因斯坦凝聚」"));
-        tooltip.accept(Component.literal("§7· 冻结周围实体 §f15 §7秒"));
-        tooltip.accept(Component.literal("§7· 地上的暗物质 → §d超流体暗物质"));
-        tooltip.accept(Component.literal("§2耐久: " + MAX_USES + " 次"));
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, level, tooltip, flag);
+        tooltip.add(Component.literal("§3绝对零度"));
+        tooltip.add(Component.literal("§7右键: 释放「玻色-爱因斯坦凝聚」"));
+        tooltip.add(Component.literal("§7· 冻结周围实体 §f15 §7秒"));
+        tooltip.add(Component.literal("§7· 地上的暗物质 → §d超流体暗物质"));
+        tooltip.add(Component.literal("§2耐久: " + MAX_USES + " 次"));
     }
 }

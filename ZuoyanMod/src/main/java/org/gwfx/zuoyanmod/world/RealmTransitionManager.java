@@ -23,7 +23,7 @@ public final class RealmTransitionManager {
     private RealmTransitionManager() {}
 
     public static void toggle(ServerPlayer player) {
-        LOGGER.info("[Realm] toggle requested by {} in {}", player.getName().getString(), player.level().dimension().identifier());
+        LOGGER.info("[Realm] toggle requested by {} in {}", player.getName().getString(), player.level().dimension().location());
         if (player.level().dimension().equals(RealmDimensions.REALM_KEY)) {
             leaveRealm(player);
         } else {
@@ -61,7 +61,7 @@ public final class RealmTransitionManager {
         ResourceKey<Level> dimension = Objects.requireNonNull(destination.dimension());
         ServerLevel target = server.getLevel(dimension);
         if (target == null) {
-            LOGGER.warn("[Realm] destination dimension {} is unavailable", dimension.identifier());
+            LOGGER.warn("[Realm] destination dimension {} is unavailable", dimension.location());
             return;
         }
         teleport(player, target, destination);
@@ -69,7 +69,7 @@ public final class RealmTransitionManager {
 
     private static void teleport(ServerPlayer player, ServerLevel level, Position destination) {
         LOGGER.info("[Realm] teleporting {} to {} at {}, {}, {}", player.getName().getString(),
-                level.dimension().identifier(), destination.x(), destination.y(), destination.z());
+                level.dimension().location(), destination.x(), destination.y(), destination.z());
         // 传送签名随版本变化，统一走 platform 适配层
         Teleports.crossDimension(player, level, destination.x(), destination.y(), destination.z(),
                 destination.yRot(), destination.xRot());

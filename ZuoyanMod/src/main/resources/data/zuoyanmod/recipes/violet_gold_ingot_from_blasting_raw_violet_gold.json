@@ -1,0 +1,12 @@
+﻿{
+    "type":  "minecraft:blasting",
+    "cookingtime":  100,
+    "experience":  1.0,
+    "group":  "violet_gold_ingot",
+    "ingredient":  {
+                       "item":  "zuoyanmod:raw_violet_gold"
+                   },
+    "result":  {
+                   "item":  "zuoyanmod:violet_gold_ingot"
+               }
+}

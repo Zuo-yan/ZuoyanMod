@@ -1,7 +1,7 @@
 package org.gwfx.zuoyanmod.client.klein;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
 /**
  * 槽位右下角的数量叠字。
@@ -16,6 +16,9 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
  *   <li>颜色跟着量级走（见 {@link KleinTheme#amountColor(long)}）：破千转青、破百万纯青，
  *       让"这一格背后是四维空间"在视觉上先于文字被读到。</li>
  * </ul>
+ *
+ * <p>1.20.1 适配：GuiGraphicsExtractor→{@link GuiGraphics}，
+ * pushMatrix/popMatrix→pushPose/popPose，graphics.text→graphics.drawString。
  */
 public final class KleinAmountRenderer {
 
@@ -27,10 +30,11 @@ public final class KleinAmountRenderer {
     /**
      * 画数量叠字。
      *
-     * <p>⚠️ <b>本方法不管绘制批次</b>：调用方要先自己调一次 {@code graphics.nextStratum()}，
-     * 否则叠字可能被物品图标的批次盖住（AE2 的 {@code StackSizeRenderer} 也是在调用点切批次的）。
+     * <p>⚠️ <b>本方法不管绘制批次</b>：调用方要先自己调一次 {@code graphics.nextStratum()}（1.20.1 里叫
+     * {@code graphics.flush()} 或在 item 层之后绘制），否则叠字可能被物品图标的批次盖住
+     * （AE2 的 {@code StackSizeRenderer} 也是在调用点切批次的）。
      */
-    public static void draw(GuiGraphicsExtractor graphics, Font font, int slotX, int slotY, String text, int color) {
+    public static void draw(GuiGraphics graphics, Font font, int slotX, int slotY, String text, int color) {
         int width = font.width(text);
         float scale = width <= 16 ? 1.0F
                 : width <= 21 ? 0.75F
@@ -41,18 +45,18 @@ public final class KleinAmountRenderer {
         float drawX = (16 - width * scale - 1.0F) / scale;
         float drawY = (16 - LINE_HEIGHT * scale) / scale;
 
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(slotX, slotY);
-        graphics.pose().scale(scale, scale);
-        graphics.text(font, text, Math.round(drawX), Math.round(drawY), color, true);
-        graphics.pose().popMatrix();
+        graphics.pose().pushPose();
+        graphics.pose().translate(slotX, slotY, 0);
+        graphics.pose().scale(scale, scale, 1);
+        graphics.drawString(font, text, Math.round(drawX), Math.round(drawY), color, true);
+        graphics.pose().popPose();
     }
 
     /**
      * 大数量额外补一圈很淡的外发光，读起来像"数字在往外溢"。
      * 只在 {@code >= 1000} 时调用，避免普通堆叠也被糊上一层。
      */
-    public static void drawGlow(GuiGraphicsExtractor graphics, Font font, int slotX, int slotY, String text,
+    public static void drawGlow(GuiGraphics graphics, Font font, int slotX, int slotY, String text,
                                 int color, float time) {
         float pulse = 0.30F + 0.22F * (float) Math.sin(time * 2.4F);
         int glow = KleinTheme.withAlpha(color, pulse);
@@ -61,12 +65,12 @@ public final class KleinAmountRenderer {
         float drawX = (16 - width * scale - 1.0F) / scale;
         float drawY = (16 - LINE_HEIGHT * scale) / scale;
 
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(slotX, slotY);
-        graphics.pose().scale(scale, scale);
+        graphics.pose().pushPose();
+        graphics.pose().translate(slotX, slotY, 0);
+        graphics.pose().scale(scale, scale, 1);
         for (int dx = -1; dx <= 1; dx += 2) {
-            graphics.text(font, text, Math.round(drawX) + dx, Math.round(drawY), glow, false);
+            graphics.drawString(font, text, Math.round(drawX) + dx, Math.round(drawY), glow, false);
         }
-        graphics.pose().popMatrix();
+        graphics.pose().popPose();
     }
 }

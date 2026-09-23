@@ -14,9 +14,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.damage.VacuumDecayDamageSource;
 
@@ -33,12 +33,14 @@ import java.util.UUID;
  *   <li><b>坍缩爆炸</b>：时间到 → 对 {@link #BLAST_RADIUS} 内的活体各造成
  *       {@link #BLAST_DAMAGE} 点伤害，**同样不打施术者**，然后场消失。</li>
  * </ol>
- * 牵引为什么要写 {@code syncVelocity}：{@code Entity.push} 在 26.3 只置 {@code needsSync}
- * （位置同步），速度变更必须额外置 {@code entity.syncVelocity = true}，服务端才会补发
+ * 牵引为什么要写 {@code hurtMarked}：{@code Entity.push} 只影响服务端内部的
+ * 运动计算，速度变更必须额外置 {@code entity.hurtMarked = true}，服务端才会补发
  * {@code ClientboundSetEntityMotionPacket}（见 {@code ServerEntity.sendChanges}）。
  * 玩家是客户端权威的，漏了这一步就只有生物会被吸过来、玩家纹丝不动。
+ * <p>
+ * 1.20.1 Forge 的服务端 tick 事件是 {@code TickEvent.ServerTickEvent}，用 phase 区分前后。
  */
-@EventBusSubscriber(modid = Zuoyanmod.MODID)
+@Mod.EventBusSubscriber(modid = Zuoyanmod.MODID)
 public final class VacuumDecayBlackHoleManager {
 
     /** 聚怪半径：以黑洞为中心 16 格内的实体都会被拽过来 */
@@ -90,7 +92,10 @@ public final class VacuumDecayBlackHoleManager {
     // ===== 每 tick 维持 =====
 
     @SubscribeEvent
-    public static void onServerTick(ServerTickEvent.Post event) {
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) {
+            return;
+        }
         if (HOLES.isEmpty()) {
             return;
         }
@@ -133,8 +138,8 @@ public final class VacuumDecayBlackHoleManager {
             double accel = PULL_ACCEL_BASE + PULL_ACCEL_BONUS * (1.0D - Math.min(1.0D, distance / PULL_RADIUS));
             Vec3 pull = delta.scale(accel / distance);
             entity.push(pull.x, pull.y, pull.z);
-            // 26.3：push 只同步位置，速度要额外打这个标记才会发 SetEntityMotion 包
-            entity.syncVelocity = true;
+            // 1.20.1：速度变更后要打这个标记，服务端才会发 SetEntityMotion 包给客户端
+            entity.hurtMarked = true;
 
             if (visualTick) {
                 level.sendParticles(ParticleTypes.PORTAL,
@@ -161,11 +166,11 @@ public final class VacuumDecayBlackHoleManager {
             if (living.getUUID().equals(hole.caster())) {
                 continue;
             }
-            living.hurtServer(level, source, BLAST_DAMAGE);
+            living.hurt(source, BLAST_DAMAGE);
         }
 
         level.playSound(null, center.x, center.y, center.z,
-                SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 1.8F, 0.8F);
+                SoundEvents.GENERIC_EXPLODE, SoundSource.PLAYERS, 1.8F, 0.8F);
         level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, center.x, center.y, center.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
         level.sendParticles(ParticleTypes.REVERSE_PORTAL, center.x, center.y, center.z, 60, 2.0D, 2.0D, 2.0D, 0.9D);
 

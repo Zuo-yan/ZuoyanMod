@@ -1,27 +1,30 @@
 package org.gwfx.zuoyanmod.event;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
 
-@EventBusSubscriber(modid = Zuoyanmod.MODID)
+/**
+ * 耶梦加得的毒牙：未满血受击概率使攻击者中毒；攻击者中毒时按护甲值反伤。
+ * 1.20.1 适配：LivingDamageEvent.Pre→{@code LivingDamageEvent}；hurtServer→hurt。
+ */
+@Mod.EventBusSubscriber(modid = Zuoyanmod.MODID)
 public final class YemengadeVenomFangEventHandler {
 
     private YemengadeVenomFangEventHandler() {}
 
     @SubscribeEvent
-    public static void onLivingDamage(LivingDamageEvent.Pre event) {
+    public static void onLivingDamage(LivingDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        if (player.level().isClientSide()) return;
+        if (player.level().isClientSide) return;
 
         if (!hasVenomFangInInventory(player)) return;
 
@@ -39,8 +42,8 @@ public final class YemengadeVenomFangEventHandler {
         // 若攻击者已带有中毒效果，则反伤等同于自身护甲值的伤害
         if (attacker.hasEffect(MobEffects.POISON)) {
             float armorDamage = (float) player.getArmorValue();
-            if (armorDamage > 0.0f && attacker.level() instanceof ServerLevel serverLevel) {
-                attacker.hurtServer(serverLevel, player.damageSources().thorns(player), armorDamage);
+            if (armorDamage > 0.0f) {
+                attacker.hurt(player.damageSources().thorns(player), armorDamage);
                 player.sendSystemMessage(Component.literal("§c尘世巨蟒§7：反伤 §c" + armorDamage + "§7 点"));
             }
         }

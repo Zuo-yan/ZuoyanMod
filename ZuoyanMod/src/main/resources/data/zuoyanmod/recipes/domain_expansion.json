@@ -1,0 +1,24 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "D":  {
+                          "item":  "zuoyanmod:dark_matter"
+                      },
+                "E":  {
+                          "item":  "minecraft:ender_eye"
+                      },
+                "S":  {
+                          "item":  "minecraft:echo_shard"
+                      }
+            },
+    "pattern":  [
+                    "DED",
+                    "ESE",
+                    "DED"
+                ],
+    "result":  {
+                   "count":  1,
+                   "item":  "zuoyanmod:domain_expansion"
+               },
+    "category":  "misc"
+}

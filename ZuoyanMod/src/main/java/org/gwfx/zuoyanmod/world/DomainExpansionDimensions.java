@@ -2,7 +2,7 @@ package org.gwfx.zuoyanmod.world;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -13,7 +13,7 @@ public final class DomainExpansionDimensions {
 
     public static final ResourceKey<Level> DOMAIN_KEY = ResourceKey.create(
             Registries.DIMENSION,
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "domain_expansion")
+            new ResourceLocation(Zuoyanmod.MODID, "domain_expansion")
     );
     public static final ResourceKey<Level> OVERWORLD_KEY = Level.OVERWORLD;
     public static final BlockPos PLATFORM_CENTER = new BlockPos(0, 80, 0);

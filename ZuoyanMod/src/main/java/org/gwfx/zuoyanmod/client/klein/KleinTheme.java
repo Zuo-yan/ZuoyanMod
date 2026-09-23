@@ -1,7 +1,8 @@
 package org.gwfx.zuoyanmod.client.klein;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 
 /**
@@ -35,8 +36,8 @@ import org.gwfx.zuoyanmod.Zuoyanmod;
 public final class KleinTheme {
 
     // ===== 底图 =====
-    public static final Identifier BACKGROUND =
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/gui/klein_terminal.png");
+    public static final ResourceLocation BACKGROUND =
+            new ResourceLocation(Zuoyanmod.MODID, "textures/gui/klein_terminal.png");
 
     // ===== 面板 =====
     public static final int PANEL = 0xFF1B1430;
@@ -79,19 +80,19 @@ public final class KleinTheme {
     // ===== 通用绘制 =====
 
     public static int withAlpha(int argb, float alpha) {
-        int a = (int) (((argb >>> 24) & 0xFF) * Math.clamp(alpha, 0.0F, 1.0F));
+        int a = (int) (((argb >>> 24) & 0xFF) * Mth.clamp(alpha, 0.0F, 1.0F));
         return (a << 24) | (argb & 0x00FFFFFF);
     }
 
     public static int scaleColor(int argb, float factor) {
-        int r = Math.clamp((int) (((argb >> 16) & 0xFF) * factor), 0, 255);
-        int g = Math.clamp((int) (((argb >> 8) & 0xFF) * factor), 0, 255);
-        int b = Math.clamp((int) ((argb & 0xFF) * factor), 0, 255);
+        int r = Mth.clamp((int) (((argb >> 16) & 0xFF) * factor), 0, 255);
+        int g = Mth.clamp((int) (((argb >> 8) & 0xFF) * factor), 0, 255);
+        int b = Mth.clamp((int) ((argb & 0xFF) * factor), 0, 255);
         return (argb & 0xFF000000) | (r << 16) | (g << 8) | b;
     }
 
     /** 上下渐变的横条（用若干条 1px 线近似），用于"发光"物件 */
-    public static void vGradient(GuiGraphicsExtractor g, int x, int y, int w, int h, int top, int bottom) {
+    public static void vGradient(GuiGraphics g, int x, int y, int w, int h, int top, int bottom) {
         for (int i = 0; i < h; i++) {
             float t = h <= 1 ? 0F : (float) i / (h - 1);
             int r = (int) (((top >> 16) & 0xFF) * (1 - t) + ((bottom >> 16) & 0xFF) * t);
@@ -103,7 +104,7 @@ public final class KleinTheme {
     }
 
     /** 1px 描边矩形 */
-    public static void outline(GuiGraphicsExtractor g, int x, int y, int w, int h, int color) {
+    public static void outline(GuiGraphics g, int x, int y, int w, int h, int color) {
         g.fill(x, y, x + w, y + 1, color);
         g.fill(x, y + h - 1, x + w, y + h, color);
         g.fill(x, y + 1, x + 1, y + h - 1, color);
@@ -111,7 +112,7 @@ public final class KleinTheme {
     }
 
     /** 工具按钮：外框随 hover / 开关状态换色 */
-    public static void buttonFrame(GuiGraphicsExtractor g, int x, int y, int size, boolean hovered, boolean on) {
+    public static void buttonFrame(GuiGraphics g, int x, int y, int size, boolean hovered, boolean on) {
         int fill = on ? BUTTON_ON : (hovered ? BUTTON_FILL_HOVER : BUTTON_FILL);
         g.fill(x, y, x + size, y + size, fill);
         vGradient(g, x + 1, y + 1, size - 2, (size - 2) / 2,
@@ -126,7 +127,7 @@ public final class KleinTheme {
     }
 
     /** 搜索框：凹槽 + 左侧放大镜 + 聚焦时的青色呼吸边 */
-    public static void searchFrame(GuiGraphicsExtractor g, int x, int y, int w, int h, boolean focused) {
+    public static void searchFrame(GuiGraphics g, int x, int y, int w, int h, boolean focused) {
         g.fill(x, y, x + w, y + h, withAlpha(PANEL_DEEP, 0.92F));
         outline(g, x, y, w, h, focused ? withAlpha(CYAN, 0.9F) : withAlpha(BORDER, 0.7F));
         // 放大镜
@@ -138,12 +139,12 @@ public final class KleinTheme {
     }
 
     /** 存储槽：在底图的凹槽上再叠一层，用于 hover 高亮与"越界"提示 */
-    public static void slotOverlay(GuiGraphicsExtractor g, int slotX, int slotY, int color) {
+    public static void slotOverlay(GuiGraphics g, int slotX, int slotY, int color) {
         g.fill(slotX - 1, slotY - 1, slotX + 17, slotY + 17, color);
     }
 
     /** 悬浮在槽位四角的青色括号，比原版高亮更贴合"超立方"的观感 */
-    public static void cornerBrackets(GuiGraphicsExtractor g, int x, int y, int color) {
+    public static void cornerBrackets(GuiGraphics g, int x, int y, int color) {
         int x1 = x + 16;
         int y1 = y + 16;
         // 左上
@@ -161,7 +162,7 @@ public final class KleinTheme {
     }
 
     public static int blend(int a, int b, float t) {
-        t = Math.clamp(t, 0.0F, 1.0F);
+        t = Mth.clamp(t, 0.0F, 1.0F);
         int aa = (int) (((a >>> 24) & 0xFF) * (1 - t) + ((b >>> 24) & 0xFF) * t);
         int ar = (int) (((a >> 16) & 0xFF) * (1 - t) + ((b >> 16) & 0xFF) * t);
         int ag = (int) (((a >> 8) & 0xFF) * (1 - t) + ((b >> 8) & 0xFF) * t);
@@ -175,7 +176,7 @@ public final class KleinTheme {
      * 竖放的 ∞，有一个光点顺着曲线往下淌。x 的幅度取 {@code w-2}：
      * {@code sin·cos} 的峰值只有 0.5，取 {@code w/2} 会瘦成一根线。
      */
-    public static void infinityFlow(GuiGraphicsExtractor g, int x, int y, int w, int h, float time) {
+    public static void infinityFlow(GuiGraphics g, int x, int y, int w, int h, float time) {
         float cx = x + w / 2.0F;
         float cy = y + h / 2.0F;
         float ax = w - 2.0F;
@@ -203,13 +204,13 @@ public final class KleinTheme {
     // ===== 熔炉：炉火与进度条 =====
 
     /** 炉火。火焰高度 = 剩余燃料，<b>从下往上烧掉</b>。底部金、顶部转青。 */
-    public static void flame(GuiGraphicsExtractor g, int x, int y, int w, int h, float fill, float time) {
+    public static void flame(GuiGraphics g, int x, int y, int w, int h, float fill, float time) {
         g.fill(x, y, x + w, y + h, withAlpha(WELL, 0.88F));
         outline(g, x, y, w, h, withAlpha(WELL_EDGE, 0.85F));
         if (fill <= 0.0F) {
             return;
         }
-        int lit = Math.max(1, Math.round(h * Math.clamp(fill, 0.0F, 1.0F)));
+        int lit = Math.max(1, Math.round(h * Mth.clamp(fill, 0.0F, 1.0F)));
         float cx = x + w / 2.0F;
         for (int row = 0; row < lit; row++) {
             int yy = y + h - 1 - row;
@@ -222,10 +223,10 @@ public final class KleinTheme {
     }
 
     /** 横向进度条：填充随进度推进，头部有一道会呼吸的亮边 */
-    public static void progressBar(GuiGraphicsExtractor g, int x, int y, int w, int h, float progress, float time) {
+    public static void progressBar(GuiGraphics g, int x, int y, int w, int h, float progress, float time) {
         g.fill(x, y, x + w, y + h, withAlpha(WELL, 0.88F));
         outline(g, x, y, w, h, withAlpha(WELL_EDGE, 0.85F));
-        float p = Math.clamp(progress, 0.0F, 1.0F);
+        float p = Mth.clamp(progress, 0.0F, 1.0F);
         int filled = Math.round(w * p);
         if (filled <= 0) {
             return;
@@ -240,7 +241,7 @@ public final class KleinTheme {
     }
 
     /** 单行输入框的凹槽（铁砧改名用）。搜索框带放大镜，这里不带，其余同款。 */
-    public static void nameFrame(GuiGraphicsExtractor g, int x, int y, int w, int h, boolean focused) {
+    public static void nameFrame(GuiGraphics g, int x, int y, int w, int h, boolean focused) {
         g.fill(x, y, x + w, y + h, withAlpha(PANEL_DEEP, 0.92F));
         outline(g, x, y, w, h, focused ? withAlpha(CYAN, 0.9F) : withAlpha(BORDER, 0.7F));
     }
@@ -249,7 +250,7 @@ public final class KleinTheme {
      * 斜向扫光。只画在网格带上、alpha 很低，用来让整片槽位"活"起来，
      * 又不会盖住物品图标（最大值 ≈ 0x12）。
      */
-    public static void sweep(GuiGraphicsExtractor g, int x, int y, int w, int h, float time, int color) {
+    public static void sweep(GuiGraphics g, int x, int y, int w, int h, float time, int color) {
         float period = 7.5F;
         float t = (time % period) / period;
         int bandW = 26;
@@ -269,7 +270,7 @@ public final class KleinTheme {
     // ===== 图标 =====
 
     /** 工作台：2×2 网格。右栏「合成」标题旁边那枚小图标。 */
-    public static void iconCrafting(GuiGraphicsExtractor g, int x, int y, int size, int color) {
+    public static void iconCrafting(GuiGraphics g, int x, int y, int size, int color) {
         int mid = size / 2;
         outline(g, x + 1, y + 1, size - 2, size - 2, color);
         g.fill(x + mid - 1, y + 2, x + mid, y + size - 2, color);
@@ -277,7 +278,7 @@ public final class KleinTheme {
     }
 
     /** 回到顶部：顶部一条横杠 + 一个向上的箭头 */
-    public static void iconToTop(GuiGraphicsExtractor g, int x, int y, int size, int color, int accent) {
+    public static void iconToTop(GuiGraphics g, int x, int y, int size, int color, int accent) {
         int cx = x + size / 2;
         g.fill(x + 3, y + 3, x + size - 3, y + 4, color);
         g.fill(cx - 1, y + 6, cx, y + size - 3, accent);
@@ -288,7 +289,7 @@ public final class KleinTheme {
     }
 
     /** 排序方式：长度递减的三条横条（右对齐） */
-    public static void iconSortMode(GuiGraphicsExtractor g, int x, int y, int size, int color) {
+    public static void iconSortMode(GuiGraphics g, int x, int y, int size, int color) {
         int right = x + size - 2;
         g.fill(right - 12, y + 3, right, y + 4, color);
         g.fill(right - 12, y + 7, right - 4, y + 8, color);
@@ -299,7 +300,7 @@ public final class KleinTheme {
     }
 
     /** 排序方向：升/降箭头 */
-    public static void iconSortDir(GuiGraphicsExtractor g, int x, int y, int size, int color, boolean down) {
+    public static void iconSortDir(GuiGraphics g, int x, int y, int size, int color, boolean down) {
         int cx = x + size / 2;
         int top = y + 3;
         int bottom = y + size - 4;
@@ -315,7 +316,7 @@ public final class KleinTheme {
     }
 
     /** 清空搜索：一个 × */
-    public static void iconClear(GuiGraphicsExtractor g, int x, int y, int size, int color) {
+    public static void iconClear(GuiGraphics g, int x, int y, int size, int color) {
         int a = x + 3;
         int b = y + 3;
         int len = size - 6;
@@ -326,7 +327,7 @@ public final class KleinTheme {
     }
 
     /** 熔炉图标：一个小炉膛 + 里面的火苗。「熔炼」标题旁边那枚。 */
-    public static void iconFurnace(GuiGraphicsExtractor g, int x, int y, int size, int color, int fireColor) {
+    public static void iconFurnace(GuiGraphics g, int x, int y, int size, int color, int fireColor) {
         outline(g, x + 1, y + 1, size - 2, size - 2, color);
         g.fill(x + 2, y + size - 3, x + size - 2, y + size - 2, color);
         int cx = x + size / 2;
@@ -338,7 +339,7 @@ public final class KleinTheme {
     }
 
     /** 铁砧图标：锤头朝下的铁砧侧影。「铁砧」标题旁边那枚。 */
-    public static void iconAnvil(GuiGraphicsExtractor g, int x, int y, int size, int color) {
+    public static void iconAnvil(GuiGraphics g, int x, int y, int size, int color) {
         int base = y + size - 3;
         g.fill(x + 1, base, x + size - 1, base + 2, color);              // 底座
         g.fill(x + 3, base - 2, x + size - 3, base, color);              // 颈
@@ -363,3 +364,4 @@ public final class KleinTheme {
         return TEXT;
     }
 }
+

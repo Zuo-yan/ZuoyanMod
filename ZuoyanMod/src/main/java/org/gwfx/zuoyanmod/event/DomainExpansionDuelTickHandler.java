@@ -6,9 +6,9 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.world.DomainExpansionDimensions;
 import org.gwfx.zuoyanmod.world.DomainExpansionWorldState;
@@ -19,7 +19,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@EventBusSubscriber(modid = Zuoyanmod.MODID)
+/**
+ * 领域展开决斗的延迟送回：败者 5 秒倒计时后送回原世界。
+ * 1.20.1 适配：ServerTickEvent.Post→{@code TickEvent.ServerTickEvent}(END)。
+ */
+@Mod.EventBusSubscriber(modid = Zuoyanmod.MODID)
 public final class DomainExpansionDuelTickHandler {
 
     private static final int RETURN_DELAY_TICKS = 20 * 5;
@@ -33,7 +37,10 @@ public final class DomainExpansionDuelTickHandler {
     }
 
     @SubscribeEvent
-    public static void onServerTick(ServerTickEvent.Post event) {
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) {
+            return;
+        }
         MinecraftServer server = event.getServer();
 
         Iterator<Map.Entry<UUID, DelayedReturn>> iterator = DELAYED_RETURNS.entrySet().iterator();
@@ -51,7 +58,8 @@ public final class DomainExpansionDuelTickHandler {
     private static void sendCountdown(MinecraftServer server, UUID participant, int seconds) {
         var player = server.getPlayerList().getPlayer(participant);
         if (player != null) {
-            player.sendOverlayMessage(Component.literal("§e" + seconds + "秒后回到原世界").withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            // 1.20.1 没有 sendOverlayMessage，用 displayClientMessage(actionBar=true) 等价实现
+            player.displayClientMessage(Component.literal("§e" + seconds + "秒后回到原世界").withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)), true);
         }
     }
 

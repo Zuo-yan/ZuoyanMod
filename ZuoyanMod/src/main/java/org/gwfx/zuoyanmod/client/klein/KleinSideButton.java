@@ -1,9 +1,8 @@
 package org.gwfx.zuoyanmod.client.klein;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -22,12 +21,15 @@ import net.minecraft.network.chat.Component;
  * **无边框、浮空**（v8，玩家点名要 RS2 那种）：平时就是一枚图标；hover 时
  * 一层极淡的底 + 底部一条青色下划线。图标由调用方给一个绘制回调——
  * 排序方向那种会随状态翻转的图标就是这么换的。
+ *
+ * <p>1.20.1 适配：GuiGraphicsExtractor→{@link GuiGraphics}；
+ * onPress 不带参数；extractContents→renderWidget。
  */
 public final class KleinSideButton extends AbstractButton {
 
     /** 图标绘制回调：在按钮左上角坐标系里画 {@code size × size} 的图标 */
     public interface IconRenderer {
-        void draw(GuiGraphicsExtractor graphics, int x, int y, int size, boolean hovered, float time);
+        void draw(GuiGraphics graphics, int x, int y, int size, boolean hovered, float time);
     }
 
     private final IconRenderer icon;
@@ -40,12 +42,12 @@ public final class KleinSideButton extends AbstractButton {
     }
 
     @Override
-    public void onPress(InputWithModifiers input) {
+    public void onPress() {
         action.run();
     }
 
     @Override
-    protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         boolean hovered = isHovered();
         // **不画边框**（v8 改的，玩家点名要 RS2 那种"四个浮空控件"）：
         // 平时只有图标本身；hover 时才给一层极淡的底 + 底部一条青色下划线，

@@ -1,6 +1,6 @@
 package org.gwfx.zuoyanmod.effect;
 
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,16 +12,16 @@ public class MambaForceDefenseEffect extends MobEffect {
         super(MobEffectCategory.HARMFUL, 0xFF0000);
     }
 
-    // 26.3 新方法名：替代旧版 isDurationEffectTick
+    // 1.20.1 的方法名是 isDurationEffectTick（26.3 才改名 shouldApplyEffectTickThisTick）
     @Override
-    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
+    public boolean isDurationEffectTick(int duration, int amplifier) {
         return duration == 1; // 倒计时结束最后 1 tick 触发
     }
 
-    // 26.3 新方法签名：接收 ServerLevel 并返回 boolean
+    // 1.20.1 不传 ServerLevel、返回 void（26.3 才改成那个签名）；Level 从实体身上拿
     @Override
-    public boolean applyEffectTick(ServerLevel level, LivingEntity entity, int amplifier) {
-        entity.hurt(HeartParalysisDamageSource.create(level), Float.MAX_VALUE);
-        return true;
+    public void applyEffectTick(LivingEntity entity, int amplifier) {
+        entity.hurt(HeartParalysisDamageSource.create(entity.level()), Float.MAX_VALUE);
     }
 }
+

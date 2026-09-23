@@ -1,6 +1,7 @@
 package org.gwfx.zuoyanmod.client.klein;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.util.Mth;
 
 import java.util.function.IntConsumer;
 
@@ -79,7 +80,7 @@ public final class KleinScrollbar {
     }
 
     private int clampRow(int row) {
-        return Math.clamp(row, 0, maxRow());
+        return Mth.clamp(row, 0, maxRow());
     }
 
     private void moveTo(int row) {
@@ -159,7 +160,7 @@ public final class KleinScrollbar {
             return;
         }
         double upper = mouseY - trackY - handleHeight() / 2.0;
-        double position = Math.clamp(upper / usable, 0.0, 1.0);
+        double position = Mth.clamp(upper / usable, 0.0, 1.0);
         moveTo((int) Math.round(position * maxRow()));
     }
 
@@ -194,7 +195,7 @@ public final class KleinScrollbar {
     // ===== 绘制 =====
 
     /** 手柄。轨道凹槽已经烤进底图了，这里只画会动的那截。 */
-    public void render(GuiGraphicsExtractor g, float time, boolean hovered) {
+    public void render(GuiGraphics g, float time, boolean hovered) {
         boolean enabled = isEnabled();
         int h = handleHeight();
         int y = handleTop();

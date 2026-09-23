@@ -1,0 +1,12 @@
+﻿{
+    "type":  "minecraft:smelting",
+    "cookingtime":  200,
+    "experience":  1.0,
+    "group":  "violet_gold_ingot",
+    "ingredient":  {
+                       "item":  "zuoyanmod:violet_gold_ore"
+                   },
+    "result":  {
+                   "item":  "zuoyanmod:violet_gold_ingot"
+               }
+}

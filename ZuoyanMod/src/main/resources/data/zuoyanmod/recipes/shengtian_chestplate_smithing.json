@@ -1,0 +1,15 @@
+﻿{
+    "type":  "minecraft:smithing_transform",
+    "addition":  {
+                     "item":  "zuoyanmod:relic_core"
+                 },
+    "base":  {
+                 "item":  "minecraft:netherite_chestplate"
+             },
+    "result":  {
+                   "item":  "zuoyanmod:shengtian_chestplate"
+               },
+    "template":  {
+                     "item":  "zuoyanmod:hallowed_upgrade_smithing_template"
+                 }
+}

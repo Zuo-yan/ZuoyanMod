@@ -1,358 +1,294 @@
 package org.gwfx.zuoyanmod.item;
 
-import net.minecraft.core.HolderSet;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.entity.EquipmentSlotGroup;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SmithingTemplateItem;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
-import net.minecraft.world.item.component.Tool;
-import net.minecraft.world.item.component.Weapon;
-import net.minecraft.world.item.equipment.ArmorMaterial;
-import net.minecraft.world.item.equipment.ArmorType;
-import net.minecraft.world.item.equipment.EquipmentAsset;
-import net.minecraft.world.item.equipment.EquipmentAssets;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.Tier;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredItem;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.registries.DeferredRegister;
 import org.gwfx.zuoyanmod.Zuoyanmod;
-import org.gwfx.zuoyanmod.fluid.FluidRegistry;
 import org.gwfx.zuoyanmod.block.BlockRegistry;
+import org.gwfx.zuoyanmod.fluid.FluidRegistry;
 
 import java.util.List;
 import java.util.Map;
 
 public final class ItemRegistry {
-    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Zuoyanmod.MODID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, Zuoyanmod.MODID);
 
-    // ===== 紫金材料链（须在紫金装备之前注册，装备 repairable 引用紫金锭） =====
-    public static final DeferredItem<Item> RAW_VIOLET_GOLD = ITEMS.registerItem(
-            "raw_violet_gold",
-            Item::new
-    );
+    // ===== 紫金材料链（须在紫金装备之前注册，装备 repair 引用紫金锭） =====
+    public static final RegistryObject<Item> RAW_VIOLET_GOLD =
+            ITEMS.register("raw_violet_gold", () -> new Item(new Item.Properties()));
 
-    public static final DeferredItem<VioletGoldIngotItem> VIOLET_GOLD_INGOT = ITEMS.registerItem(
-            "violet_gold_ingot",
-            VioletGoldIngotItem::new
-    );
+    public static final RegistryObject<VioletGoldIngotItem> VIOLET_GOLD_INGOT =
+            ITEMS.register("violet_gold_ingot", () -> new VioletGoldIngotItem(new Item.Properties()));
 
     // 圣遗物核心：终局合成材料
-    public static final DeferredItem<Item> RELIC_CORE = ITEMS.registerItem(
-            "relic_core",
-            Item::new,
-            props -> props.rarity(Rarity.EPIC)
-    );
+    public static final RegistryObject<Item> RELIC_CORE =
+            ITEMS.register("relic_core", () -> new Item(new Item.Properties().rarity(Rarity.EPIC)));
 
     // 圣辉锻造模板：锻造台升级下界合金盔甲为紫金神装
-    public static final DeferredItem<SmithingTemplateItem> HALLOWED_UPGRADE_SMITHING_TEMPLATE = ITEMS.registerItem(
-            "hallowed_upgrade_smithing_template",
-            props -> new SmithingTemplateItem(
+    public static final RegistryObject<SmithingTemplateItem> HALLOWED_UPGRADE_SMITHING_TEMPLATE =
+            ITEMS.register("hallowed_upgrade_smithing_template", () -> new SmithingTemplateItem(
+                    // 1.20.1 的构造参数是 5 个 Component（第一个是标题）+ 2 个槽位贴图列表
+                    Component.translatable("item.zuoyanmod.hallowed_upgrade_smithing_template"),
                     Component.translatable("item.zuoyanmod.hallowed_upgrade_smithing_template.applies_to"),
                     Component.translatable("item.zuoyanmod.hallowed_upgrade_smithing_template.ingredients"),
                     Component.translatable("item.zuoyanmod.hallowed_upgrade_smithing_template.base_slot_description"),
                     Component.translatable("item.zuoyanmod.hallowed_upgrade_smithing_template.additions_slot_description"),
                     List.of(
-                            Identifier.withDefaultNamespace("container/slot/helmet"),
-                            Identifier.withDefaultNamespace("container/slot/chestplate"),
-                            Identifier.withDefaultNamespace("container/slot/leggings"),
-                            Identifier.withDefaultNamespace("container/slot/boots")
+                            new ResourceLocation("container/slot/helmet"),
+                            new ResourceLocation("container/slot/chestplate"),
+                            new ResourceLocation("container/slot/leggings"),
+                            new ResourceLocation("container/slot/boots")
                     ),
-                    List.of(Identifier.withDefaultNamespace("container/slot/diamond")),
-                    props
-            ),
-            props -> props.stacksTo(1)
-    );
+                    List.of(new ResourceLocation("container/slot/diamond"))
+            ));
 
     // ===== 消耗与功能道具 =====
-    public static final DeferredItem<IceTeaItem> ICE_TEA = ITEMS.registerItem(
-            "ice_tea",
-            IceTeaItem::new,
-            props -> props.stacksTo(16).food(
+    public static final RegistryObject<IceTeaItem> ICE_TEA =
+            ITEMS.register("ice_tea", () -> new IceTeaItem(new Item.Properties().stacksTo(16).food(
                     new FoodProperties.Builder()
                             .nutrition(3)
-                            .saturationModifier(0.5f)
-                            .alwaysEdible()
+                            .saturationMod(0.5f)
+                            .alwaysEat()
                             .build()
-            )
-    );
+            )));
 
-    public static final DeferredItem<SpriteDrinkItem> SPRITE_DRINK = ITEMS.registerItem(
-            "sprite_drink",
-            SpriteDrinkItem::new,
-            props -> props.stacksTo(16).food(
+    public static final RegistryObject<SpriteDrinkItem> SPRITE_DRINK =
+            ITEMS.register("sprite_drink", () -> new SpriteDrinkItem(new Item.Properties().stacksTo(16).food(
                     new FoodProperties.Builder()
                             .nutrition(3)
-                            .saturationModifier(0.5f)
-                            .alwaysEdible()
+                            .saturationMod(0.5f)
+                            .alwaysEat()
                             .build()
-            )
-    );
+            )));
 
-    public static final DeferredItem<DeathNoteItem> DEATH_NOTE = ITEMS.registerItem(
-            "death_note",
-            DeathNoteItem::new,
-            props -> props.stacksTo(1)
-    );
+    public static final RegistryObject<DeathNoteItem> DEATH_NOTE =
+            ITEMS.register("death_note", () -> new DeathNoteItem(new Item.Properties().stacksTo(1)));
 
-    public static final DeferredItem<MingDaoSiMingItem> MING_DAO_SI_MING = ITEMS.registerItem(
-            "ming_dao_si_ming",
-            MingDaoSiMingItem::new,
-            props -> props.stacksTo(1)
-    );
+    public static final RegistryObject<MingDaoSiMingItem> MING_DAO_SI_MING =
+            ITEMS.register("ming_dao_si_ming", () -> new MingDaoSiMingItem(new Item.Properties().stacksTo(1)));
 
-    public static final DeferredItem<SpaceAnchorItem> SPACE_ANCHOR = ITEMS.registerItem(
-            "space_anchor",
-            SpaceAnchorItem::new,
-            props -> props.stacksTo(1)
-    );
+    public static final RegistryObject<SpaceAnchorItem> SPACE_ANCHOR =
+            ITEMS.register("space_anchor", () -> new SpaceAnchorItem(new Item.Properties().stacksTo(1)));
 
-    public static final DeferredItem<BeimingBlade> BEIMING_BLADE = ITEMS.registerItem(
-            "beiming_blade",
-            BeimingBlade::new,
-            // 剑类武器：攻击力 33（1 基础 + 32）、攻速 3（4 基础 - 1）、攻击距离正常
-            props -> swordComponents(props.stacksTo(1).attributes(swordAttributes(32.0F, -1.0F)))
-    );
+    // ===== 紫金武器层级（1.20.1：Tier + SwordItem；26.x 是组件/Tier record） =====
+
+    /** 紫金武器通用 Tier：附魔能力 15、不可损坏（uses=0）、挖掘等级按钻石 */
+    public static final Tier VIOLET_GOLD_TIER = new Tier() {
+        @Override
+        public int getUses() {
+            return 0; // uses=0 → maxDamage=0 → 不可损坏（26.x 是"不设 durability 组件"，等价）
+        }
+
+        @Override
+        public float getSpeed() {
+            return 6.0F;
+        }
+
+        @Override
+        public float getAttackDamageBonus() {
+            return 0.0F; // 全部伤害走 SwordItem 的 attackDamage 参数
+        }
+
+        // 1.20.1 的 Tier 接口：getLevel() 表示挖掘等级（钻石=3）；
+        // 26.x 的 incorrect_for 标签在 1.20.1 还不存在（Forge 的 getTag() 默认返回 null，与原版 Tiers 一致）
+
+        @Override
+        public int getLevel() {
+            return 3;
+        }
+
+        @Override
+        public int getEnchantmentValue() {
+            return 15; // 26.x 的 enchantable(15)
+        }
+
+        @Override
+        public Ingredient getRepairIngredient() {
+            return Ingredient.of(VIOLET_GOLD_INGOT.get());
+        }
+    };
+
+    // 剑类武器：攻击力 33（1 基础 + 32）、攻速 3（4 基础 - 1）。
+    // 26.x 有 ENTITY_INTERACTION_RANGE（攻击距离）属性，1.20.1 没有该属性，攻击距离加成暂缺。
+    public static final RegistryObject<BeimingBlade> BEIMING_BLADE =
+            ITEMS.register("beiming_blade", () -> new BeimingBlade(VIOLET_GOLD_TIER, 32, -1.0F,
+                    new Item.Properties().stacksTo(1)));
 
     // ===== 阶段三新武器 =====
-    public static final DeferredItem<HerculesBowItem> HERCULES_BOW = ITEMS.registerItem(
-            "hercules_bow",
-            HerculesBowItem::new,
-            props -> props.stacksTo(1).durability(1000).repairable(VIOLET_GOLD_INGOT.get())
-    );
+    public static final RegistryObject<HerculesBowItem> HERCULES_BOW =
+            ITEMS.register("hercules_bow", () -> new HerculesBowItem(new Item.Properties().stacksTo(1).durability(1000)));
 
-    public static final DeferredItem<JackTheRipperScalpelItem> JACK_THE_RIPPER_SCALPEL = ITEMS.registerItem(
-            "jack_the_ripper_scalpel",
-            JackTheRipperScalpelItem::new,
-            // 匕首类：攻击力 5（1 基础 + 4）、攻速 5.5（4 基础 + 1.5）、攻击距离比剑略短（3.0 - 0.5 = 2.5 格）
-            props -> swordComponents(props.stacksTo(1).attributes(ItemAttributeModifiers.builder()
-                    .add(Attributes.ATTACK_DAMAGE,
-                            new AttributeModifier(Item.BASE_ATTACK_DAMAGE_ID, 4.0F, AttributeModifier.Operation.ADD_VALUE),
-                            EquipmentSlotGroup.MAINHAND)
-                    .add(Attributes.ATTACK_SPEED,
-                            new AttributeModifier(Item.BASE_ATTACK_SPEED_ID, 1.5F, AttributeModifier.Operation.ADD_VALUE),
-                            EquipmentSlotGroup.MAINHAND)
-                    .add(Attributes.ENTITY_INTERACTION_RANGE,
-                            new AttributeModifier(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "scalpel_reach"), -0.5F, AttributeModifier.Operation.ADD_VALUE),
-                            EquipmentSlotGroup.MAINHAND)
-                    .build()))
-    );
+    // 匕首类：攻击力 5（1 基础 + 4）、攻速 5.5（4 基础 + 1.5）；攻击距离加成同上暂缺
+    public static final RegistryObject<JackTheRipperScalpelItem> JACK_THE_RIPPER_SCALPEL =
+            ITEMS.register("jack_the_ripper_scalpel", () -> new JackTheRipperScalpelItem(
+                    VIOLET_GOLD_TIER, 4, 1.5F, new Item.Properties().stacksTo(1)));
 
-    // ===== 紫金材质定义 (26.x Record) =====
-    public static final ResourceKey<EquipmentAsset> VIOLETGOLD_ASSET = ResourceKey.create(
-            EquipmentAssets.ROOT_ID,
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "violetgold")
-    );
+    // ===== 紫金材质定义（1.20.1：ArmorMaterial 接口实现；26.x 是 record + EquipmentAsset） =====
 
-    public static final ArmorMaterial VIOLETGOLD_MATERIAL = new ArmorMaterial(
-            999999, // 耐久倍率（近乎无限耐久）
-            Map.of(
-                    ArmorType.BOOTS, 25,
-                    ArmorType.LEGGINGS, 35,
-                    ArmorType.CHESTPLATE, 50,
-                    ArmorType.HELMET, 25
-            ),
-            20, // 附魔能力
-            SoundEvents.ARMOR_EQUIP_NETHERITE,
-            15.0F, // 盔甲韧性
-            3.0F, // 击退抗性
-            ItemTags.REPAIRS_NETHERITE_ARMOR,
-            VIOLETGOLD_ASSET
-    );
+    public static final ArmorMaterial VIOLETGOLD_MATERIAL = new ArmorMaterial() {
+        /** 每件防具的基准耐久（原版同款基数），乘上近乎无限的倍率 */
+        private static final Map<ArmorItem.Type, Integer> BASE_DURABILITY = Map.of(
+                ArmorItem.Type.BOOTS, 13,
+                ArmorItem.Type.LEGGINGS, 15,
+                ArmorItem.Type.CHESTPLATE, 16,
+                ArmorItem.Type.HELMET, 11
+        );
+        private static final Map<ArmorItem.Type, Integer> DEFENSE = Map.of(
+                ArmorItem.Type.BOOTS, 25,
+                ArmorItem.Type.LEGGINGS, 35,
+                ArmorItem.Type.CHESTPLATE, 50,
+                ArmorItem.Type.HELMET, 25
+        );
+
+        @Override
+        public int getDurabilityForType(ArmorItem.Type type) {
+            return BASE_DURABILITY.getOrDefault(type, 13) * 999999; // 耐久倍率（近乎无限耐久）
+        }
+
+        @Override
+        public int getDefenseForType(ArmorItem.Type type) {
+            return DEFENSE.getOrDefault(type, 0);
+        }
+
+        @Override
+        public int getEnchantmentValue() {
+            return 20;
+        }
+
+        @Override
+        public net.minecraft.sounds.SoundEvent getEquipSound() {
+            return SoundEvents.ARMOR_EQUIP_NETHERITE;
+        }
+
+        @Override
+        public Ingredient getRepairIngredient() {
+            return Ingredient.of(VIOLET_GOLD_INGOT.get());
+        }
+
+        @Override
+        public String getName() {
+            return "violetgold"; // 对应 textures/models/armor/violetgold_layer_1/2.png
+        }
+
+        @Override
+        public float getToughness() {
+            return 15.0F;
+        }
+
+        @Override
+        public float getKnockbackResistance() {
+            return 3.0F;
+        }
+    };
 
     // ===== 紫金神装四件套注册 =====
-    public static final DeferredItem<ShadowArmorItem> SHADOW_HELMET = ITEMS.registerItem(
-            "shadow_helmet",
-            ShadowArmorItem::new,
-            props -> props.humanoidArmor(VIOLETGOLD_MATERIAL, ArmorType.HELMET).stacksTo(1).repairable(VIOLET_GOLD_INGOT.get())
-    );
+    public static final RegistryObject<ShadowArmorItem> SHADOW_HELMET =
+            ITEMS.register("shadow_helmet", () -> new ShadowArmorItem(
+                    VIOLETGOLD_MATERIAL, ArmorItem.Type.HELMET, new Item.Properties().stacksTo(1)));
 
-    public static final DeferredItem<ShengTianChestplate> SHENG_TIAN_CHESTPLATE = ITEMS.registerItem(
-            "shengtian_chestplate",
-            ShengTianChestplate::new,
-            props -> props.humanoidArmor(VIOLETGOLD_MATERIAL, ArmorType.CHESTPLATE).stacksTo(1).repairable(VIOLET_GOLD_INGOT.get())
-    );
+    public static final RegistryObject<ShengTianChestplate> SHENG_TIAN_CHESTPLATE =
+            ITEMS.register("shengtian_chestplate", () -> new ShengTianChestplate(
+                    VIOLETGOLD_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Properties().stacksTo(1)));
 
-    public static final DeferredItem<WindLeggings> WIND_LEGGINGS = ITEMS.registerItem(
-            "wind_leggings",
-            WindLeggings::new,
-            props -> props.humanoidArmor(VIOLETGOLD_MATERIAL, ArmorType.LEGGINGS).stacksTo(1).repairable(VIOLET_GOLD_INGOT.get())
-    );
+    public static final RegistryObject<WindLeggings> WIND_LEGGINGS =
+            ITEMS.register("wind_leggings", () -> new WindLeggings(
+                    VIOLETGOLD_MATERIAL, ArmorItem.Type.LEGGINGS, new Item.Properties().stacksTo(1)));
 
-    public static final DeferredItem<WalkerBoots> WALKER_BOOTS = ITEMS.registerItem(
-            "walker_boots",
-            WalkerBoots::new,
-            props -> props.humanoidArmor(VIOLETGOLD_MATERIAL, ArmorType.BOOTS).stacksTo(1).repairable(VIOLET_GOLD_INGOT.get())
-    );
+    public static final RegistryObject<WalkerBoots> WALKER_BOOTS =
+            ITEMS.register("walker_boots", () -> new WalkerBoots(
+                    VIOLETGOLD_MATERIAL, ArmorItem.Type.BOOTS, new Item.Properties().stacksTo(1)));
 
-    // ===== 饰品类物品（原 Curios 槽位，现在放入背包即生效） =====
-    public static final DeferredItem<RingItem> RING_OF_KILLS = ITEMS.registerItem(
-            "ring_of_kills",
-            RingItem::new,
-            props -> props.stacksTo(1)
-    );
+    // ===== 饰品类物品（放入背包即生效） =====
+    public static final RegistryObject<RingItem> RING_OF_KILLS =
+            ITEMS.register("ring_of_kills", () -> new RingItem(new Item.Properties().stacksTo(1)));
 
-    public static final DeferredItem<WanHuiRingItem> WAN_HUI_RING = ITEMS.registerItem(
-            "wan_hui_ring",
-            WanHuiRingItem::new,
-            props -> props.stacksTo(1)
-    );
+    public static final RegistryObject<WanHuiRingItem> WAN_HUI_RING =
+            ITEMS.register("wan_hui_ring", () -> new WanHuiRingItem(new Item.Properties().stacksTo(1)));
 
-    public static final DeferredItem<VoodooNecklaceItem> VOODOO_NECKLACE = ITEMS.registerItem(
-            "voodoo_necklace",
-            VoodooNecklaceItem::new,
-            props -> props.stacksTo(1)
-    );
+    public static final RegistryObject<VoodooNecklaceItem> VOODOO_NECKLACE =
+            ITEMS.register("voodoo_necklace", () -> new VoodooNecklaceItem(new Item.Properties().stacksTo(1)));
 
-    public static final DeferredItem<YemengadeVenomFangItem> YEMENGADE_VENOM_FANG = ITEMS.registerItem(
-            "yemengade_venom_fang",
-            YemengadeVenomFangItem::new,
-            props -> props.stacksTo(1)
-    );
+    public static final RegistryObject<YemengadeVenomFangItem> YEMENGADE_VENOM_FANG =
+            ITEMS.register("yemengade_venom_fang", () -> new YemengadeVenomFangItem(new Item.Properties().stacksTo(1)));
 
-    public static final DeferredItem<CounterBeltItem> COUNTER_BELT = ITEMS.registerItem(
-            "counter_belt",
-            CounterBeltItem::new,
-            props -> props.stacksTo(1)
-    );
+    public static final RegistryObject<CounterBeltItem> COUNTER_BELT =
+            ITEMS.register("counter_belt", () -> new CounterBeltItem(new Item.Properties().stacksTo(1)));
 
     // ===== 暗物质（终局合成材料，由虚空共振泵产出） =====
-    public static final DeferredItem<Item> DARK_MATTER = ITEMS.registerItem(
-            "dark_matter",
-            Item::new,
-            props -> props.rarity(Rarity.EPIC)
-    );
+    public static final RegistryObject<Item> DARK_MATTER =
+            ITEMS.register("dark_matter", () -> new Item(new Item.Properties().rarity(Rarity.EPIC)));
 
     // ===== 暗物质粒子（虚空共振泵的直接产物） =====
-    public static final DeferredItem<DarkMatterParticleItem> DARK_MATTER_PARTICLE = ITEMS.registerItem(
-            "dark_matter_particle",
-            DarkMatterParticleItem::new,
-            props -> props.rarity(Rarity.UNCOMMON)
-    );
+    public static final RegistryObject<DarkMatterParticleItem> DARK_MATTER_PARTICLE =
+            ITEMS.register("dark_matter_particle", () -> new DarkMatterParticleItem(new Item.Properties().rarity(Rarity.UNCOMMON)));
 
     // ===== 虚空共振泵方块物品 =====
-    public static final DeferredItem<BlockItem> VOID_RESONANCE_PUMP_ITEM = ITEMS.registerSimpleBlockItem(
-            "void_resonance_pump", BlockRegistry.VOID_RESONANCE_PUMP
-    );
+    public static final RegistryObject<BlockItem> VOID_RESONANCE_PUMP_ITEM =
+            ITEMS.register("void_resonance_pump",
+                    () -> new BlockItem(BlockRegistry.VOID_RESONANCE_PUMP.get(), new Item.Properties()));
 
     // ===== 超流体暗物质（原「暗物质桶」，仅显示名变更，注册 id 保持 dark_matter_bucket） =====
     // craftRemainder(BUCKET)：它要当合成材料（真空衰变的配方要 4 个），必须像原版奶桶那样把空桶还回来，
     // 否则每合成一次就白吞 4 个铁桶。
-    public static final DeferredItem<BucketItem> DARK_MATTER_BUCKET = ITEMS.registerItem(
-            "dark_matter_bucket",
-            props -> new BucketItem(FluidRegistry.DARK_MATTER.get(), props),
-            props -> props.stacksTo(1).craftRemainder(Items.BUCKET)
-    );
+    public static final RegistryObject<BucketItem> DARK_MATTER_BUCKET =
+            ITEMS.register("dark_matter_bucket",
+                    () -> new BucketItem(FluidRegistry.DARK_MATTER,
+                            new Item.Properties().stacksTo(1).craftRemainder(Items.BUCKET)));
 
     // ===== 绝对零度（玻色-爱因斯坦凝聚：时停 + 暗物质液化成超流体） =====
-    public static final DeferredItem<AbsoluteZeroItem> ABSOLUTE_ZERO = ITEMS.registerItem(
-            "absolute_zero",
-            AbsoluteZeroItem::new,
-            props -> props.durability(AbsoluteZeroItem.MAX_USES).rarity(Rarity.EPIC)
-    );
+    public static final RegistryObject<AbsoluteZeroItem> ABSOLUTE_ZERO =
+            ITEMS.register("absolute_zero", () -> new AbsoluteZeroItem(
+                    new Item.Properties().durability(AbsoluteZeroItem.MAX_USES).rarity(Rarity.EPIC)));
 
     // ===== 真空衰变（万能挖掘锤：普朗克解构 / 负熵灌注 / 分子离解 / 对称破缺） =====
-    public static final DeferredItem<VacuumDecayItem> VACUUM_DECAY = ITEMS.registerItem(
-            "vacuum_decay",
-            VacuumDecayItem::new,
-            // 锤类：攻击力 137（1 基础 + 136）、攻速 4（4 基础 + 0，无速度惩罚）、
-            // 攻击距离 +2.73（3.0 基础 → 5.73 格）。
-            // 不设 durability → 天生不可损坏（26.x 里"没有 max_damage 组件"= 无限耐久），
-            // 因此也不需要 repairable。
-            props -> universalToolComponents(props.stacksTo(1)
-                    .rarity(Rarity.EPIC)
-                    .attributes(ItemAttributeModifiers.builder()
-                            .add(Attributes.ATTACK_DAMAGE,
-                                    new AttributeModifier(Item.BASE_ATTACK_DAMAGE_ID, 136.0F, AttributeModifier.Operation.ADD_VALUE),
-                                    EquipmentSlotGroup.MAINHAND)
-                            .add(Attributes.ATTACK_SPEED,
-                                    new AttributeModifier(Item.BASE_ATTACK_SPEED_ID, 0.0F, AttributeModifier.Operation.ADD_VALUE),
-                                    EquipmentSlotGroup.MAINHAND)
-                            .add(Attributes.ENTITY_INTERACTION_RANGE,
-                                    new AttributeModifier(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "vacuum_decay_reach"), 2.73F, AttributeModifier.Operation.ADD_VALUE),
-                                    EquipmentSlotGroup.MAINHAND)
-                            .build()))
-    );
+    // 锤类：攻击力 137（1 基础 + 136）、攻速 4（4 基础 + 0，无速度惩罚）。
+    // Tier uses=0 → 不可损坏（26.x 的"不设 durability"在 1.20.1 的等价写法）。
+    public static final RegistryObject<VacuumDecayItem> VACUUM_DECAY =
+            ITEMS.register("vacuum_decay", () -> new VacuumDecayItem(
+                    VIOLET_GOLD_TIER, 136, 0.0F,
+                    new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
 
     // ===== 克莱因瓶（随身存储终端 + 内置工作台 / 无燃料熔炉） =====
-    public static final DeferredItem<KleinBottleItem> KLEIN_BOTTLE = ITEMS.registerItem(
-            "klein_bottle",
-            KleinBottleItem::new,
-            props -> props.stacksTo(1).rarity(Rarity.EPIC)
-    );
+    public static final RegistryObject<KleinBottleItem> KLEIN_BOTTLE =
+            ITEMS.register("klein_bottle", () -> new KleinBottleItem(
+                    new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
 
     // ===== 领域展开 =====
-    public static final DeferredItem<DomainExpansionItem> DOMAIN_EXPANSION = ITEMS.registerItem(
-            "domain_expansion",
-            DomainExpansionItem::new,
-            props -> props.stacksTo(1)
-    );
+    public static final RegistryObject<DomainExpansionItem> DOMAIN_EXPANSION =
+            ITEMS.register("domain_expansion", () -> new DomainExpansionItem(new Item.Properties().stacksTo(1)));
 
     // ===== 紫金方块物品 =====
-    public static final DeferredItem<BlockItem> VIOLET_GOLD_ORE_ITEM = ITEMS.registerSimpleBlockItem(
-            "violet_gold_ore", BlockRegistry.VIOLET_GOLD_ORE
-    );
+    public static final RegistryObject<BlockItem> VIOLET_GOLD_ORE_ITEM =
+            ITEMS.register("violet_gold_ore",
+                    () -> new BlockItem(BlockRegistry.VIOLET_GOLD_ORE.get(), new Item.Properties()));
 
-    public static final DeferredItem<BlockItem> DEEPSLATE_VIOLET_GOLD_ORE_ITEM = ITEMS.registerSimpleBlockItem(
-            "deepslate_violet_gold_ore", BlockRegistry.DEEPSLATE_VIOLET_GOLD_ORE
-    );
+    public static final RegistryObject<BlockItem> DEEPSLATE_VIOLET_GOLD_ORE_ITEM =
+            ITEMS.register("deepslate_violet_gold_ore",
+                    () -> new BlockItem(BlockRegistry.DEEPSLATE_VIOLET_GOLD_ORE.get(), new Item.Properties()));
 
-    public static final DeferredItem<BlockItem> VIOLET_GOLD_BLOCK_ITEM = ITEMS.registerSimpleBlockItem(
-            "violet_gold_block", BlockRegistry.VIOLET_GOLD_BLOCK
-    );
+    public static final RegistryObject<BlockItem> VIOLET_GOLD_BLOCK_ITEM =
+            ITEMS.register("violet_gold_block",
+                    () -> new BlockItem(BlockRegistry.VIOLET_GOLD_BLOCK.get(), new Item.Properties()));
 
     private ItemRegistry() {}
-
-    /** 剑类攻击属性：最终攻击力 = 1 + damageBonus，最终攻速 = 4 + speedBonus */
-    private static ItemAttributeModifiers swordAttributes(float damageBonus, float speedBonus) {
-        return ItemAttributeModifiers.builder()
-                .add(Attributes.ATTACK_DAMAGE,
-                        new AttributeModifier(Item.BASE_ATTACK_DAMAGE_ID, damageBonus, AttributeModifier.Operation.ADD_VALUE),
-                        EquipmentSlotGroup.MAINHAND)
-                .add(Attributes.ATTACK_SPEED,
-                        new AttributeModifier(Item.BASE_ATTACK_SPEED_ID, speedBonus, AttributeModifier.Operation.ADD_VALUE),
-                        EquipmentSlotGroup.MAINHAND)
-                .build();
-    }
-
-    /** 附加剑类公共组件：武器行为（每次攻击损耗）、快速破坏蜘蛛网、可附魔 */
-    private static Item.Properties swordComponents(Item.Properties props) {
-        return props
-                .component(DataComponents.WEAPON, new Weapon(1))
-                .component(DataComponents.TOOL, new Tool(
-                        List.of(Tool.Rule.minesAndDrops(HolderSet.direct(Blocks.COBWEB.builtInRegistryHolder()), 15.0F)),
-                        1.0F, 2, false))
-                .enchantable(15);
-    }
-
-    /**
-     * 万能挖掘工具的公共组件：武器行为 + 可附魔。
-     * <p>
-     * **故意不挂 {@code DataComponents.TOOL}**：TOOL 组件只能表达"一组 HolderSet 规则"，
-     * 而"所有方块都能采"在注册期凑不出这样一个 HolderSet（拿不到 registry lookup 去展开 mineable 标签）。
-     * 挖掘行为改由 {@code VacuumDecayItem} 覆写 {@code getDestroySpeed / isCorrectToolForDrops / mineBlock}
-     * 三个入口实现——这三个方法本来就是"去读 TOOL 组件"的，覆写后和挂组件等价，且覆盖全部方块。
-     * <p>
-     * {@code Weapon(0)}：每次攻击消耗 0 点耐久——配上"不设 durability"，本工具完全不可损坏。
-     */
-    private static Item.Properties universalToolComponents(Item.Properties props) {
-        return props
-                .component(DataComponents.WEAPON, new Weapon(0))
-                .enchantable(15);
-    }
 
     public static void register(IEventBus modBus) {
         ITEMS.register(modBus);

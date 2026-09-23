@@ -1,4 +1,4 @@
-{
+﻿{
   "type": "minecraft:ore",
   "targets": [
     {
@@ -7,7 +7,7 @@
         "tag": "minecraft:stone_ore_replaceables"
       },
       "state": {
-        "id": "zuoyanmod:violet_gold_ore"
+        "Name": "zuoyanmod:violet_gold_ore"
       }
     },
     {
@@ -16,7 +16,7 @@
         "tag": "minecraft:deepslate_ore_replaceables"
       },
       "state": {
-        "id": "zuoyanmod:deepslate_violet_gold_ore"
+        "Name": "zuoyanmod:deepslate_violet_gold_ore"
       }
     }
   ],

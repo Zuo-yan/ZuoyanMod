@@ -2,9 +2,7 @@ package org.gwfx.zuoyanmod.menu;
 
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -14,24 +12,24 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.AnvilMenu;
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.PlacementInfo;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.ShapelessRecipe;
 import org.gwfx.zuoyanmod.core.KleinTerminalLayout;
 import org.gwfx.zuoyanmod.item.FourDimensionalSpace;
 import org.gwfx.zuoyanmod.item.KleinFurnace;
 import org.gwfx.zuoyanmod.network.KleinBottleSyncPacket;
+import org.gwfx.zuoyanmod.network.PacketHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,29 +53,13 @@ import java.util.Optional;
  *
  * <h2>为什么取放要自己接管（{@link #clicked}）</h2>
  * 存储的一格背后是 {@code (template, long total)}，而原版的 {@code Slot} 只认那个
- * 夹到堆叠上限的展示栈。玩家从"有 3300 个"的格子里拿走一组，原版会认为
- * "这一格被掏空了"——3300 个剩下的全没了。所以存储槽位
- * （{@link StorageSlot}）声明 {@code mayPlace/mayPickup = false}，
- * 所有取放都在 {@link #clicked} 里按"从总量里扣/往总量里加"实现：
- * <ul>
- *   <li>左键 → 取一组（该物品的堆叠上限）；</li>
- *   <li>右键 → <b>再拿一个</b>（可以连着点，光标一路涨到满一组；满了才改成"放一个回去"）；</li>
- *   <li>光标拿着别的东西右键 → 先整堆收进空间，再从这一格拿一个出来（＝交换）；</li>
- *   <li>光标拿着同类东西左键 → 直接并进这一格（不限量）；</li>
- *   <li>Shift + 左键 → 反复搬整组进背包，直到背包塞不下或这一格取空；</li>
- *   <li>Shift + 右键 → 从光标放回一个（"连着拿"的镜像，不然多拿的还只能整堆放回）；</li>
- *   <li>数字键 → 快捷栏那格与这一格互换（快捷栏里的先收进空间）；</li>
- *   <li>Q / Ctrl+Q → 丢一个 / 丢一组。</li>
- * </ul>
- *
- * <p>右键那条是刻意偏离原版的：原版右键是"取一半"，而这里一格可能有几千个，
- * 取一半没有意义；更难受的是原版"右键放回去"——拿了 1 个再右键就还回去了，
- * 永远攒不起来。所以改成"只要光标还没满，右键就继续拿"，和从箱子里一件一件
- * 往手上摞的感觉一致。
+ * 夹到堆叠上限的展示栈。所有取放都在 {@link #clicked} 里按"从总量里扣/往总量里加"实现。
  *
  * <h2>JEI</h2>
- * JEI 的 + 按钮走 {@link #transfer}：从四维空间全量库存里抓材料填进内嵌的 3×3，
- * 不用先把东西从终端搬进背包，也不用管在第几行。这和 RS2 的合成网格是同一套关系。
+ * JEI 的 + 按钮走 {@link #transfer}：从四维空间全量库存里抓材料填进内嵌的 3×3。
+ * <p>
+ * 1.20.1 没有 26.x 的 {@code PlacementInfo}：配料直接读 {@code ShapedRecipe#getIngredients()}
+ * （自带 EMPTY 占位），落位用 {@code (s / width) * 3 + (s % width)} 换算到 3×3 网格。
  */
 public class KleinBottleMenu extends AbstractContainerMenu {
 
@@ -114,7 +96,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
     private final Player player;
     /** 仅服务端非空：客户端没有存储实体 */
     private final FourDimensionalSpace space;
-    /** 熔炉容器：服务端就是玩家附件上那一份，客户端只是个空壳（靠槽位同步填） */
+    /** 熔炉容器：服务端就是玩家能力上那一份，客户端只是个空壳（靠槽位同步填） */
     private final KleinFurnace furnace;
     /** 燃料 / 进度走原版的 ContainerData 通道，自动同步给客户端 */
     private final SimpleContainerData furnaceData = new SimpleContainerData(KleinFurnace.DATA_COUNT);
@@ -122,9 +104,8 @@ public class KleinBottleMenu extends AbstractContainerMenu {
      * 铁砧的两个输入格（真菜单槽位，客户端由原版槽位同步填）。
      *
      * <p>⚠️ 这里必须覆写 {@code setChanged()} 去调 {@link #slotsChanged}——
-     * 普通 {@link SimpleContainer} 的 {@code setChanged()} **不会**通知菜单
-     * （原版只有 {@code TransientCraftingContainer}、{@code ItemCombinerMenu} 内部那个
-     * 容器会）。v7 就是因为漏了这一步，铁砧的结果永远算不出来，卡片看起来"不能用"。
+     * 普通 {@code SimpleContainer} 的 {@code setChanged()} **不会**通知菜单。
+     * v7 就是因为漏了这一步，铁砧的结果永远算不出来，卡片看起来"不能用"。
      */
     private final SimpleContainer anvilInput = new SimpleContainer(2) {
         @Override
@@ -137,11 +118,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
     /**
      * 服务端的"隐形铁砧"：借一个**不发给客户端**的原版 {@link AnvilMenu} 来算结果。
      * 修理、合并、附魔书、重命名、经验代价、代价上限——全和真铁砧一致，
-     * 因为那套几百行的算术就是它自己算的。客户端侧 {@code anvil == null}，
-     * 只看到三个同步过来的槽位和代价数值。
-     *
-     * <p>构造时用 {@code ContainerLevelAccess.NULL}（{@code AnvilMenu(int, Inventory)} 就是
-     * 这么造的），于是 {@code onTake} 里"消耗铁砧耐久"那段是空操作——我们没有方块可掉耐久。
+     * 因为那套几百行的算术就是它自己算的。客户端侧 {@code anvil == null}。
      */
     private final GhostAnvil anvil;
     /** 铁砧的经验代价，走 ContainerData 同步给客户端画「需要 X 级」 */
@@ -159,10 +136,16 @@ public class KleinBottleMenu extends AbstractContainerMenu {
     public KleinBottleMenu(int containerId, Inventory playerInventory, Player player) {
         super(MenuRegistry.KLEIN_BOTTLE_MENU.get(), containerId);
         this.player = player;
-        this.space = player.level().isClientSide() ? null : FourDimensionalSpace.of(player);
+        this.space = player.level().isClientSide ? null : FourDimensionalSpace.of(player);
         this.furnace = space == null ? new KleinFurnace() : space.furnace();
         this.anvil = space == null ? null : new GhostAnvil(player.getInventory());
-        this.window = new SimpleContainer(STORAGE_COUNT);
+        // setChanged 屏蔽：窗口内容只由 refreshWindow 装填与我们的 clicked() 逻辑改动，
+        // 原版通道（mayPlace/mayPickup 已关）不可能合法地改它，屏蔽后 setItem 即静默写
+        this.window = new SimpleContainer(STORAGE_COUNT) {
+            @Override
+            public void setChanged() {
+            }
+        };
         this.craftSlots = new TransientCraftingContainer(this, 3, 3);
         this.resultSlots = new ResultContainer();
 
@@ -227,8 +210,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
 
     /**
      * 客户端提交搜索词与滚动位置（{@code KleinBottleViewPacket}）。
-     * 这里只做校验与落库，真正生效的值随下一个同步包回传——单一权威，
-     * 界面和服务端永远对得上。
+     * 这里只做校验与落库，真正生效的值随下一个同步包回传——单一权威。
      */
     public void applyClientView(String search, int requestedRow) {
         if (space == null) {
@@ -237,7 +219,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
         String next = search == null ? "" : search.trim();
         boolean viewChanged = !next.equals(space.search());
         space.setSearch(next);
-        int clamped = Math.clamp(requestedRow, 0, maxScrollRow());
+        int clamped = Mth.clamp(requestedRow, 0, maxScrollRow());
         if (clamped != scrollRow) {
             scrollRow = clamped;
             windowDirty = true;
@@ -308,17 +290,15 @@ public class KleinBottleMenu extends AbstractContainerMenu {
      * 也就不会出现"涂着涂着把东西复制进终端"这种事。
      */
     @Override
-    public void clicked(int slotIndex, int buttonNum, ContainerInput input, Player clicker) {
+    public void clicked(int slotIndex, int buttonNum, ClickType clickType, Player clicker) {
         if (space != null && slotIndex >= 0 && slotIndex < STORAGE_COUNT) {
-            switch (input) {
+            switch (clickType) {
                 case PICKUP -> {
                     storagePickup(slotIndex, buttonNum);
                     return;
                 }
                 case QUICK_MOVE -> {
                     // Shift+左键 = 尽量搬进背包；Shift+右键 = 从光标放回一个。
-                    // 后者是必需的：右键只有"光标满了才放回"，不补这一条，
-                    // 玩家手上多拿的那个就没法一个一还回去了。
                     if (buttonNum == 1) {
                         storagePlaceOne(slotIndex);
                     } else {
@@ -343,7 +323,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
                 }
             }
         }
-        super.clicked(slotIndex, buttonNum, input, clicker);
+        super.clicked(slotIndex, buttonNum, clickType, clicker);
     }
 
     /** 这一格对应的条目下标；视图末尾之后的空位返回 -1 */
@@ -366,7 +346,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
         }
 
         ItemStack template = space.entry(entryIndex).template().copyWithCount(1);
-        boolean same = !carried.isEmpty() && ItemStack.isSameItemSameComponents(carried, template);
+        boolean same = !carried.isEmpty() && ItemStack.isSameItemSameTags(carried, template);
 
         if (button == 1) {
             storagePickupOne(entryIndex, template, carried, same);
@@ -390,9 +370,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
     /**
      * 右键：**再拿一个**。
      *
-     * <p>连着点就能一个一个往光标上摞，直到光标满一组——这样"我要拿 17 个"
-     * 就是连点 17 下，和在原版箱子里一件件往手上摞是一回事。
-     * 光标满了才退化成原版的"放回一个"，否则玩家会卡在"拿不动也放不进"的状态里。
+     * <p>连着点就能一个一个往光标上摞，直到光标满一组。光标满了才退化成原版的"放回一个"。
      */
     private void storagePickupOne(int entryIndex, ItemStack template, ItemStack carried, boolean same) {
         if (carried.isEmpty() || (same && carried.getCount() < carried.getMaxStackSize())) {
@@ -420,9 +398,6 @@ public class KleinBottleMenu extends AbstractContainerMenu {
 
     /**
      * Shift + 右键：从光标上放回**一个**。
-     *
-     * <p>它是 {@link #storagePickupOne} 的镜像。没有它的时候，"右键连着拿"这条路
-     * 有去无回——多拿的那个只能整堆放回去。
      */
     private void storagePlaceOne(int viewSlot) {
         ItemStack carried = getCarried();
@@ -467,16 +442,13 @@ public class KleinBottleMenu extends AbstractContainerMenu {
         if (moved <= 0) {
             return;
         }
-        // 26.3 的 Player#drop 多了第三个参数 Prediction（老版本只有两个参数）
-        player.drop(template.copyWithCount((int) moved), false, net.minecraft.util.Prediction.SERVER_ONLY);
+        // 1.20.1 的 drop 只有 (ItemStack, boolean) 两参（26.x 才加 Prediction 参数）
+        player.drop(template.copyWithCount((int) moved), false);
         markMutated();
     }
 
     /**
      * Shift + 左键：把这一格**尽可能多地**搬进背包。
-     *
-     * <p>一格可能有两三千个，而背包一格最多 64，所以不能只搬一次——
-     * 循环地"造一个整组 → 用原版搬运塞进背包 → 看塞进去多少"，直到背包满或这一格取空。
      */
     private void moveStorageToPlayer(int viewSlot) {
         int entryIndex = entryAt(viewSlot);
@@ -516,7 +488,6 @@ public class KleinBottleMenu extends AbstractContainerMenu {
      *
      * <p>只能走 {@code getItems().set(...)}：走 {@code setItem()} 会回调
      * {@code setChanged()}，而那是"这一格被原版改过了"的信号，会绕开我们自己的取放逻辑。
-     * 装进去的是**副本**，免得原版就地改槽位里那个 ItemStack。
      */
     private void refreshWindow() {
         if (space == null) {
@@ -525,7 +496,9 @@ public class KleinBottleMenu extends AbstractContainerMenu {
         int base = scrollRow * COLUMNS;
         for (int i = 0; i < STORAGE_COUNT; i++) {
             ItemStack stack = space.viewItem(base + i);
-            window.getItems().set(i, stack.isEmpty() ? ItemStack.EMPTY : stack.copy());
+            // 1.20.1 的 SimpleContainer 没有 getItems()；窗口的 setChanged 已被
+            // 匿名子类屏蔽（见构造器），setItem 不会绕开我们的取放逻辑
+            window.setItem(i, stack.isEmpty() ? ItemStack.EMPTY : stack.copy());
         }
     }
 
@@ -534,7 +507,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
         if (space != null) {
             // 1) 先收尾：清掉被取空的条目、按当前搜索/排序重建视图
             if (space.settle()) {
-                scrollRow = Math.clamp(scrollRow, 0, maxScrollRow());
+                scrollRow = Mth.clamp(scrollRow, 0, maxScrollRow());
                 windowDirty = true;
                 syncPending = true;
             }
@@ -543,7 +516,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
                 refreshWindow();
                 windowDirty = false;
             }
-            // 3) 熔炉的火与进度：走原版 ContainerData 通道（addDataSlots 会自动发变更）
+            // 3) 熔炉的火与进度：走原版 ContainerData 通道
             KleinFurnace active = space.furnace();
             furnaceData.set(KleinFurnace.DATA_BURN_TIME, active.burnTime());
             furnaceData.set(KleinFurnace.DATA_BURN_DURATION, active.burnDuration());
@@ -588,7 +561,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
             long total = space.total(space.viewStorageIndex(base + i));
             totals.add((int) Math.min(Integer.MAX_VALUE, total));
         }
-        KleinBottleSyncPacket.send(serverPlayer, new KleinBottleSyncPacket(
+        PacketHandler.sendToPlayer(serverPlayer, new KleinBottleSyncPacket(
                 scrollRow,
                 VISIBLE_ROWS,
                 space.viewSize(),
@@ -628,13 +601,13 @@ public class KleinBottleMenu extends AbstractContainerMenu {
         }
         if (index == FURNACE_INPUT || index == FURNACE_FUEL
                 || index == ANVIL_BASE || index == ANVIL_MATERIAL) {
-            // 熔炉/铁砧 → 背包：普通槽位，照原版的搬运写法（就地改 slot.getItem() 再 setChanged）
+            // 熔炉/铁砧 → 背包：普通槽位，照原版的搬运写法
             ItemStack stack = slot.getItem();
             if (!moveItemStackTo(stack, INV_START, INV_END, true)) {
                 return ItemStack.EMPTY;
             }
             if (stack.isEmpty()) {
-                slot.setByPlayer(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             } else {
                 slot.setChanged();
             }
@@ -654,7 +627,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
                 moveItemStackTo(stack, INV_START, INV_END, true);
             }
             if (stack.isEmpty()) {
-                slot.setByPlayer(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             } else {
                 slot.setChanged();
             }
@@ -662,8 +635,6 @@ public class KleinBottleMenu extends AbstractContainerMenu {
         }
 
         // 背包 → 存储：**直接调 insert**，不要用 moveItemStackTo。
-        // 原版只能看见窗口这 54 格，格子都被别的东西占着就"搬不动"了——
-        // 而这里背后是种类数不设上限的四维空间，没有搬不动这回事。
         if (space == null) {
             return ItemStack.EMPTY;
         }
@@ -674,7 +645,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
         }
         stack.shrink(moved);
         if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
+            slot.set(ItemStack.EMPTY);
         } else {
             slot.setChanged();
         }
@@ -707,7 +678,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
             moveItemStackTo(stack, INV_START, INV_END, true);
         }
         if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
+            slot.set(ItemStack.EMPTY);
         } else {
             slot.setChanged();
         }
@@ -721,8 +692,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
     /**
      * 熔炉产物的 Shift + 左键。
      *
-     * <p>{@code slot.onTake(...)} 是**必须**的：熔炉的经验就挂在产物被取走这个时机上
-     * （原版熔炉把经验存在方块实体里，玩家取出产物时才结算）。
+     * <p>{@code slot.onTake(...)} 是**必须**的：熔炉的经验就挂在产物被取走这个时机上。
      */
     private ItemStack quickMoveFurnaceResult(Player clicker, Slot slot) {
         ItemStack stack = slot.getItem();
@@ -734,7 +704,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
             return ItemStack.EMPTY;
         }
         if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
+            slot.set(ItemStack.EMPTY);
         } else {
             slot.setChanged();
         }
@@ -764,7 +734,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
             return ItemStack.EMPTY;
         }
         if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
+            slot.set(ItemStack.EMPTY);
         } else {
             slot.setChanged();
         }
@@ -787,17 +757,18 @@ public class KleinBottleMenu extends AbstractContainerMenu {
             updateAnvilResult();
             return;
         }
-        if (container != craftSlots || space == null || player.level().isClientSide()) {
+        if (container != craftSlots || space == null || player.level().isClientSide) {
             return;
         }
         ServerLevel level = (ServerLevel) player.level();
-        CraftingInput input = craftSlots.asCraftInput();
         ItemStack result = ItemStack.EMPTY;
-        Optional<RecipeHolder<CraftingRecipe>> recipe =
-                level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, level);
+        // 1.20.1：直接拿 TransientCraftingContainer 当输入（26.x 要 asCraftInput()），
+        // 且 getRecipeFor 返回的就是 Recipe 本体（26.x 包了一层 RecipeHolder）
+        Optional<CraftingRecipe> recipe =
+                level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, craftSlots, level);
         if (recipe.isPresent()) {
             resultSlots.setRecipeUsed(recipe.get());
-            result = recipe.get().value().assemble(input);
+            result = recipe.get().assemble(craftSlots, level.registryAccess());
         }
         resultSlots.setItem(0, result);
     }
@@ -807,10 +778,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
     /**
      * 把两个输入格喂给隐形铁砧，让它算结果与代价。
      *
-     * <p>往 ghost 的槽位 {@code set(...)} 会走 {@code SimpleContainer#setChanged} →
-     * {@code ItemCombinerMenu#slotsChanged} → {@code createResult()}，
-     * 所以不用手动调 {@code createResult}。
-     * {@code anvilUpdating} 是防重入闸：回写产物时会再触发一次 {@code slotsChanged}，
+     * <p>{@code anvilUpdating} 是防重入闸：回写产物时会再触发一次 {@code slotsChanged}，
      * 不拦住就是无限递归。
      */
     private void updateAnvilResult() {
@@ -895,7 +863,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
         @Override
         public void onTake(Player taker, ItemStack stack) {
             if (anvil != null) {
-                anvil.consume(taker, stack);   // 扣经验、消耗材料、触发 AnvilCraft 事件
+                anvil.consume(taker, stack);   // 扣经验、消耗材料
             }
             anvilUpdating = true;
             try {
@@ -951,31 +919,30 @@ public class KleinBottleMenu extends AbstractContainerMenu {
     /**
      * 按配方 id 从四维空间里抓材料填内嵌的 3×3 网格。
      *
-     * <p>配料清单与"哪个格子放第几项"来自 26.3 的 {@link PlacementInfo}。⚠️ 但它的
-     * {@code slotsToIngredientIndex()} 用的是<b>配方自身网格</b>的坐标——2×2 配方长度是 4、
-     * 1×3 配方长度是 3，都不是 9。所以有形配方必须再拿 {@code ShapedRecipe#getWidth()}
-     * 换算一次 {@code cell = (s / w) * 3 + (s % w)} 才能落到 3×3 网格上。
-     * 无形配方没有宽度，直接按顺序占 0..n-1（本来就不关心位置）。
+     * <p>1.20.1 没有 26.x 的 {@code PlacementInfo}：有形配方直接读
+     * {@code ShapedRecipe#getIngredients()}（宽 × 高、自带 EMPTY 占位），
+     * 再按 {@code cell = (s / width) * 3 + (s % width)} 换算到 3×3 网格；
+     * 无形配方没有宽度，直接按顺序占 0..n-1。
      * 填完再用 {@code recipe.matches(...)} 自检，不匹配就整单撤销、原样退回四维空间。
      */
-    public static void transfer(ServerPlayer player, Identifier recipeId, boolean maxTransfer) {
+    public static void transfer(ServerPlayer player, ResourceLocation recipeId, boolean maxTransfer) {
         if (!(player.containerMenu instanceof KleinBottleMenu menu) || menu.space == null) {
             return;
         }
         ServerLevel level = (ServerLevel) player.level();
-        Optional<RecipeHolder<?>> found =
-                level.recipeAccess().byKey(ResourceKey.create(Registries.RECIPE, recipeId));
-        if (found.isEmpty() || !(found.get().value() instanceof CraftingRecipe recipe)) {
+        // 1.20.1 的配方没有 RecipeHolder 包装：直接按 id 在配方管理器里找 Recipe 本体
+        CraftingRecipe recipe = null;
+        for (net.minecraft.world.item.crafting.Recipe<?> candidate : level.getRecipeManager().getRecipes()) {
+            if (candidate.getId().equals(recipeId) && candidate instanceof CraftingRecipe crafting) {
+                recipe = crafting;
+                break;
+            }
+        }
+        if (recipe == null) {
             return;
         }
 
-        PlacementInfo placement = recipe.placementInfo();
-        if (placement.isImpossibleToPlace()) {
-            return;
-        }
-        List<Ingredient> ingredients = placement.ingredients();
-        IntList slotsToIngredient = placement.slotsToIngredientIndex();
-
+        NonNullList<Ingredient> ingredients = recipe.getIngredients();
         FourDimensionalSpace space = menu.space;
 
         // 先探一遍够不够，顺便算出"最多能同时做几份"
@@ -984,7 +951,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
             if (ing.isEmpty()) {
                 continue;
             }
-            int available = space.countMatching(ing::test);
+            int available = space.countMatching(ing);
             if (available == 0) {
                 return; // 一样都没有，静默失败，别把网格搞乱
             }
@@ -1008,18 +975,17 @@ public class KleinBottleMenu extends AbstractContainerMenu {
 
         NonNullList<ItemStack> placed = NonNullList.withSize(CRAFT_COUNT, ItemStack.EMPTY);
         boolean ok = true;
-        for (int s = 0; s < slotsToIngredient.size() && ok; s++) {
-            int ingIndex = slotsToIngredient.getInt(s);
-            if (ingIndex == PlacementInfo.EMPTY_SLOT || ingIndex < 0 || ingIndex >= ingredients.size()) {
+        for (int s = 0; s < ingredients.size() && ok; s++) {
+            Ingredient ing = ingredients.get(s);
+            if (ing.isEmpty()) {
                 continue;
             }
-            Ingredient ing = ingredients.get(ingIndex);
             // 配方自身网格 → 3×3 网格
             int cell = recipeWidth > 0 ? (s / recipeWidth) * 3 + (s % recipeWidth) : s;
-            if (ing.isEmpty() || cell >= CRAFT_COUNT) {
+            if (cell >= CRAFT_COUNT) {
                 continue;
             }
-            ItemStack got = space.take(ing::test, sets);
+            ItemStack got = space.take(ing, sets);
             if (got.getCount() < sets) {
                 if (!got.isEmpty()) {
                     space.insert(got);
@@ -1034,7 +1000,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
             for (int i = 0; i < CRAFT_COUNT; i++) {
                 menu.craftSlots.setItem(i, placed.get(i));
             }
-            if (!recipe.matches(menu.craftSlots.asCraftInput(), level)) {
+            if (!recipe.matches(menu.craftSlots, level)) {
                 ok = false; // 落位不对，整单撤销
             }
         }
@@ -1055,11 +1021,8 @@ public class KleinBottleMenu extends AbstractContainerMenu {
     /**
      * 视图槽位。
      *
-     * <p>刻意把 {@code mayPlace} / {@code mayPickup} 都关掉：存储的一格背后是
-     * {@code (template, long total)}，原版那套"往槽位里塞一个 ItemStack"的算术
-     * 只会动那个夹到 64 的展示栈，剩下的总量会凭空消失或复制。
-     * 所有取放都走 {@link KleinBottleMenu#clicked} 自己实现；
-     * 关掉这两个开关还能顺带保证拖拽涂色 / 原版搬运都不会误伤存储。
+     * <p>刻意把 {@code mayPlace} / {@code mayPickup} 都关掉：所有取放都走
+     * {@link KleinBottleMenu#clicked} 自己实现。
      */
     private final class StorageSlot extends Slot {
 
@@ -1081,9 +1044,8 @@ public class KleinBottleMenu extends AbstractContainerMenu {
     /**
      * 熔炉燃料格：只收真燃料。
      *
-     * <p>26.3 判定燃料就是 {@code stack.has(DataComponents.COOKING_FUEL)}
-     * （原版 {@code AbstractFurnaceMenu#isFuel} 就是这么写的，熔岩桶之所以能烧
-     * 也是因为它带这个组件）。
+     * <p>1.20.1 的燃料判定走 ForgeHooks（见 {@link KleinFurnace#isFuel}）；
+     * 26.x 判定的是 {@code DataComponents.COOKING_FUEL} 组件。
      */
     private static final class FurnaceFuelSlot extends Slot {
 
@@ -1099,7 +1061,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
 
     /**
      * 熔炉产物格：只出不进。经验在 {@link #onTake} 里结算——
-     * 和原版一样，是"玩家把产物拿走"的那一刻才给经验，不是烧好的那一刻。
+     * 和原版一样，是"玩家把产物拿走"的那一刻才给经验。
      */
     private static final class FurnaceOutputSlot extends Slot {
 
@@ -1119,9 +1081,11 @@ public class KleinBottleMenu extends AbstractContainerMenu {
 
         @Override
         public void onTake(Player takenBy, ItemStack stack) {
-            stack.onCraftedBy(player, stack.getCount());
+            // 1.20.1 的 onCraftedBy 要传 Level（26.x 只传 Player）
+            stack.onCraftedBy(player.level(), player, stack.getCount());
             furnace.grantExperience(player);
             super.onTake(takenBy, stack);
         }
     }
 }
+

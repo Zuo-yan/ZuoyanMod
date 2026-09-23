@@ -5,16 +5,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.registries.DeferredRegister;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 
 public final class CreativeTabRegistry {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Zuoyanmod.MODID);
 
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ZUOYAN_TAB =
+    public static final RegistryObject<CreativeModeTab> ZUOYAN_TAB =
             CREATIVE_MODE_TABS.register("zuoyan", () -> CreativeModeTab.builder()
                     .withTabsBefore(CreativeModeTabs.COMBAT)
                     .icon(() -> new ItemStack(ItemRegistry.MING_DAO_SI_MING.get()))

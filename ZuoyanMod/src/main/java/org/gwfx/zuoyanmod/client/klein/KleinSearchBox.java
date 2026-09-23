@@ -3,7 +3,6 @@ package org.gwfx.zuoyanmod.client.klein;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -17,6 +16,9 @@ import net.minecraft.network.chat.Component;
  *       玩家会以为搜索框坏了。</li>
  *   <li><b>右键清空</b>（照抄 RS2 的 {@code SearchFieldWidget}），顺手。</li>
  * </ol>
+ *
+ * <p>1.20.1 适配：26.x 的 {@code mouseClicked(MouseButtonEvent, boolean)} 在这里是
+ * {@code mouseClicked(double, double, int)}（button 从参数里拿）。
  */
 public final class KleinSearchBox extends EditBox {
 
@@ -48,7 +50,7 @@ public final class KleinSearchBox extends EditBox {
         setHint(hint.copy().withStyle(ChatFormatting.GRAY));
         setTextColor(KleinTheme.TEXT);
         setTextColorUneditable(KleinTheme.TEXT_DIM);
-        setTextShadow(false);
+        // （1.20.1 的 EditBox 没有 setTextShadow，文字自带阴影，深底上可接受）
         // 允许失焦，否则 Esc 会被搜索框永久吃掉、界面关不掉
         setCanLoseFocus(true);
     }
@@ -60,13 +62,13 @@ public final class KleinSearchBox extends EditBox {
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (isMouseOver(event.x(), event.y())) {
-            if (event.button() == 1) {
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (isMouseOver(mouseX, mouseY)) {
+            if (button == 1) {
                 setValue("");
             }
             // super 会按"点到第几个字符"移动光标（它用的是文字带坐标，越界会夹到两端，无副作用）
-            super.mouseClicked(event, doubleClick);
+            super.mouseClicked(mouseX, mouseY, button);
             setFocused(true);
             return true;
         }

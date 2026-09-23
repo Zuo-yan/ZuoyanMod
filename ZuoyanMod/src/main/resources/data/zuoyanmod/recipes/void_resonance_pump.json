@@ -1,0 +1,27 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "V":  {
+                          "item":  "zuoyanmod:violet_gold_ingot"
+                      },
+                "E":  {
+                          "item":  "minecraft:ender_eye"
+                      },
+                "P":  {
+                          "item":  "minecraft:purpur_block"
+                      },
+                "N":  {
+                          "item":  "minecraft:nether_star"
+                      }
+            },
+    "pattern":  [
+                    "VEV",
+                    "PNP",
+                    "VEV"
+                ],
+    "result":  {
+                   "count":  1,
+                   "item":  "zuoyanmod:void_resonance_pump"
+               },
+    "category":  "misc"
+}

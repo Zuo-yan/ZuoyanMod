@@ -1,11 +1,9 @@
 package org.gwfx.zuoyanmod.block;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.SimpleContainer;
@@ -18,6 +16,9 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.wrapper.InvWrapper;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
 import org.gwfx.zuoyanmod.menu.VoidResonancePumpMenu;
 
@@ -25,6 +26,9 @@ import org.gwfx.zuoyanmod.menu.VoidResonancePumpMenu;
  * 虚空共振泵：把末地过剩物（末影珍珠 / 龙息 / 紫颂果）转化为暗物质粒子。
  * 运行条件：末地维度 + 正下方为空气，否则休眠（共振值冻结，不浪费燃料）。
  * 设计文档见 docs/void_resonance_pump.md。
+ * <p>
+ * 1.20.1 的方块实体存档是 {@code saveAdditional(CompoundTag)} / {@code load(CompoundTag)}
+ * （26.x 换成了 ValueInput/ValueOutput）。
  */
 public class VoidResonancePumpBlockEntity extends BlockEntity implements net.minecraft.world.MenuProvider {
 
@@ -51,8 +55,26 @@ public class VoidResonancePumpBlockEntity extends BlockEntity implements net.min
         }
     };
 
+    /** 1.20.1 惯例：给方块实体挂一个物品能力包装，供管道类模组抽取产物 */
+    private final LazyOptional<IItemHandler> items = LazyOptional.of(() -> new InvWrapper(inventory));
+
     public VoidResonancePumpBlockEntity(BlockPos pos, BlockState state) {
         super(BlockRegistry.VOID_RESONANCE_PUMP_BE.get(), pos, state);
+    }
+
+    @Override
+    public <T> net.minecraftforge.common.util.LazyOptional<T> getCapability(
+            net.minecraftforge.common.capabilities.Capability<T> cap, net.minecraft.core.Direction side) {
+        if (cap == net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER) {
+            return items.cast();
+        }
+        return super.getCapability(cap, side);
+    }
+
+    @Override
+    public void invalidateCaps() {
+        super.invalidateCaps();
+        items.invalidate();
     }
 
     // ===== 运行条件 =====
@@ -64,7 +86,7 @@ public class VoidResonancePumpBlockEntity extends BlockEntity implements net.min
     // ===== 每 tick =====
 
     public static void tick(Level level, BlockPos pos, BlockState state, VoidResonancePumpBlockEntity be) {
-        if (level.isClientSide()) {
+        if (level.isClientSide) {
             return;
         }
         if (!canRun(level, pos)) {
@@ -197,22 +219,32 @@ public class VoidResonancePumpBlockEntity extends BlockEntity implements net.min
     // ===== 存档 =====
 
     @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        output.putInt("Resonance", resonance);
-        output.putFloat("Progress", progress);
-        output.putInt("FeedCooldown", feedCooldown);
-        ContainerHelper.saveAllItems(output, inventory.getItems());
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.putInt("Resonance", resonance);
+        tag.putFloat("Progress", progress);
+        tag.putInt("FeedCooldown", feedCooldown);
+        // 1.20.1 的 SimpleContainer 没有 getItems()，手工把内容铺进 NonNullList 再整体保存
+        net.minecraft.core.NonNullList<ItemStack> list = net.minecraft.core.NonNullList.create();
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            list.add(inventory.getItem(i));
+        }
+        ContainerHelper.saveAllItems(tag, list);
     }
 
     @Override
-    protected void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        resonance = input.getInt("Resonance").orElse(0);
-        progress = input.getFloatOr("Progress", 0F);
-        feedCooldown = input.getInt("FeedCooldown").orElse(0);
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        resonance = tag.getInt("Resonance");
+        progress = tag.getFloat("Progress");
+        feedCooldown = tag.getInt("FeedCooldown");
         inventory.clearContent();
-        ContainerHelper.loadAllItems(input, inventory.getItems());
+        net.minecraft.core.NonNullList<ItemStack> list =
+                net.minecraft.core.NonNullList.withSize(inventory.getContainerSize(), ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(tag, list);
+        for (int i = 0; i < list.size() && i < inventory.getContainerSize(); i++) {
+            inventory.setItem(i, list.get(i));
+        }
     }
 
     // ===== MenuProvider =====

@@ -1,24 +1,24 @@
 package org.gwfx.zuoyanmod.item;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.Level;
 
-import java.util.function.Consumer;
+import javax.annotation.Nullable;
+import java.util.List;
 
-public class MingDaoSiMingItem extends Item {
+public class MingDaoSiMingItem extends net.minecraft.world.item.Item {
 
     public MingDaoSiMingItem(Properties properties) {
         super(properties);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§6名刀司命"));
-        tooltip.accept(Component.literal("§7免死一次，濒死时保留生命"));
-        tooltip.accept(Component.literal("§2冷却:120s"));
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, level, tooltip, flag);
+        tooltip.add(Component.literal("§6名刀司命"));
+        tooltip.add(Component.literal("§7免死一次，濒死时保留生命"));
+        tooltip.add(Component.literal("§2冷却:120s"));
     }
 }

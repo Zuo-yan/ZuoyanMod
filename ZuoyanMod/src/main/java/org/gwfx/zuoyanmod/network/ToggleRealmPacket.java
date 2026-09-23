@@ -1,32 +1,29 @@
 package org.gwfx.zuoyanmod.network;
 
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.gwfx.zuoyanmod.Zuoyanmod;
+import net.minecraftforge.network.NetworkEvent;
 import org.gwfx.zuoyanmod.world.RealmTransitionManager;
 
-public record ToggleRealmPacket() implements CustomPacketPayload {
+import java.util.function.Supplier;
 
-    public static final Type<ToggleRealmPacket> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "toggle_realm"));
+/** 客户端按 Home → 请服务端切换随身维度（26.x 是 record + StreamCodec，1.20.1 是手写编解码） */
+public class ToggleRealmPacket {
 
-    public static final StreamCodec<ByteBuf, ToggleRealmPacket> STREAM_CODEC =
-            StreamCodec.unit(new ToggleRealmPacket());
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public static void encode(ToggleRealmPacket msg, FriendlyByteBuf buf) {
     }
 
-    public static void handle(ToggleRealmPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (context.player() instanceof ServerPlayer player) {
+    public static ToggleRealmPacket decode(FriendlyByteBuf buf) {
+        return new ToggleRealmPacket();
+    }
+
+    public static void handle(ToggleRealmPacket msg, Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
+            ServerPlayer player = ctx.get().getSender(); // 1.20.1 的 getSender() 已经直接返回 ServerPlayer
+            if (player != null) {
                 RealmTransitionManager.toggle(player);
             }
         });
+        ctx.get().setPacketHandled(true);
     }
 }

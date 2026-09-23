@@ -1,81 +1,61 @@
 plugins {
-    id 'java-library'
-    id 'maven-publish'
+    id 'eclipse'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.147'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
 }
 
 version = mod_version
 group = mod_group_id
 
-repositories {
-    mavenLocal()
-    // 基础公共仓库
-    mavenCentral()
-
-    // 引入 CurseMaven 仓库（解析 curse.maven 依赖必须）
-    maven {
-        name = "CurseMaven"
-        url = "https://cursemaven.com"
-        content {
-            includeGroup "curse.maven"
-        }
-    }
-
-    // 备用镜像仓库
-    maven {
-        name = "ModMaven"
-        url = "https://modmaven.dev"
-    }
-}
-
 base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-neoForge {
-    // 指定要使用的 NeoForge 版本
-    version = project.neo_version
+// 源码是 UTF-8（中文注释），Windows 默认 GBK 会让 javac 报 unmappable character
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
 
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
-    }
+// 1.20.1 Forge 用 ForgeGradle 6：official 通道 = Mojang 官方映射（mojmap），
+// 与 26.3 主线用的映射命名体系一致，移植时类名/方法名风格不用切换。
+minecraft {
+    mappings channel: mapping_channel, version: mapping_version
 
-    // 默认的运行配置
+    copyIdeResources = true
+
     runs {
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                }
+            }
+        }
+
         client {
-            client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            property 'forge.enabledGameTestNamespaces', mod_id
         }
 
         server {
-            server()
-            programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            property 'forge.enabledGameTestNamespaces', mod_id
+            args '--nogui'
         }
 
         gameTestServer {
-            type = "gameTestServer"
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            property 'forge.enabledGameTestNamespaces', mod_id
         }
 
         data {
-            clientData()
-            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
-        }
-
-        configureEach {
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-            logLevel = org.slf4j.event.Level.DEBUG
-        }
-    }
-
-    mods {
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
+            workingDirectory project.file('run-data')
+            args '--mod', mod_id, '--all',
+                    '--output', file('src/generated/resources/'),
+                    '--existing', file('src/main/resources/')
         }
     }
 }
@@ -83,55 +63,60 @@ neoForge {
 // 包含数据生成器生成的资源文件
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+repositories {
+    mavenCentral()
+    // CurseMaven：解析 JEI 的 curse.maven 依赖
+    maven {
+        name = "CurseMaven"
+        url = "https://cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
+}
+
 dependencies {
-    // 使用 CurseMaven 作为开发期运行环境加载 JEI（不强绑定到你的发布产物中）
-    // 项目 ID: 238222 (JEI), 文件 ID: 8941416
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    // JEI 1.20.1 Forge（15.20.0.133，File ID 8367520）：
     // compileOnly：四维空间工作台要接 JEI 的配方传输 API，需要编译期可见；
-    // runtimeOnly：开发环境下真的把 JEI 跑起来。两者同时声明不冲突。
-    compileOnly "curse.maven:jei-238222:8941416"
-    runtimeOnly "curse.maven:jei-238222:8941416"
-
-    implementation "curse.maven:curios-309927:8945239"
+    // runtimeOnly：开发环境下真的把 JEI 跑起来。
+    compileOnly fg.deobf("curse.maven:jei-238222:8367520")
+    runtimeOnly fg.deobf("curse.maven:jei-238222:8367520")
 }
 
-// 展开元数据替换属性
-var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
-    var replaceProperties = [minecraft_version      : minecraft_version,
-                             minecraft_version_range: minecraft_version_range,
-                             neo_version            : neo_version,
-                             neo_version_range      : neo_version_range,
-                             loader_version_range   : loader_version_range,
-                             mod_id                 : mod_id,
-                             mod_name               : mod_name,
-                             mod_license            : mod_license,
-                             mod_version            : mod_version,
-                             mod_authors            : mod_authors,
-                             mod_description        : mod_description]
+// mods.toml / pack.mcmeta 里的 ${} 占位符用 gradle.properties 展开
+tasks.named('processResources', ProcessResources).configure {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            forge_version          : forge_version,
+            forge_version_range    : forge_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description
+    ]
     inputs.properties replaceProperties
-    expand replaceProperties
-    from "src/main/templates"
-    into "build/generated/sources/modMetadata"
-}
-
-sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
-
-publishing {
-    publications {
-        register('mavenJava', MavenPublication) {
-            from components.java
-        }
-    }
-    repositories {
-        maven {
-            url "file://${project.projectDir}/repo"
-        }
+    replaceProperties.put 'project', project
+    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties
     }
 }
 
-idea {
-    module {
-        downloadSources = true
-        downloadJavadoc = true
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+                'Specification-Title'     : mod_id,
+                'Specification-Vendor'    : mod_authors,
+                'Specification-Version'   : '1',
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : project.jar.archiveVersion,
+                'Implementation-Vendor'  : mod_authors
+        ])
     }
+    finalizedBy 'reobfJar'
 }

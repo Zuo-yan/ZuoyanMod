@@ -1,26 +1,18 @@
 package org.gwfx.zuoyanmod.item;
 
 import com.mojang.logging.LogUtils;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.attachment.AttachmentType;
-import net.neoforged.neoforge.attachment.IAttachmentHolder;
-import net.neoforged.neoforge.attachment.IAttachmentSerializer;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
-import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.core.KleinTerminalLayout;
 import org.gwfx.zuoyanmod.menu.KleinBottleMenu;
+import org.gwfx.zuoyanmod.platform.RegistryLookup;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -38,11 +30,6 @@ import java.util.function.Predicate;
  * 老模型下 3300 个石头会摊成 52 格，玩家看到满屏同一种东西；
  * 现在它就是一格，右下角写 {@code 3.3k}——这才是 AE2 / RS2 的手感。
  *
- * <p>代价是**不能把总量塞进 {@code ItemStack.count}**：26.x 的 ItemStack 会校验
- * "堆叠数不能超过该物品上限"（项目日志里有过 {@code stack size of N was larger than maximum} 的实例）。
- * 所以模板 {@code template} 的 count 恒为 1，总量单独用 long 存；给界面看的
- * {@link #display(int)} 才是把总量夹到堆叠上限的展示栈。
- *
  * <p>因此**取放必须自己接管**，不能走原版的槽位算术：原版 {@code Slot.remove(n)}
  * 只认那个夹到 64 的展示栈，取走一组就会把"这一格空了"当成事实，3300 会凭空消失。
  * 所有交互都在 {@code KleinBottleMenu#clicked} 里按"从总量里扣"来实现。
@@ -50,6 +37,11 @@ import java.util.function.Predicate;
  * <h2>视图模型</h2>
  * 存储本体 {@link #entries} 保持录入顺序；界面看到的顺序是
  * {@link #view} = "过滤 + 排序后的条目下标数组"，搜索/排序只重排它。
+ *
+ * <h2>1.20.1 与 26.3 的差别</h2>
+ * 26.3 挂在 NeoForge 玩家 Attachment 上、用 ValueInput/ValueOutput + Codec 存档；
+ * 1.20.1 挂在 Forge Capability 上（见 {@link FourDimensionalSpaceCapability}），
+ * 存档走原生 CompoundTag NBT。
  */
 public class FourDimensionalSpace {
 
@@ -79,45 +71,17 @@ public class FourDimensionalSpace {
 
     /**
      * 一条条目：模板（count 恒为 1）+ 总量。
-     * 可序列化，所以带一个 Codec——{@code ValueOutput} 只有 {@code putIntArray}、没有 long 数组，
-     * 用 Codec 存成结构化列表比"拆高低位塞两个 int 数组"干净得多。
      */
     public record Entry(ItemStack template, long total) {
-        public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                ItemStack.CODEC.fieldOf("item").forGetter(Entry::template),
-                Codec.LONG.fieldOf("count").forGetter(Entry::total)
-        ).apply(instance, Entry::new));
-
         public boolean isEmpty() {
             return total <= 0 || template.isEmpty();
         }
     }
 
-    public static final DeferredRegister<AttachmentType<?>> ATTACHMENTS =
-            DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, Zuoyanmod.MODID);
-
-    public static final DeferredHolder<AttachmentType<?>, AttachmentType<FourDimensionalSpace>> ATTACHMENT =
-            ATTACHMENTS.register("four_dimensional_space", () -> AttachmentType
-                    .builder(FourDimensionalSpace::new)
-                    .serialize(new IAttachmentSerializer<FourDimensionalSpace>() {
-                        @Override
-                        public FourDimensionalSpace read(IAttachmentHolder holder, ValueInput input) {
-                            FourDimensionalSpace space = new FourDimensionalSpace();
-                            space.deserialize(input);
-                            return space;
-                        }
-
-                        @Override
-                        public boolean write(FourDimensionalSpace attachment, ValueOutput output) {
-                            attachment.serialize(output);
-                            return true;
-                        }
-                    })
-                    .copyOnDeath()
-                    .build());
-
+    /** 拿到该玩家的四维空间（Forge Capability，见 FourDimensionalSpaceCapability） */
     public static FourDimensionalSpace of(Player player) {
-        return player.getData(ATTACHMENT);
+        return player.getCapability(FourDimensionalSpaceCapability.FOUR_DIMENSIONAL_SPACE)
+                .orElseThrow(() -> new IllegalStateException("FourDimensionalSpace capability missing on player " + player));
     }
 
     // ===== 存储本体 =====
@@ -163,17 +127,19 @@ public class FourDimensionalSpace {
     }
 
     /**
-     * 给界面/原版用的**展示栈**：模板不变，count 夹到该物品的堆叠上限。
-     * 面板上那格显示的"这格有多少"靠的是界面自己画的叠字（{@link #total(int)}），
-     * 这里的 count 只是为了让原版那套 {@code ItemStack.matches} 比较有东西可比。
+     * 给界面/原版用的**展示栈**：模板不变，count 固定为 1。
+     * 面板上那格显示的"这格有多少"靠的是界面自己画的叠字（{@link #total(int)}）。
+     * <p>
+     * 1.20.1 的 {@code AbstractContainerScreen#renderSlot} 是私有的，没法像 26.x 那样
+     * 整个换掉存储槽的绘制；把展示栈的 count 固定为 1 可以让原版**不画堆叠数字**，
+     * 界面再在 {@code super.render} 之后自绘真实总量，同样避免两个数字重叠。
      */
     public ItemStack display(int index) {
         Entry e = entry(index);
         if (e == null || e.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        int max = Math.max(1, e.template().getMaxStackSize());
-        return e.template().copyWithCount((int) Math.min(e.total(), max));
+        return e.template().copyWithCount(1);
     }
 
     public long total(int index) {
@@ -248,12 +214,10 @@ public class FourDimensionalSpace {
      * 重建视图。查询语法（比 RS2 的查询语言简单，够用就行）：
      * <ul>
      *   <li>空格分隔的多个词：全部命中才算（AND）</li>
-     *   <li>{@code @前缀}：按模组过滤——匹配命名空间**或模组显示名**，都是前缀匹配。
-     *       例如 {@code @mine 石头}、{@code @我的模组中文名}、{@code @zuo} 都行。</li>
+     *   <li>{@code @前缀}：按模组过滤——匹配命名空间**或模组显示名**，都是前缀匹配。</li>
      *   <li>{@code -词}：排除，例如 {@code -石头}</li>
      * </ul>
-     * 匹配对象是**玩家看到的显示名**和**注册名 id**，所以中文名、英文名、
-     * {@code minecraft:stone} 都能搜到。
+     * 匹配对象是**玩家看到的显示名**和**注册名 id**。
      */
     public void rebuildView() {
         List<String> required = new ArrayList<>();
@@ -282,7 +246,7 @@ public class FourDimensionalSpace {
             if (e.isEmpty()) {
                 continue;
             }
-            Identifier id = BuiltInRegistries.ITEM.getKey(e.template().getItem());
+            ResourceLocation id = RegistryLookup.itemId(e.template().getItem());
             String haystack = (e.template().getHoverName().getString() + " " + id).toLowerCase(Locale.ROOT);
             if (!modFilters.isEmpty() && !matchesMod(id, modFilters)) {
                 continue;
@@ -304,14 +268,8 @@ public class FourDimensionalSpace {
         }
     }
 
-    /**
-     * 模组过滤：命名空间或模组显示名，**前缀匹配**。
-     *
-     * <p>早先只做 {@code 命名空间.equals(输入)}，而提示文字写的是「@模组」——
-     * 玩家顺手就把「@模组」三个字原样敲进去了，结果自然是零匹配。
-     * 现在提示改成「@模组id」，同时这里放宽到前缀 + 显示名，敲个大概也能中。
-     */
-    private static boolean matchesMod(Identifier id, List<String> filters) {
+    /** 模组过滤：命名空间或模组显示名，**前缀匹配**。 */
+    private static boolean matchesMod(ResourceLocation id, List<String> filters) {
         String namespace = id.getNamespace();
         String displayName = null;
         for (String filter : filters) {
@@ -331,7 +289,7 @@ public class FourDimensionalSpace {
     /** 模组显示名（匹配不到就返回 null；ModList 没起来也不炸） */
     private static String modDisplayName(String namespace) {
         try {
-            return net.neoforged.fml.ModList.get()
+            return net.minecraftforge.fml.ModList.get()
                     .getModContainerById(namespace)
                     .map(container -> container.getModInfo().getDisplayName())
                     .orElse(null);
@@ -346,8 +304,8 @@ public class FourDimensionalSpace {
                     i -> entries.get(i).template().getHoverName().getString(),
                     Comparator.naturalOrder());
             case COUNT -> Comparator.comparingLong(i -> entries.get(i).total());
-            // 注册名排序用注册表的数字 id：同模组的东西天然连在一起，也不用每次比较都取 Identifier
-            case REGISTRY -> Comparator.comparingInt(i -> BuiltInRegistries.ITEM.getId(entries.get(i).template().getItem()));
+            // 注册名排序用注册表的数字 id：同模组的东西天然连在一起
+            case REGISTRY -> Comparator.comparingInt(i -> RegistryLookup.itemNumericId(entries.get(i).template().getItem()));
             case RECENT -> Comparator.comparingInt(i -> i);
         };
     }
@@ -365,11 +323,11 @@ public class FourDimensionalSpace {
         int count = stack.getCount();
         for (int i = 0; i < entries.size(); i++) {
             Entry e = entries.get(i);
-            if (!e.isEmpty() && ItemStack.isSameItemSameComponents(e.template(), stack)) {
+            // 1.20.1 的同类判定是 isSameItemSameTags（26.x 改名 isSameItemSameComponents）
+            if (!e.isEmpty() && ItemStack.isSameItemSameTags(e.template(), stack)) {
                 entries.set(i, new Entry(e.template(), e.total() + count));
                 // 注意：**不在这里 rebuildView**。一次界面交互会在同一 tick 里连续
                 // insert / consume 好几次，中途重排视图会让后续写入打错条目。
-                // 交给 settle() 在这一 tick 结束后统一重建。
                 if (count > 0) {
                     viewStale = true;
                 }
@@ -383,10 +341,9 @@ public class FourDimensionalSpace {
 
     /**
      * 从某一条里扣掉 amount 个。
-     *
-     * <p>扣空时**不把条目从列表里删掉**，而是留一条 total = 0 的空条目——
-     * 列表长度不变，{@link #view} 里的下标就还是稳的，同一 tick 内紧随其后的
-     * 几次扣减不会打错条目。空条目由 {@link #settle()} 统一清掉。
+     * <p>
+     * 扣空时**不把条目从列表里删掉**，而是留一条 total = 0 的空条目——
+     * 列表长度不变，{@link #view} 里的下标就还是稳的。
      *
      * @return 实际扣掉的数量（可能小于 amount，说明这一条不够了）
      */
@@ -414,11 +371,6 @@ public class FourDimensionalSpace {
     /**
      * 收尾：把这一 tick 里被取空的条目清掉并重建视图。
      *
-     * <p>为什么不在 {@link #consume} / {@link #insert} 里立刻重建视图：一次 shift-click
-     * 会在同一 tick 里连续扣/加好几条，中途把列表左移或重排，界面正在用的 {@link #view}
-     * 下标就会错位，后续操作会打错条目（真丢东西 / 真复制）。
-     * 所以全部改成"标脏 + 这一 tick 结束后统一收尾"。
-     *
      * @return 是否有变化（调用方据此决定要不要重新装填窗口）
      */
     public boolean settle() {
@@ -445,7 +397,6 @@ public class FourDimensionalSpace {
 
     /**
      * 从第一条符合条件的条目里取走 count 个，取不到就返回 EMPTY。
-     * 取空时条目会被移除（并标脏，交给 {@link #settle} 收尾）。
      */
     public ItemStack take(Predicate<ItemStack> filter, int count) {
         for (int i = 0; i < entries.size(); i++) {
@@ -471,30 +422,45 @@ public class FourDimensionalSpace {
                 Component.translatable("gui.zuoyanmod.klein_bottle.title")));
     }
 
-    // ===== 持久化 =====
+    // ===== 持久化（1.20.1：原生 CompoundTag NBT） =====
 
-    public void serialize(ValueOutput output) {
-        output.store("Entries", Entry.CODEC.listOf(), entries);
-        output.putString("SortMode", sortMode.name());
-        output.putBoolean("SortDescending", descending);
-        output.putString("Search", search);
-        furnace.serialize(output.child("Furnace"));
+    public CompoundTag serialize() {
+        CompoundTag tag = new CompoundTag();
+        ListTag list = new ListTag();
+        for (Entry e : entries) {
+            if (e.isEmpty()) {
+                continue;
+            }
+            CompoundTag entryTag = new CompoundTag();
+            entryTag.put("item", e.template().save(new CompoundTag()));
+            entryTag.putLong("count", e.total());
+            list.add(entryTag);
+        }
+        tag.put("Entries", list);
+        tag.putString("SortMode", sortMode.name());
+        tag.putBoolean("SortDescending", descending);
+        tag.putString("Search", search);
+        tag.put("Furnace", furnace.serialize());
+        return tag;
     }
 
-    public void deserialize(ValueInput input) {
+    public void deserialize(CompoundTag tag) {
         entries.clear();
-        for (Entry e : input.read("Entries", Entry.CODEC.listOf()).orElse(List.of())) {
-            if (!e.isEmpty()) {
-                entries.add(e);
+        ListTag list = tag.getList("Entries", Tag.TAG_COMPOUND);
+        for (int i = 0; i < list.size(); i++) {
+            CompoundTag entryTag = list.getCompound(i);
+            ItemStack template = ItemStack.of(entryTag.getCompound("item"));
+            long total = entryTag.getLong("count");
+            if (!template.isEmpty() && total > 0) {
+                entries.add(new Entry(template, total));
             }
         }
-        migrateLegacyItems(input);
 
-        furnace.deserialize(input.childOrEmpty("Furnace"));
+        furnace.deserialize(tag.getCompound("Furnace"));
 
-        descending = input.getBooleanOr("SortDescending", false);
-        search = input.getStringOr("Search", "");
-        String mode = input.getStringOr("SortMode", SortMode.RECENT.name());
+        descending = tag.getBoolean("SortDescending");
+        search = tag.getString("Search");
+        String mode = tag.getString("SortMode");
         sortMode = SortMode.NAME;
         for (SortMode candidate : SortMode.VALUES) {
             if (candidate.name().equals(mode)) {
@@ -510,10 +476,14 @@ public class FourDimensionalSpace {
      * 同一种东西可能散在几十条里。这里把它们按种类并起来，
      * 免得玩家升级模组之后一仓库东西全没了。
      */
-    private void migrateLegacyItems(ValueInput input) {
-        List<ItemStack> legacy = input.read("Items", ItemStack.CODEC.listOf()).orElse(List.of());
+    public void migrateLegacyItems(CompoundTag tag) {
+        if (!tag.contains("Items")) {
+            return;
+        }
+        ListTag legacy = tag.getList("Items", Tag.TAG_COMPOUND);
         boolean any = false;
-        for (ItemStack stack : legacy) {
+        for (int i = 0; i < legacy.size(); i++) {
+            ItemStack stack = ItemStack.of(legacy.getCompound(i));
             if (!stack.isEmpty()) {
                 insert(stack);
                 any = true;

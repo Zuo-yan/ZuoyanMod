@@ -1,9 +1,0 @@
-{
-  "type": "minecraft:smithing_transform",
-  "addition": "zuoyanmod:relic_core",
-  "base": "minecraft:netherite_leggings",
-  "result": {
-    "id": "zuoyanmod:wind_leggings"
-  },
-  "template": "zuoyanmod:hallowed_upgrade_smithing_template"
-}

@@ -1,0 +1,26 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "I":  {
+                          "item":  "zuoyanmod:violet_gold_ingot"
+                      },
+                "D":  {
+                          "item":  "minecraft:diamond_block"
+                      },
+                "N":  {
+                          "item":  "minecraft:nether_star"
+                      },
+                "B":  {
+                          "item":  "minecraft:dragon_breath"
+                      }
+            },
+    "pattern":  [
+                    "IDI",
+                    "DND",
+                    "IBI"
+                ],
+    "result":  {
+                   "count":  1,
+                   "item":  "zuoyanmod:relic_core"
+               }
+}

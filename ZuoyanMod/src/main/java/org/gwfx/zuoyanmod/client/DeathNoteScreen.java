@@ -57,8 +57,9 @@ public class DeathNoteScreen extends Screen {
             return;
         }
         PacketHandler.sendDeathNote(target, seconds);
-        if (this.minecraft != null && this.minecraft.gui != null) {
-            this.minecraft.gui.setScreen(null);
+        // 1.20.1：setScreen 在 Minecraft 上（26.x 是 minecraft.gui.setScreen）
+        if (this.minecraft != null) {
+            this.minecraft.setScreen(null);
         }
     }
 

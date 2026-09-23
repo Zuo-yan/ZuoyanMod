@@ -2,12 +2,13 @@ package org.gwfx.zuoyanmod.event;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.effect.EffectRegistry;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
@@ -18,19 +19,26 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@EventBusSubscriber(modid = Zuoyanmod.MODID)
+/**
+ * 万晦转生之环：持有者身上叠加 3 种以上负面效果时触发「百战无伤」。
+ * <p>
+ * 1.20.1 适配：PlayerTickEvent.Post→{@code TickEvent.PlayerTickEvent}(END)；
+ * MobEffect 不再是 Holder（26.x 的 NAUSEA/SLOWNESS/MINING_FATIGUE 在 1.20.1 叫
+ * CONFUSION/MOVEMENT_SLOWDOWN/DIG_SLOWDOWN）。
+ */
+@Mod.EventBusSubscriber(modid = Zuoyanmod.MODID)
 public class WanHuiRingEventHandler {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect>[] NEGATIVE_EFFECTS = new net.minecraft.core.Holder[]{
+    private static final MobEffect[] NEGATIVE_EFFECTS = new MobEffect[]{
             MobEffects.BLINDNESS,
-            MobEffects.NAUSEA,
+            MobEffects.CONFUSION,
             MobEffects.POISON,
             MobEffects.HUNGER,
             MobEffects.WEAKNESS,
-            MobEffects.SLOWNESS,
-            MobEffects.MINING_FATIGUE
+            MobEffects.MOVEMENT_SLOWDOWN,
+            MobEffects.DIG_SLOWDOWN
     };
 
     private static final int REQUIRED_EFFECT_COUNT = 3;
@@ -43,9 +51,13 @@ public class WanHuiRingEventHandler {
     private static final ConcurrentHashMap<UUID, Boolean> IS_TRIGGERING_MAP = new ConcurrentHashMap<>();
 
     @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
-        Player player = event.getEntity();
-        if (player.level().isClientSide()) return;
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        // 26.x 的 PlayerTickEvent.Post 对应这里的 END phase
+        if (event.phase != TickEvent.Phase.END) {
+            return;
+        }
+        Player player = event.player;
+        if (player.level().isClientSide) return;
 
         if (!hasWanHuiRingInInventory(player)) return;
 
@@ -85,14 +97,14 @@ public class WanHuiRingEventHandler {
         if (player == null || player.isRemoved()) return;
 
         // 收集所有效果以便移除
-        List<net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect>> effectsToRemove = new ArrayList<>();
+        List<MobEffect> effectsToRemove = new ArrayList<>();
         for (MobEffectInstance effect : player.getActiveEffects()) {
             if (effect != null) {
                 effectsToRemove.add(effect.getEffect());
             }
         }
 
-        for (var effect : effectsToRemove) {
+        for (MobEffect effect : effectsToRemove) {
             try {
                 player.removeEffect(effect);
             } catch (Exception e) {
@@ -101,7 +113,7 @@ public class WanHuiRingEventHandler {
         }
 
         try {
-            player.addEffect(new MobEffectInstance(EffectRegistry.FIGHT_AGAIN, FIGHT_AGAIN_DURATION, 0));
+            player.addEffect(new MobEffectInstance(EffectRegistry.FIGHT_AGAIN.get(), FIGHT_AGAIN_DURATION, 0));
         } catch (Exception e) {
             LOGGER.error("Error adding FightAgain effect", e);
         }
@@ -130,10 +142,9 @@ public class WanHuiRingEventHandler {
         return false;
     }
 
-    @SuppressWarnings("unchecked")
     private static int countNegativeEffects(Player player) {
         int count = 0;
-        for (var effect : NEGATIVE_EFFECTS) {
+        for (MobEffect effect : NEGATIVE_EFFECTS) {
             try {
                 if (player.hasEffect(effect)) {
                     count++;

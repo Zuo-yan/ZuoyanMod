@@ -19,9 +19,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.block.BlockRegistry;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
@@ -42,21 +42,16 @@ import java.util.UUID;
  *       生物额外关闭 AI（并在场结束后按原值还原），掉落物速度归零——它们悬停在空中。</li>
  *   <li><b>相变</b>：范围内的暗物质掉落物就地变成超流体暗物质（1 个 = 1 格流体源）。</li>
  * </ol>
- * 除此之外没有第三个效果（凝聚合成链已按用户要求移除）。
+ * <b>施术者是唯一的例外，不参与冻结</b>。
  * <p>
- * <b>施术者是唯一的例外，不参与冻结</b>——他是这个场的参照系。这既是设定（冻结的是别人的时间），
- * 也是必要的：相变会在原地造出致命液池（见 {@code DarkMatterEventHandler}），施术者必须有时间离开，
- * 否则技能变成"用一次死一次"。见 docs/absolute_zero.md §5.2。
- * <p>
- * 液化的产出**完全沿用**原有液态暗物质（Phase 侵蚀全套惩罚 + 紫金神装免疫），不做任何削弱。
+ * 1.20.1 的服务端 tick 事件是 {@code TickEvent.ServerTickEvent}（26.x 是独立的
+ * ServerTickEvent.Post，用 phase 区分前后）。
  */
-@EventBusSubscriber(modid = Zuoyanmod.MODID)
+@Mod.EventBusSubscriber(modid = Zuoyanmod.MODID)
 public final class TimeFreezeManager {
 
     /**
      * 场的半径，单位：格。以中心方块为 0，向四周各扩 6 格 → **13×13×13**。
-     * <p>
-     * 这个值是唯一的范围旋钮：改它一处，冻结范围与暗物质转化范围同时生效。
      */
     public static final double RADIUS = 6.0D;
 
@@ -64,8 +59,7 @@ public final class TimeFreezeManager {
     public static final int FREEZE_TICKS = 15 * 20;
 
     /**
-     * 单次释放最多液化的暗物质数量。一整箱暗物质一次性铺开会让一个 tick 内产生
-     * 数百次方块更新 + 流体扩散调度，是明确的卡顿源；超出的部分**原样留在地上**（不吞东西）。
+     * 单次释放最多液化的暗物质数量。
      */
     public static final int MAX_CONVERSIONS_PER_CAST = 128;
 
@@ -81,10 +75,6 @@ public final class TimeFreezeManager {
     /** 减速效果每 N tick 才刷一次，避免每 tick 都给场内每个实体发包 */
     private static final long EFFECT_REFRESH_INTERVAL = 5L;
 
-    /**
-     * 液体的落点搜索顺序：以物品所在格为中心，由近及远。
-     * 同一水平层优先，然后往下一层，最后往上——流体该往低处淌，不该堆到半空。
-     */
     private static final List<BlockPos> SPREAD_OFFSETS = buildSpreadOffsets();
 
     private TimeFreezeManager() {}
@@ -176,7 +166,7 @@ public final class TimeFreezeManager {
             }
             stack.shrink(converted);
             if (stack.isEmpty()) {
-                itemEntity.remove(Entity.RemovalReason.DISCARDED);
+                itemEntity.discard();
             } else {
                 itemEntity.setItem(stack);
             }
@@ -193,7 +183,6 @@ public final class TimeFreezeManager {
             }
             BlockState state = level.getBlockState(pos);
             // 流体方块本身是 replaceable 的：不排掉它，第二叠暗物质就会"放进已有的流体里"
-            // —— 视觉无变化但物品被消耗，等于吞玩家东西。
             if (state.is(BlockRegistry.DARK_MATTER_BLOCK.get())) {
                 continue;
             }
@@ -207,7 +196,11 @@ public final class TimeFreezeManager {
     // ===== 时停：每 tick 维持 =====
 
     @SubscribeEvent
-    public static void onServerTick(ServerTickEvent.Post event) {
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+        // 26.x 的 ServerTickEvent.Post 对应这里的 END phase
+        if (event.phase != TickEvent.Phase.END) {
+            return;
+        }
         MinecraftServer server = event.getServer();
         if (FIELDS.isEmpty() && NO_AI_ENTITIES.isEmpty()) {
             return;
@@ -240,7 +233,7 @@ public final class TimeFreezeManager {
                     living.setDeltaMovement(0.0D, 0.0D, 0.0D);
                     // 6 级缓慢 ≈ 移动速度归零；按间隔续期，随场一起过期
                     if (refreshEffects) {
-                        living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS,
+                        living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,
                                 remaining + (int) EFFECT_REFRESH_INTERVAL + 1, 6, false, false, false));
                     }
                     if (living instanceof Mob mob) {

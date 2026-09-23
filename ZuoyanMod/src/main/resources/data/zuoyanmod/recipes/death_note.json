@@ -1,0 +1,27 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "D":  {
+                          "item":  "zuoyanmod:dark_matter"
+                      },
+                "B":  {
+                          "item":  "minecraft:book"
+                      },
+                "C":  {
+                          "item":  "minecraft:dragon_egg"
+                      },
+                "W":  {
+                          "item":  "minecraft:wither_skeleton_skull"
+                      }
+            },
+    "pattern":  [
+                    " D ",
+                    "BCB",
+                    " W "
+                ],
+    "result":  {
+                   "count":  1,
+                   "item":  "zuoyanmod:death_note"
+               },
+    "category":  "equipment"
+}

@@ -1,7 +1,6 @@
 package org.gwfx.zuoyanmod.event;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -9,16 +8,17 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
-import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingFallEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.item.BeimingBlade;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
@@ -29,11 +29,24 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@EventBusSubscriber(modid = Zuoyanmod.MODID)
+/**
+ * 暗影套装 + 北冥狂刃的事件处理。
+ * <p>
+ * 1.20.1 适配要点：
+ * <ul>
+ *   <li>AttributeModifier 的 ID 由 {@code Identifier}（26.x）换回 {@code UUID}（1.20.1），
+ *       操作枚举 ADD_VALUE→ADDITION、ADD_MULTIPLIED_BASE→MULTIPLY_BASE；</li>
+ *   <li>事件映射：PlayerTickEvent.Post→{@code TickEvent.PlayerTickEvent}(END)、
+ *       LivingIncomingDamageEvent→{@code LivingHurtEvent}、LivingDamageEvent.Pre→{@code LivingDamageEvent}；</li>
+ *   <li>伤害增减从 setNewDamage/getNewDamage 换成 setAmount/getAmount。</li>
+ * </ul>
+ */
+@Mod.EventBusSubscriber(modid = Zuoyanmod.MODID)
 public class ShadowArmorEventHandler {
 
-    private static final Identifier WIND_HEALTH_ID = Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "wind_health");
-    private static final Identifier WIND_SPEED_ID = Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "wind_speed");
+    /** 1.20.1 的属性修改器用 UUID 标识（26.x 是 ResourceLocation） */
+    private static final UUID WIND_HEALTH_ID = UUID.fromString("7c9a1b2e-3d4f-4a5b-8e6f-1a2b3c4d5e60");
+    private static final UUID WIND_SPEED_ID = UUID.fromString("8d0b2c3f-4e5a-4b6c-9f7a-2b3c4d5e6f71");
 
     private static final Map<UUID, Long> SHADOW_BLADE_COOLDOWNS = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> ABSORPTION_REFRESH_TIMES = new ConcurrentHashMap<>();
@@ -75,14 +88,19 @@ public class ShadowArmorEventHandler {
         double x = entity.getX() + (RANDOM.nextDouble() * 2 - 1) * TELEPORT_RANGE;
         double y = entity.getY() + (RANDOM.nextDouble() * 2 - 1) * TELEPORT_RANGE / 2;
         double z = entity.getZ() + (RANDOM.nextDouble() * 2 - 1) * TELEPORT_RANGE;
-        y = Math.max(level.getMinY() + 1, Math.min(y, level.getMaxY() - 1));
+        // 1.20.1 的世界高度 API 叫 getMinBuildHeight/getMaxBuildHeight（26.x 是 getMinY/getMaxY）
+        y = Math.max(level.getMinBuildHeight() + 1, Math.min(y, level.getMaxBuildHeight() - 1));
         entity.setPos(x, y, z);
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
-        Player player = event.getEntity();
-        if (player.level().isClientSide()) return;
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        // 26.x 的 PlayerTickEvent.Post 对应这里的 END phase
+        if (event.phase != TickEvent.Phase.END) {
+            return;
+        }
+        Player player = event.player;
+        if (player.level().isClientSide) return;
 
         tickCounter++;
 
@@ -101,10 +119,10 @@ public class ShadowArmorEventHandler {
             long lastAttack = BATTLE_FRENZY_LAST_ATTACK.get(player.getUUID());
             if (currentTick - lastAttack >= FRENZY_EXIT_TICKS) {
                 float bonus = FRENZY_MAX_HEALTH_BONUS.getOrDefault(player.getUUID(), 0.0f);
-                if (bonus > 0 && player.getAttribute(Attributes.MAX_HEALTH) != null) {
+                AttributeInstance maxHealth = player.getAttribute(Attributes.MAX_HEALTH);
+                if (bonus > 0 && maxHealth != null) {
                     float newMax = player.getMaxHealth() - bonus;
-                    player.getAttribute(Attributes.MAX_HEALTH).setBaseValue(
-                            player.getAttributeBaseValue(Attributes.MAX_HEALTH) - bonus);
+                    maxHealth.setBaseValue(maxHealth.getBaseValue() - bonus);
                     if (player.getHealth() > newMax) {
                         player.setHealth(newMax);
                     }
@@ -124,14 +142,14 @@ public class ShadowArmorEventHandler {
 
         // ===== 疾风护腿生命与移速加成 =====
         boolean hasLeggings = !leggings.isEmpty() && leggings.is(ItemRegistry.WIND_LEGGINGS.get());
-        var healthAttr = player.getAttribute(Attributes.MAX_HEALTH);
-        var moveAttr = player.getAttribute(Attributes.MOVEMENT_SPEED);
+        AttributeInstance healthAttr = player.getAttribute(Attributes.MAX_HEALTH);
+        AttributeInstance moveAttr = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (hasLeggings) {
-            if (healthAttr != null && !healthAttr.hasModifier(WIND_HEALTH_ID)) {
-                healthAttr.addTransientModifier(new AttributeModifier(WIND_HEALTH_ID, 20.0, AttributeModifier.Operation.ADD_VALUE));
+            if (healthAttr != null && healthAttr.getModifier(WIND_HEALTH_ID) == null) {
+                healthAttr.addTransientModifier(new AttributeModifier(WIND_HEALTH_ID, "wind_health", 20.0, AttributeModifier.Operation.ADDITION));
             }
-            if (moveAttr != null && !moveAttr.hasModifier(WIND_SPEED_ID)) {
-                moveAttr.addTransientModifier(new AttributeModifier(WIND_SPEED_ID, 0.25, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+            if (moveAttr != null && moveAttr.getModifier(WIND_SPEED_ID) == null) {
+                moveAttr.addTransientModifier(new AttributeModifier(WIND_SPEED_ID, "wind_speed", 0.25, AttributeModifier.Operation.MULTIPLY_BASE));
             }
         } else {
             if (healthAttr != null) healthAttr.removeModifier(WIND_HEALTH_ID);
@@ -181,7 +199,7 @@ public class ShadowArmorEventHandler {
         if (!chestplate.isEmpty() && chestplate.is(ItemRegistry.SHENG_TIAN_CHESTPLATE.get())) {
             if (tickCounter % EFFECT_REFRESH_INTERVAL == 0) {
                 player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, EFFECT_DURATION, 1, false, false));
-                player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, EFFECT_DURATION, 4, false, false));
+                player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, EFFECT_DURATION, 4, false, false));
             }
 
             long currentTick = player.level().getGameTime();
@@ -199,7 +217,7 @@ public class ShadowArmorEventHandler {
         if (hasLeggings) {
             float healthPercent = player.getHealth() / player.getMaxHealth();
             if (healthPercent < WIND_LOW_HEALTH_THRESHOLD) {
-                player.addEffect(new MobEffectInstance(MobEffects.SPEED, EFFECT_DURATION, 4, false, true));
+                player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, EFFECT_DURATION, 4, false, true));
             }
         }
 
@@ -217,7 +235,7 @@ public class ShadowArmorEventHandler {
     public static void onLivingFall(LivingFallEvent event) {
         LivingEntity entity = event.getEntity();
         if (entity instanceof Player player) {
-            if (player.level().isClientSide()) return;
+            if (player.level().isClientSide) return;
 
             ItemStack leggings = player.getItemBySlot(EquipmentSlot.LEGS);
             if (!leggings.isEmpty() && leggings.is(ItemRegistry.WIND_LEGGINGS.get())) {
@@ -229,11 +247,11 @@ public class ShadowArmorEventHandler {
         }
     }
 
-    // ===== 受到伤害免伤（暗影庇护） =====
+    // ===== 受到伤害免伤（暗影庇护）。26.x 的 LivingIncomingDamageEvent 对应 Forge 的 LivingHurtEvent =====
     @SubscribeEvent
-    public static void onLivingIncomingDamage(LivingIncomingDamageEvent event) {
+    public static void onLivingHurt(LivingHurtEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        if (player.level().isClientSide()) return;
+        if (player.level().isClientSide) return;
 
         ItemStack helmet = player.getItemBySlot(EquipmentSlot.HEAD);
         if (!helmet.isEmpty() && helmet.is(ItemRegistry.SHADOW_HELMET.get())) {
@@ -244,14 +262,14 @@ public class ShadowArmorEventHandler {
         }
     }
 
-    // ===== 伤害结算计算（攻击加成与防御减免） =====
+    // ===== 伤害结算计算（攻击加成与防御减免）。26.x 的 LivingDamageEvent.Pre 对应 Forge 的 LivingDamageEvent =====
     @SubscribeEvent
-    public static void onLivingDamage(LivingDamageEvent.Pre event) {
+    public static void onLivingDamage(LivingDamageEvent event) {
         DamageSource source = event.getSource();
 
         // 玩家作为攻击者
         if (source.getEntity() instanceof Player player) {
-            if (player.level().isClientSide() || player.isDeadOrDying()) return;
+            if (player.level().isClientSide || player.isDeadOrDying()) return;
 
             ItemStack mainHand = player.getMainHandItem();
 
@@ -267,9 +285,9 @@ public class ShadowArmorEventHandler {
 
                 float currentBonus = FRENZY_MAX_HEALTH_BONUS.getOrDefault(player.getUUID(), 0.0f);
                 float oldMaxHealth = player.getMaxHealth();
-                var maxHpAttr = player.getAttribute(Attributes.MAX_HEALTH);
+                AttributeInstance maxHpAttr = player.getAttribute(Attributes.MAX_HEALTH);
                 if (maxHpAttr != null) {
-                    maxHpAttr.setBaseValue(player.getAttributeBaseValue(Attributes.MAX_HEALTH) + FRENZY_MAX_HEALTH_PER_HIT);
+                    maxHpAttr.setBaseValue(maxHpAttr.getBaseValue() + FRENZY_MAX_HEALTH_PER_HIT);
                 }
                 float actualGain = player.getMaxHealth() - oldMaxHealth;
                 player.setHealth(player.getHealth() + actualGain);
@@ -281,7 +299,7 @@ public class ShadowArmorEventHandler {
                 float missingHealth = player.getMaxHealth() - player.getHealth();
                 float bonusDamage = missingHealth * FRENZY_BONUS_DAMAGE_RATIO;
                 if (bonusDamage > 0) {
-                    event.setNewDamage(event.getNewDamage() + bonusDamage);
+                    event.setAmount(event.getAmount() + bonusDamage);
                 }
 
                 player.sendSystemMessage(Component.literal("§4§l战之狂热 §7- 扣除 " + String.format("%.1f", selfDamage) + " HP，造成 " + String.format("%.1f", bonusDamage) + " 额外伤害!"));
@@ -301,7 +319,7 @@ public class ShadowArmorEventHandler {
             if (hasFullSet) {
                 LivingEntity target = event.getEntity();
                 float bonusDamage = target.getMaxHealth() * SET_BONUS_DAMAGE_PERCENT;
-                event.setNewDamage(event.getNewDamage() + bonusDamage);
+                event.setAmount(event.getAmount() + bonusDamage);
                 player.sendSystemMessage(Component.literal("§e§l纵横三千界 §7- 造成 " + String.format("%.1f", bonusDamage) + " 额外伤害!"));
             }
 
@@ -309,7 +327,7 @@ public class ShadowArmorEventHandler {
             if (!chestplate.isEmpty() && chestplate.is(ItemRegistry.SHENG_TIAN_CHESTPLATE.get())) {
                 float healthPercent = player.getHealth() / player.getMaxHealth();
                 if (healthPercent > LOW_HEALTH_THRESHOLD) {
-                    event.setNewDamage(event.getNewDamage() * (1.0f + DAMAGE_BOOST));
+                    event.setAmount(event.getAmount() * (1.0f + DAMAGE_BOOST));
                 }
             }
 
@@ -319,8 +337,8 @@ public class ShadowArmorEventHandler {
                 long lastUsed = SHADOW_BLADE_COOLDOWNS.getOrDefault(player.getUUID(), -SHADOW_BLADE_COOLDOWN_TICKS - 1L);
 
                 if (currentTick - lastUsed >= SHADOW_BLADE_COOLDOWN_TICKS && RANDOM.nextFloat() < SHADOW_BLADE_TRIGGER_CHANCE) {
-                    float bonusDamage = event.getNewDamage() * SHADOW_BLADE_DAMAGE_MULTIPLIER;
-                    event.setNewDamage(event.getNewDamage() + bonusDamage);
+                    float bonusDamage = event.getAmount() * SHADOW_BLADE_DAMAGE_MULTIPLIER;
+                    event.setAmount(event.getAmount() + bonusDamage);
                     SHADOW_BLADE_COOLDOWNS.put(player.getUUID(), currentTick);
                     event.getEntity().addEffect(new MobEffectInstance(MobEffects.BLINDNESS, BLINDNESS_ON_ATTACK_DURATION, 0));
                     player.sendSystemMessage(Component.literal("§8§l暗影之刃 §7- 造成 " + String.format("%.1f", bonusDamage) + " 额外伤害!"));
@@ -330,7 +348,7 @@ public class ShadowArmorEventHandler {
 
         // 玩家作为受击者
         if (event.getEntity() instanceof Player player) {
-            if (player.level().isClientSide()) return;
+            if (player.level().isClientSide) return;
 
             ItemStack helmet = player.getItemBySlot(EquipmentSlot.HEAD);
             ItemStack chestplate = player.getItemBySlot(EquipmentSlot.CHEST);
@@ -345,7 +363,7 @@ public class ShadowArmorEventHandler {
             // 行至空元：满血受到超过45%伤害时随机传送
             if (hasFullSet && player.getHealth() >= player.getMaxHealth()) {
                 float damageThreshold = player.getMaxHealth() * TELEPORT_DAMAGE_THRESHOLD;
-                if (event.getNewDamage() >= damageThreshold && player.level() instanceof ServerLevel serverLevel) {
+                if (event.getAmount() >= damageThreshold && player.level() instanceof ServerLevel serverLevel) {
                     teleportRandomly(player, serverLevel);
                     Entity attackerEntity = event.getSource().getEntity();
                     if (attackerEntity instanceof LivingEntity livingAttacker) {
@@ -357,14 +375,14 @@ public class ShadowArmorEventHandler {
 
             // 抗性提升 II：20%减伤（疾风护腿）
             if (!leggings.isEmpty() && leggings.is(ItemRegistry.WIND_LEGGINGS.get())) {
-                event.setNewDamage(event.getNewDamage() * (1.0f - RESISTANCE_REDUCTION));
+                event.setAmount(event.getAmount() * (1.0f - RESISTANCE_REDUCTION));
             }
 
             // 不屈：生命<50%时30%减伤
             if (!chestplate.isEmpty() && chestplate.is(ItemRegistry.SHENG_TIAN_CHESTPLATE.get())) {
                 float healthPercent = player.getHealth() / player.getMaxHealth();
                 if (healthPercent < LOW_HEALTH_THRESHOLD) {
-                    event.setNewDamage(event.getNewDamage() * (1.0f - DAMAGE_REDUCTION));
+                    event.setAmount(event.getAmount() * (1.0f - DAMAGE_REDUCTION));
                 }
             }
         }

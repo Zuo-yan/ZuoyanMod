@@ -1,0 +1,15 @@
+﻿{
+    "type":  "minecraft:smithing_transform",
+    "addition":  {
+                     "item":  "zuoyanmod:relic_core"
+                 },
+    "base":  {
+                 "item":  "minecraft:netherite_helmet"
+             },
+    "result":  {
+                   "item":  "zuoyanmod:shadow_helmet"
+               },
+    "template":  {
+                     "item":  "zuoyanmod:hallowed_upgrade_smithing_template"
+                 }
+}

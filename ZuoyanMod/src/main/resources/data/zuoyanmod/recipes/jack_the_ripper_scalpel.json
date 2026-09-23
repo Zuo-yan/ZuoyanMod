@@ -1,0 +1,24 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "F":  {
+                          "item":  "minecraft:flint"
+                      },
+                "D":  {
+                          "item":  "minecraft:diamond"
+                      },
+                "V":  {
+                          "item":  "zuoyanmod:violet_gold_ingot"
+                      }
+            },
+    "pattern":  [
+                    " F ",
+                    "VDV",
+                    " V "
+                ],
+    "result":  {
+                   "count":  1,
+                   "item":  "zuoyanmod:jack_the_ripper_scalpel"
+               },
+    "category":  "equipment"
+}

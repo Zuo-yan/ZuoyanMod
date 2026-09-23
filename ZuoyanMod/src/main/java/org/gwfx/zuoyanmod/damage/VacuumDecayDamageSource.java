@@ -1,7 +1,9 @@
 package org.gwfx.zuoyanmod.damage;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 
@@ -19,12 +21,9 @@ public final class VacuumDecayDamageSource {
     private VacuumDecayDamageSource() {}
 
     public static DamageSource create(Level level, Entity caster) {
-        return new DamageSource(
-                level.registryAccess()
-                        .lookupOrThrow(Registries.DAMAGE_TYPE)
-                        .getOrThrow(ZuoyanDamageTypes.VACUUM_DECAY),
-                caster,
-                caster
-        );
+        Holder<DamageType> holder = level.registryAccess()
+                .registryOrThrow(Registries.DAMAGE_TYPE)
+                .getHolderOrThrow(ZuoyanDamageTypes.VACUUM_DECAY);
+        return new DamageSource(holder, caster, caster);
     }
 }

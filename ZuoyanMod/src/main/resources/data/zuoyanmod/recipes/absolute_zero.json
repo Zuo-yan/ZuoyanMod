@@ -1,0 +1,24 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "I":  {
+                          "item":  "minecraft:ice"
+                      },
+                "B":  {
+                          "item":  "minecraft:blue_ice"
+                      },
+                "S":  {
+                          "item":  "minecraft:snow_block"
+                      }
+            },
+    "pattern":  [
+                    "IBI",
+                    "BSB",
+                    "IBI"
+                ],
+    "result":  {
+                   "count":  1,
+                   "item":  "zuoyanmod:absolute_zero"
+               },
+    "category":  "equipment"
+}
