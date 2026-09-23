@@ -17,10 +17,10 @@ public class FightAgainEffect extends MobEffect {
 
     public FightAgainEffect() {
         super(MobEffectCategory.BENEFICIAL, 0x8B4513);
-        // 1.20.1 的签名是 (Attribute, String 名称, 数值, Operation)——26.x 用 Identifier ID
+        // 1.20.1 的签名是 (Attribute, String UUID, 数值, Operation)——第二个参数必须是 UUID 字符串
         this.addAttributeModifier(Attributes.ATTACK_DAMAGE,
-                "effect.fight_again_damage", 0.50, AttributeModifier.Operation.MULTIPLY_TOTAL);
+                ATTACK_DAMAGE_MODIFIER_ID.toString(), 0.50, AttributeModifier.Operation.MULTIPLY_TOTAL);
         this.addAttributeModifier(Attributes.MOVEMENT_SPEED,
-                "effect.fight_again_speed", 0.30, AttributeModifier.Operation.MULTIPLY_TOTAL);
+                MOVEMENT_SPEED_MODIFIER_ID.toString(), 0.30, AttributeModifier.Operation.MULTIPLY_TOTAL);
     }
 }
