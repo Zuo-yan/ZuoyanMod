@@ -19,6 +19,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.world.entity.ai.goal.MoveTowardsRestrictionGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
@@ -29,6 +30,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -64,6 +66,25 @@ public class RickEntity extends PathfinderMob implements NeutralMob {
 
     /** 复活时的粒子数量，纯装饰。 */
     private static final int REBIRTH_PARTICLE_COUNT = 30;
+
+    /**
+     * 小屋守卫的领地半径（格）。
+     * <p>按结构主厅的尺度取的：从中心到四面内墙大约 4~9 格，半径 7 能让它在厅里正常走动，
+     * 又不会把墙角、门廊圈进领地。房屋本身是有墙的，所以这个圆只是"活动意愿边界"，
+     * 无需与墙严格对齐——真正挡住它的是墙，这个半径负责的是别让它"想"出去。
+     */
+    private static final int STRUCTURE_HOME_RADIUS = 7;
+
+    /**
+     * 守卫标签：打上它的瑞克会把出生点认作领地。
+     * <p>结构 NBT 里给小屋那只预置了这个标签（见 {@code tools/rick_structure_nbt.py}）。
+     * <p>为什么不用 {@code EntitySpawnReason.STRUCTURE} 判断：只有走区块生成的
+     * {@code SinglePoolElement} 会设 {@code finalizeEntities=true}；{@code /place structure}
+     * 这条路径走的是裸的 {@code StructureTemplate.placeInWorld}，<b>不会</b>调 finalizeSpawn。
+     * 用标签的话，"结构生成 / {@code /place} / {@code /summon} 带 NBT"三种途径行为一致，
+     * 调试起来也方便（{@code /summon} 一只带标签的就能复现守卫行为）。
+     */
+    public static final String GUARD_TAG = "zuoyanmod.rick_guard";
 
     /**
      * 是否还保有"复活资格"。
@@ -104,7 +125,11 @@ public class RickEntity extends PathfinderMob implements NeutralMob {
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.0D, true));
-        this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        // 6：被挤出领地（击退、被活塞推、卡在墙里）时主动走回出生点。
+        //    没有领地的瑞克（刷怪蛋放出来的）这一条永远不触发，行为与之前完全一致。
+        this.goalSelector.addGoal(6, new MoveTowardsRestrictionGoal(this, 1.0D));
+        // 7：漫步只在领地内选点，见 HomeBoundedStrollGoal
+        this.goalSelector.addGoal(7, new HomeBoundedStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(9, new RandomLookAroundGoal(this));
 
@@ -113,9 +138,16 @@ public class RickEntity extends PathfinderMob implements NeutralMob {
         // 2：把被激怒的玩家重新认回来（复活后、或仇恨目标一度丢失时用）。
         //    mustSee=true  → 看不见就不锁定，避免隔墙索敌
         //    mustReach=false → 允许隔着一段距离先记住目标
-        //    末尾 this::isAngryAt 是过滤器：不生气时整个选择器不工作。
+        //    末尾的过滤器要求"生气 且 在领地内"：小屋守卫不会把屋外的玩家列进名单，
+        //    从源头上避免它为了追人而贴到墙上磨蹭。
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(
-                this, Player.class, 10, true, false, this::isAngryAt));
+                this, Player.class, 10, true, false,
+                (target, serverLevel) -> this.isAngryAt(target, serverLevel) && this.canReachTarget(target)));
+    }
+
+    /** 有领地时只承认领地内的目标；没有领地（刷怪蛋生成）则一律照旧。 */
+    private boolean canReachTarget(LivingEntity entity) {
+        return !this.hasHome() || this.isWithinHome(entity.blockPosition());
     }
 
     // ===================== 中立生物（NeutralMob）=====================
@@ -195,6 +227,13 @@ public class RickEntity extends PathfinderMob implements NeutralMob {
         // finalizeSpawn 会重掷血量相关随机，这里明确拉满 → 满血复活
         next.setHealth(next.getMaxHealth());
 
+        // 领地跟着一起继承：小屋里那只被打倒后，新站起来的这只仍然守在同一块地方。
+        // 必须显式拷贝——next 是全新构造的实体，既没走存档读回、生成原因也不是 STRUCTURE，
+        // 上面 finalizeSpawn 里设家那一段不会替它触发。
+        if (this.hasHome()) {
+            next.setHomeTo(this.getHomePosition(), this.getHomeRadius());
+        }
+
         // 记住凶手：谁打死上一个，新瑞克接着跟他算账。
         // 顺序很重要——先 setLastHurtByMob，因为下面的持久仇恨目标就是取它。
         LivingEntity attacker = this.resolveAttacker(source);
@@ -237,7 +276,84 @@ public class RickEntity extends PathfinderMob implements NeutralMob {
             net.minecraft.world.entity.@Nullable SpawnGroupData groupData) {
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, spawnReason, groupData);
         this.canRebirth = true;
+        // 无论哪条生成路径，瑞克出场都该是完整的 20 点血
+        this.setHealth(this.getMaxHealth());
         return result;
+    }
+
+    // ===================== 领地（小屋守卫）=====================
+
+    /**
+     * 补上 {@link HurtByTargetGoal} 那条路径的漏洞。
+     * <p>{@code HurtByTargetGoal} 不挑地方，谁打它就记谁；而
+     * {@link MeleeAttackGoal#canContinueToUse()} 一看到目标在领地外就放弃追击。
+     * 两者叠在一起的结果是：玩家站在屋外打它，它会每 20 tick 朝门外冲一下再停住，来回抽搐。
+     * 这里在目标跑出领地时直接放手——仇恨计时不受影响，玩家一进屋它照样立刻扑上来。
+     * <p>{@link NearestAttackableTargetGoal} 那条路径不用管，过滤器里已经挡掉了。
+     */
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        if (this.level().isClientSide()) {
+            return;
+        }
+        this.claimGuardHome();
+        if (!this.hasHome()) {
+            return;
+        }
+        LivingEntity target = this.getTarget();
+        if (target != null && !this.isWithinHome(target.blockPosition())) {
+            this.setTarget(null);
+        }
+    }
+
+    /**
+     * 带着 {@link #GUARD_TAG} 出生的瑞克，在第一次服务端 tick 认领领地。
+     * <p>为什么拖到 tick 而不是在读 NBT 时设：结构 NBT 里只能写相对坐标，实体被真正
+     * 放到目标格上要等 {@code StructureTemplate} 完成 {@code snapTo}。等到第一 tick，
+     * 位置已经定下来了，这时取 {@code blockPosition()} 才是我们想要的那一格。
+     * <p>认领后 {@code home_pos}/{@code home_radius} 由 {@code Mob} 自己写进存档，
+     * 所以只需要认一次；不再带标签的、或者没有标签的瑞克完全不受影响。
+     */
+    private void claimGuardHome() {
+        // 注意 26.3 的 getter 叫 entityTags()，不是 getTags()；存盘键名仍是 "Tags"
+        if (this.hasHome() || !this.entityTags().contains(GUARD_TAG)) {
+            return;
+        }
+        this.setHomeTo(this.blockPosition(), STRUCTURE_HOME_RADIUS);
+    }
+
+    /**
+     * 只在领地范围内挑落脚点的随机漫步。
+     * <p>原版漫步完全无视 home —— {@code LandRandomPos.getPos(mob, 10, 7)} 是纯随机方向，
+     * 会把屋里的瑞克一路遛到圈外。这里反复挑几次，只接受落在领地内的候选点。
+     * 没有领地的瑞克直接沿用原版行为。
+     */
+    private static final class HomeBoundedStrollGoal extends WaterAvoidingRandomStrollGoal {
+
+        /** 连挑这么多次都没落在圈内，就当这一轮不散步了。 */
+        private static final int MAX_ATTEMPTS = 8;
+
+        HomeBoundedStrollGoal(PathfinderMob mob, double speedModifier) {
+            super(mob, speedModifier);
+        }
+
+        @Override
+        protected @Nullable Vec3 getPosition() {
+            if (!this.mob.hasHome()) {
+                return super.getPosition();
+            }
+            for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+                Vec3 candidate = super.getPosition();
+                if (candidate == null) {
+                    return null;
+                }
+                if (this.mob.isWithinHome(candidate)) {
+                    return candidate;
+                }
+            }
+            return null;
+        }
     }
 
     // ===================== 音效 / 杂项 =====================
