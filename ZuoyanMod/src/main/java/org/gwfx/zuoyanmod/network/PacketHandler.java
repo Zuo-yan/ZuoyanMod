@@ -1,8 +1,6 @@
 package org.gwfx.zuoyanmod.network;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -98,8 +96,8 @@ public final class PacketHandler {
     }
 
     private static void sendToServer(CustomPacketPayload payload) {
-        if (Minecraft.getInstance().getConnection() != null) {
-            Minecraft.getInstance().getConnection().send(new ServerboundCustomPayloadPacket(payload));
-        }
+        // 实现放在 client 包：本类是双端类，绝不能直接引用 net.minecraft.client.*，
+        // 否则专用服务端加载模组时会因为要解析 Minecraft 而连带加载客户端界面类直接崩。
+        org.gwfx.zuoyanmod.client.ClientPacketSender.sendToServer(payload);
     }
 }

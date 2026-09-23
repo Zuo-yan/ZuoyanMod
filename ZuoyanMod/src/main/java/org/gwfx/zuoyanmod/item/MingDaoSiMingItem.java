@@ -21,6 +21,7 @@ public class MingDaoSiMingItem extends Item {
         super.appendHoverText(stack, context, display, tooltip, flag);
         tooltip.accept(Component.literal("§6名刀司命"));
         tooltip.accept(Component.literal("§7免死一次，濒死时保留生命"));
+        tooltip.accept(Component.literal("§5一个真正想赢的人，脸上，是不会有笑容的 "));
         tooltip.accept(Component.literal("§2冷却:120s"));
         AccessoryChecks.appendEquipHint(tooltip);
     }

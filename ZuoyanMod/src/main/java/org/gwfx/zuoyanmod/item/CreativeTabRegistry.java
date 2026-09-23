@@ -76,6 +76,9 @@ public final class CreativeTabRegistry {
 
                         // 克莱因瓶（随身存储终端）
                         output.accept(ItemRegistry.KLEIN_BOTTLE.get());
+
+                        // 生物刷怪蛋
+                        output.accept(ItemRegistry.RICK_SPAWN_EGG.get());
                     }).build());
 
     private CreativeTabRegistry() {}

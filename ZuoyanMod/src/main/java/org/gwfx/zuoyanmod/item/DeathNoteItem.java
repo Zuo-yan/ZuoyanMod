@@ -4,9 +4,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.gwfx.zuoyanmod.client.DeathNoteScreen;
 
 public class DeathNoteItem extends Item {
 
@@ -17,12 +15,11 @@ public class DeathNoteItem extends Item {
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         if (level.isClientSide()) {
-            openScreen(player.getItemInHand(hand));
+            // 屏幕是纯客户端概念，实现放在 client 包（见 DeathNoteClient 的注释）。
+            // 这里绝不能出现 net.minecraft.client.* 的类型，否则服务端加载模组时
+            // 会因为校验 openScreen 而被迫加载 Screen，直接崩在专用服务端上。
+            org.gwfx.zuoyanmod.client.DeathNoteClient.openScreen(player.getItemInHand(hand));
         }
         return InteractionResult.SUCCESS;
-    }
-
-    private static void openScreen(ItemStack stack) {
-        net.minecraft.client.Minecraft.getInstance().gui.setScreen(new DeathNoteScreen(stack));
     }
 }

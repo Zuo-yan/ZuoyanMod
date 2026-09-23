@@ -91,5 +91,7 @@
   "gui.zuoyanmod.klein.anvil_name": "重命名",
   "gui.zuoyanmod.klein.anvil_name_hint": "重命名",
   "gui.zuoyanmod.klein.anvil_cost": "需要 %s 级经验",
-  "gui.zuoyanmod.klein.scrollbar_hint": "第 %s / %s 行"
+  "gui.zuoyanmod.klein.scrollbar_hint": "第 %s / %s 行",
+  "entity.zuoyanmod.rick": "瑞克",
+  "item.zuoyanmod.rick_spawn_egg": "瑞克刷怪蛋"
 }

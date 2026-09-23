@@ -17,6 +17,7 @@ import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SmithingTemplateItem;
+import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.component.Weapon;
@@ -30,6 +31,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.gwfx.zuoyanmod.Zuoyanmod;
+import org.gwfx.zuoyanmod.entity.EntityRegistry;
 import org.gwfx.zuoyanmod.fluid.FluidRegistry;
 import org.gwfx.zuoyanmod.block.BlockRegistry;
 
@@ -335,6 +337,16 @@ public final class ItemRegistry {
 
     public static final DeferredItem<BlockItem> VIOLET_GOLD_BLOCK_ITEM = ITEMS.registerSimpleBlockItem(
             "violet_gold_block", BlockRegistry.VIOLET_GOLD_BLOCK
+    );
+
+    // ===== 生物刷怪蛋 =====
+    // 26.3 里 SpawnEggItem 不再自带"我对应哪个实体"的字段，
+    // 信息全部落在 ENTITY_DATA 组件上，所以必须用 Properties#spawnEgg 来构造，
+    // 否则物品放下去不知道要生成什么（getType 返回 null，右键直接 FAIL）。
+    public static final DeferredItem<SpawnEggItem> RICK_SPAWN_EGG = ITEMS.registerItem(
+            "rick_spawn_egg",
+            SpawnEggItem::new,
+            props -> props.spawnEgg(EntityRegistry.RICK.get())
     );
 
     private ItemRegistry() {}
