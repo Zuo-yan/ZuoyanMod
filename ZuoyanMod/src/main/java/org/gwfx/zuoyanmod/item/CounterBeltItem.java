@@ -24,6 +24,5 @@ public class CounterBeltItem extends Item {
         tooltip.accept(Component.literal("§7激活「几曾识干戈」"));
         tooltip.accept(Component.literal("§7对目标造成99%最大生命值伤害"));
         AccessoryChecks.appendEquipHint(tooltip);
-        tooltip.accept(Component.literal("§e§o放入背包即生效"));
     }
 }

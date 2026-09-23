@@ -15,13 +15,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeMap;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.block.VoidResonancePumpBlockEntity;
+import org.gwfx.zuoyanmod.event.ClientRecipeCache;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
 import org.gwfx.zuoyanmod.menu.KleinBottleMenu;
 import org.gwfx.zuoyanmod.menu.MenuRegistry;
 import org.gwfx.zuoyanmod.network.PacketHandler;
+import org.gwfx.zuoyanmod.recipe.MicroCollisionRecipe;
 import org.gwfx.zuoyanmod.recipe.RecipeRegistry;
 
 import java.util.List;
@@ -39,8 +40,6 @@ import java.util.Optional;
 @JeiPlugin
 public class ZuoyanJeiPlugin implements IModPlugin {
 
-    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
-
     @Override
     public Identifier getPluginUid() {
         return Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "jei");
@@ -54,12 +53,6 @@ public class ZuoyanJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(mezz.jei.api.registration.IRecipeRegistration registration) {
-        // 自定义 RecipeType 的配方要自己喂给 JEI（JEI 不会自动收集非内置类型）。
-        // 真正的推送统一走 pushIfPossible()：此时 runtime 尚未就位，是空操作；
-        // onRuntimeAvailable 之后由缓存事件驱动补推（见下）。
-        this.registrationRef = registration;
-        pushIfPossible();
-
         // 虚空共振泵：硬编码逻辑（非数据驱动配方），注册期直接喂展示条目
         var pump = new org.gwfx.zuoyanmod.client.jei.VoidPumpCategory.VoidPumpDisplay[] {
                 new org.gwfx.zuoyanmod.client.jei.VoidPumpCategory.VoidPumpDisplay(
@@ -76,47 +69,18 @@ public class ZuoyanJeiPlugin implements IModPlugin {
                         VoidResonancePumpBlockEntity.fuelValue(new ItemStack(Items.CHORUS_FRUIT)))
         };
         registration.addRecipes(VoidPumpCategory.TYPE, List.of(pump));
-    }
 
-    @Override
-    public void onRuntimeAvailable(mezz.jei.api.runtime.IJeiRuntime jeiRuntime) {
-        this.runtime = jeiRuntime;
-        pushIfPossible();
-    }
-
-    /**
-     * {@link org.gwfx.zuoyanmod.event.ClientRecipeCache} 收到配方同步后回调。
-     * 时序无论谁先谁后都收敛到这里：缓存与 runtime 双双就位时，把配方推给 JEI
-     * （启动期用 registration，运行期用 runtime 的 addRecipes；以 RecipeMap 实例做去重标记）。
-     */
-    public static void onRecipesSynced() {
-        pushIfPossible();
-    }
-
-    private static void pushIfPossible() {
-        var map = org.gwfx.zuoyanmod.event.ClientRecipeCache.getRecipes();
-        if (map == null || map == RecipeMap.EMPTY || map == pushedMap) {
-            return;
-        }
-        var recipes = List.copyOf(map.byType(RecipeRegistry.MICRO_COLLISION_TYPE.get()));
-        if (recipes.isEmpty()) {
-            return;
-        }
-        if (runtime != null) {
-            runtime.getRecipeManager().addRecipes(MicroCollisionCategory.TYPE, recipes);
-            pushedMap = map;
-            LOGGER.info("[zuoyanmod] JEI: pushed {} micro_collision recipes via runtime", recipes.size());
-        } else if (registrationRef != null) {
-            registrationRef.addRecipes(MicroCollisionCategory.TYPE, recipes);
-            pushedMap = map;
-            LOGGER.info("[zuoyanmod] JEI: registered {} micro_collision recipes at startup", recipes.size());
+        // 微型强子对撞：数据包配方，与虚空泵同一套「注册期 addRecipes」机制。
+        // 之所以能在这里（而不是等 runtime）直接读到配方：服务端已通过 ServerRecipeSync
+        // 的 OnDatapackSyncEvent#sendRecipes 请求同步 micro_collision 类型；而 JEI 的启动
+        // 观察者用 LOWEST 优先级监听 RecipesReceivedEvent，晚于我们的 HIGHEST 缓存，
+        // 故本方法执行时 ClientRecipeCache 里已有配方。
+        List<RecipeHolder<MicroCollisionRecipe>> collisionRecipes =
+                List.copyOf(ClientRecipeCache.getRecipes().byType(RecipeRegistry.MICRO_COLLISION_TYPE.get()));
+        if (!collisionRecipes.isEmpty()) {
+            registration.addRecipes(MicroCollisionCategory.TYPE, collisionRecipes);
         }
     }
-
-    // 仅客户端（JEI 插件只在客户端加载），静态持有安全
-    private static mezz.jei.api.runtime.IJeiRuntime runtime;
-    private static mezz.jei.api.registration.IRecipeRegistration registrationRef;
-    private static net.minecraft.world.item.crafting.RecipeMap pushedMap;
 
     @Override
     public void registerRecipeCatalysts(mezz.jei.api.registration.IRecipeCatalystRegistration registration) {

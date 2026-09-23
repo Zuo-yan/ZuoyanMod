@@ -243,11 +243,17 @@ public final class ItemRegistry {
             props -> props.rarity(Rarity.UNCOMMON)
     );
 
-    // ===== 虚空共振泵方块物品（描述：能放什么材料） =====
+    // ===== 反物质微粒（微型强子对撞机产物：潮涌核心 + 烈焰棒） =====
+    public static final DeferredItem<Item> ANTIMATTER_PARTICLE = ITEMS.registerItem(
+            "antimatter_particle",
+            Item::new,
+            props -> props.rarity(Rarity.RARE)
+    );
+
+    // ===== 虚空共振泵方块物品（使用条件说明） =====
     public static final DeferredItem<BlockItem> VOID_RESONANCE_PUMP_ITEM = ITEMS.registerItem(
             "void_resonance_pump",
             props -> new DescriptionBlockItem(BlockRegistry.VOID_RESONANCE_PUMP.get(), props,
-                    "block.zuoyanmod.void_resonance_pump.desc1",
                     "block.zuoyanmod.void_resonance_pump.desc2")
     );
 
@@ -255,14 +261,13 @@ public final class ItemRegistry {
     public static final DeferredItem<BlockItem> MICRO_HADRON_COLLIDER_ITEM = ITEMS.registerItem(
             "micro_hadron_collider",
             props -> new DescriptionBlockItem(BlockRegistry.MICRO_HADRON_COLLIDER.get(), props,
-                    "block.zuoyanmod.micro_hadron_collider.desc1",
-                    "block.zuoyanmod.micro_hadron_collider.desc2")
+                    "block.zuoyanmod.micro_hadron_collider.desc1")
     );
 
     // ===== 奇点核心（对撞产物：克莱因瓶的唯一入口材料） =====
     public static final DeferredItem<Item> SINGULARITY_CORE = ITEMS.registerItem(
             "singularity_core",
-            props -> new DescribedItem(props, "item.zuoyanmod.singularity_core.desc1"),
+            Item::new,
             props -> props.rarity(Rarity.RARE)
     );
 
