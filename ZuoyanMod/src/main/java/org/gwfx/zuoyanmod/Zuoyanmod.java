@@ -1,7 +1,6 @@
 package org.gwfx.zuoyanmod;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -14,7 +13,6 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import org.gwfx.zuoyanmod.block.BlockRegistry;
-import org.gwfx.zuoyanmod.client.VoidResonancePumpScreen;
 import org.gwfx.zuoyanmod.menu.MenuRegistry;
 import org.gwfx.zuoyanmod.effect.EffectRegistry;
 import org.gwfx.zuoyanmod.fluid.FluidRegistry;
@@ -38,9 +36,12 @@ public class Zuoyanmod {
         // 注册方块、物品系统与创造栏
         FluidRegistry.register(modEventBus);
         BlockRegistry.register(modEventBus);
+        // 生物实体类型先于物品注册：刷怪蛋的 ENTITY_DATA 组件要引用 EntityType
+        org.gwfx.zuoyanmod.entity.EntityRegistry.register(modEventBus);
         ItemRegistry.register(modEventBus);
         MenuRegistry.register(modEventBus);
         org.gwfx.zuoyanmod.recipe.RecipeRegistry.register(modEventBus);
+        org.gwfx.zuoyanmod.worldgen.WorldgenRegistry.register(modEventBus);
         org.gwfx.zuoyanmod.item.FourDimensionalSpace.ATTACHMENTS.register(modEventBus);
         CreativeTabRegistry.register(modEventBus);
 
@@ -68,16 +69,29 @@ public class Zuoyanmod {
     public static class ClientModEvents {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
-            LOGGER.info("ZuoyanMod client setup complete. User: {}", Minecraft.getInstance().getUser().getName());
+            LOGGER.info("ZuoyanMod client setup complete. User: {}", net.minecraft.client.Minecraft.getInstance().getUser().getName());
         }
 
         @SubscribeEvent
         public static void onRegisterMenuScreens(net.neoforged.neoforge.client.event.RegisterMenuScreensEvent event) {
-            event.register(MenuRegistry.VOID_RESONANCE_PUMP_MENU.get(), VoidResonancePumpScreen::new);
+            event.register(MenuRegistry.VOID_RESONANCE_PUMP_MENU.get(),
+                    org.gwfx.zuoyanmod.client.VoidResonancePumpScreen::new);
             event.register(MenuRegistry.KLEIN_BOTTLE_MENU.get(),
                     org.gwfx.zuoyanmod.client.KleinBottleScreen::new);
             event.register(MenuRegistry.MICRO_HADRON_COLLIDER_MENU.get(),
                     org.gwfx.zuoyanmod.client.MicroHadronColliderScreen::new);
+        }
+
+        @SubscribeEvent
+        public static void onRegisterRenderers(net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.RICK.get(),
+                    org.gwfx.zuoyanmod.client.RickRenderer::new);
+        }
+
+        @SubscribeEvent
+        public static void onRegisterLayerDefinitions(net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterLayerDefinitions event) {
+            event.registerLayerDefinition(org.gwfx.zuoyanmod.client.RickModelLayers.RICK_BODY,
+                    org.gwfx.zuoyanmod.client.RickModelLayers::createBodyLayer);
         }
     }
 }
