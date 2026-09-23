@@ -17,7 +17,7 @@ public final class CreativeTabRegistry {
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ZUOYAN_TAB =
             CREATIVE_MODE_TABS.register("zuoyan", () -> CreativeModeTab.builder()
                     .withTabsBefore(CreativeModeTabs.COMBAT)
-                    .icon(() -> new ItemStack(ItemRegistry.MING_DAO_SI_MING.get()))
+                    .icon(() -> new ItemStack(ItemRegistry.KLEIN_BOTTLE.get()))
                     .title(Component.literal("过往浮现"))
                     .displayItems((parameters, output) -> {
                         // 武器与法宝
@@ -65,6 +65,10 @@ public final class CreativeTabRegistry {
 
                         // 绝对零度（把暗物质压成超流体的唯一入口）
                         output.accept(ItemRegistry.ABSOLUTE_ZERO.get());
+
+                        // 微型强子对撞机与奇点核心（克莱因瓶的获取链）
+                        output.accept(ItemRegistry.MICRO_HADRON_COLLIDER_ITEM.get());
+                        output.accept(ItemRegistry.SINGULARITY_CORE.get());
 
                         // 真空衰变（万能挖掘锤：负熵灌注 / 分子离解 / 对称破缺）
                         output.accept(ItemRegistry.VACUUM_DECAY.get());

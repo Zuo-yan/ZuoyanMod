@@ -62,13 +62,6 @@ public final class KleinTheme {
     public static final int MAGENTA = 0xFFF06FD8;
     public static final int GOLD = 0xFFFFD479;
 
-    // ===== 按钮 =====
-    public static final int BUTTON_FILL = 0xFF2A2046;
-    public static final int BUTTON_FILL_HOVER = 0xFF3C2E67;
-    public static final int BUTTON_ON = 0xFF29506B;
-    public static final int BUTTON_EDGE = 0xFF4B3B78;
-    public static final int BUTTON_EDGE_HOVER = 0xFF8C72E0;
-
     /** 一帧里"现在几秒"——动画统一用它，避免各处各算一套 */
     public static float now() {
         return (System.currentTimeMillis() % 1_000_000L) / 1000.0F;
@@ -108,21 +101,6 @@ public final class KleinTheme {
         g.fill(x, y + h - 1, x + w, y + h, color);
         g.fill(x, y + 1, x + 1, y + h - 1, color);
         g.fill(x + w - 1, y + 1, x + w, y + h - 1, color);
-    }
-
-    /** 工具按钮：外框随 hover / 开关状态换色 */
-    public static void buttonFrame(GuiGraphicsExtractor g, int x, int y, int size, boolean hovered, boolean on) {
-        int fill = on ? BUTTON_ON : (hovered ? BUTTON_FILL_HOVER : BUTTON_FILL);
-        g.fill(x, y, x + size, y + size, fill);
-        vGradient(g, x + 1, y + 1, size - 2, (size - 2) / 2,
-                withAlpha(0xFFFFFFFF, 0.06F), withAlpha(0xFFFFFFFF, 0.0F));
-        int edge = hovered ? BUTTON_EDGE_HOVER : BUTTON_EDGE;
-        outline(g, x, y, size, size, edge);
-        if (on || hovered) {
-            // 左上角的高光角标：和槽位四角的"超立方刻度"呼应
-            g.fill(x + 1, y + 1, x + 3, y + 2, on ? CYAN : withAlpha(CYAN, 0.65F));
-            g.fill(x + 1, y + 1, x + 2, y + 3, on ? CYAN : withAlpha(CYAN, 0.65F));
-        }
     }
 
     /** 搜索框：凹槽 + 左侧放大镜 + 聚焦时的青色呼吸边 */

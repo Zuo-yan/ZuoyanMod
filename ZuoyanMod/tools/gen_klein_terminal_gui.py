@@ -38,10 +38,13 @@ HOTBAR_Y = INV_Y + 58
 BOTTOM_PAD = 6
 IMAGE_H = HOTBAR_Y + CELL + BOTTOM_PAD
 
-# 物品栏右侧的 ∞：底图留空，运行时画（见 KleinTheme#infinityFlow）
+# 两处 ∞（物品栏右侧 + 左列按钮下方）：底图留空，运行时画（见 KleinTheme#infinityFlow）
 INFINITY_X, INFINITY_Y = 196, GRID_BOTTOM + 4
 INFINITY_W = 14
 INFINITY_H = IMAGE_H - BOTTOM_PAD - INFINITY_Y
+LEFT_FLOW_X, LEFT_FLOW_Y = 9, 112
+LEFT_FLOW_W = 14
+LEFT_FLOW_H = IMAGE_H - BOTTOM_PAD - LEFT_FLOW_Y
 
 # 四个功能按钮：真控件（KleinSideButton），底图不画
 SIDE_BUTTON_X, SIDE_BUTTON_Y, SIDE_BUTTON_SIZE, SIDE_BUTTON_GAP = 8, 34, 16, 2

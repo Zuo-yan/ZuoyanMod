@@ -48,6 +48,8 @@ ANVIL_NAME_X, ANVIL_NAME_Y, ANVIL_NAME_W, ANVIL_NAME_H = (
     GUI.ANVIL_NAME_X, GUI.ANVIL_NAME_Y, GUI.ANVIL_NAME_W, GUI.ANVIL_NAME_H)
 INFINITY_X, INFINITY_Y = GUI.INFINITY_X, GUI.INFINITY_Y
 INFINITY_W, INFINITY_H = GUI.INFINITY_W, GUI.INFINITY_H
+LEFT_FLOW_X, LEFT_FLOW_Y = GUI.LEFT_FLOW_X, GUI.LEFT_FLOW_Y
+LEFT_FLOW_W, LEFT_FLOW_H = GUI.LEFT_FLOW_W, GUI.LEFT_FLOW_H
 
 BUTTON_HOME, BUTTON_SORT_MODE, BUTTON_SORT_DIR, BUTTON_CLEAR = 0, 1, 2, 3
 SIDE_BUTTON_COUNT = 4
@@ -125,8 +127,7 @@ def side_button(index, hovered, descending):
     size = SIDE_BUTTON_SIZE
     x, y = SIDE_BUTTON_X, side_button_y(index)
     if hovered:
-        rect(x, y, size, size, alpha(BTN_FILL_HOVER, 140))
-        rect(x + 2, y + size - 2, size - 4, 1, alpha(CYAN, 204))
+        rect(x + 1, y + size - 2, size - 2, 1, alpha(CYAN, 217))
     color = TEXT if hovered else TEXT_DIM
     accent = CYAN if hovered else CYAN_DEEP
     s = size
@@ -360,8 +361,9 @@ def build_mock():
     rect(ANVIL_NAME_X + 4, ANVIL_NAME_Y + 3, 30, 6, TEXT_DIM)
     text_bar(GUI.ANVIL_COST_X, GUI.ANVIL_COST_Y, 7, (150, 200, 150, 255), 7)
 
-    # 物品栏右侧：会流动的 ∞
+    # 两处会流动的 ∞：物品栏右侧 + 左列按钮下方（相位错开）
     infinity_flow(INFINITY_X, INFINITY_Y, INFINITY_W, INFINITY_H, time=1.1)
+    infinity_flow(LEFT_FLOW_X, LEFT_FLOW_Y, LEFT_FLOW_W, LEFT_FLOW_H, time=1.1 + 2.1)
 
     # 存储内容：18 种物品各占一格（演示"一格一种"）
     n = 0

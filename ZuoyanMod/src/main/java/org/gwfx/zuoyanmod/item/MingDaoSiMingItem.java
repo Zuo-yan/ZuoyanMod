@@ -6,6 +6,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 
+import org.gwfx.zuoyanmod.util.AccessoryChecks;
+
 import java.util.function.Consumer;
 
 public class MingDaoSiMingItem extends Item {
@@ -20,5 +22,6 @@ public class MingDaoSiMingItem extends Item {
         tooltip.accept(Component.literal("§6名刀司命"));
         tooltip.accept(Component.literal("§7免死一次，濒死时保留生命"));
         tooltip.accept(Component.literal("§2冷却:120s"));
+        AccessoryChecks.appendEquipHint(tooltip);
     }
 }

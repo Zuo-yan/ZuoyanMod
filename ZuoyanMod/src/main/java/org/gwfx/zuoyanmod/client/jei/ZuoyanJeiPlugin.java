@@ -11,13 +11,18 @@ import mezz.jei.api.registration.IRecipeTransferRegistration;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeMap;
 import org.gwfx.zuoyanmod.Zuoyanmod;
+import org.gwfx.zuoyanmod.item.ItemRegistry;
 import org.gwfx.zuoyanmod.menu.KleinBottleMenu;
 import org.gwfx.zuoyanmod.menu.MenuRegistry;
 import org.gwfx.zuoyanmod.network.PacketHandler;
+import org.gwfx.zuoyanmod.recipe.RecipeRegistry;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -32,9 +37,79 @@ import java.util.Optional;
 @JeiPlugin
 public class ZuoyanJeiPlugin implements IModPlugin {
 
+    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
+
     @Override
     public Identifier getPluginUid() {
         return Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "jei");
+    }
+
+    @Override
+    public void registerCategories(mezz.jei.api.registration.IRecipeCategoryRegistration registration) {
+        registration.addRecipeCategories(new MicroCollisionCategory(registration.getJeiHelpers().getGuiHelper()));
+    }
+
+    @Override
+    public void registerRecipes(mezz.jei.api.registration.IRecipeRegistration registration) {
+        // 自定义 RecipeType 的配方要自己喂给 JEI（JEI 不会自动收集非内置类型）。
+        // 真正的推送统一走 pushIfPossible()：此时 runtime 尚未就位，是空操作；
+        // onRuntimeAvailable 之后由缓存事件驱动补推（见下）。
+        this.registrationRef = registration;
+        pushIfPossible();
+    }
+
+    @Override
+    public void onRuntimeAvailable(mezz.jei.api.runtime.IJeiRuntime jeiRuntime) {
+        this.runtime = jeiRuntime;
+        pushIfPossible();
+    }
+
+    /**
+     * {@link org.gwfx.zuoyanmod.event.ClientRecipeCache} 收到配方同步后回调。
+     * 时序无论谁先谁后都收敛到这里：缓存与 runtime 双双就位时，把配方推给 JEI
+     * （启动期用 registration，运行期用 runtime 的 addRecipes；以 RecipeMap 实例做去重标记）。
+     */
+    public static void onRecipesSynced() {
+        pushIfPossible();
+    }
+
+    private static void pushIfPossible() {
+        var map = org.gwfx.zuoyanmod.event.ClientRecipeCache.getRecipes();
+        if (map == null || map == RecipeMap.EMPTY || map == pushedMap) {
+            return;
+        }
+        var recipes = List.copyOf(map.byType(RecipeRegistry.MICRO_COLLISION_TYPE.get()));
+        if (recipes.isEmpty()) {
+            return;
+        }
+        if (runtime != null) {
+            runtime.getRecipeManager().addRecipes(MicroCollisionCategory.TYPE, recipes);
+            pushedMap = map;
+            LOGGER.info("[zuoyanmod] JEI: pushed {} micro_collision recipes via runtime", recipes.size());
+        } else if (registrationRef != null) {
+            registrationRef.addRecipes(MicroCollisionCategory.TYPE, recipes);
+            pushedMap = map;
+            LOGGER.info("[zuoyanmod] JEI: registered {} micro_collision recipes at startup", recipes.size());
+        }
+    }
+
+    // 仅客户端（JEI 插件只在客户端加载），静态持有安全
+    private static mezz.jei.api.runtime.IJeiRuntime runtime;
+    private static mezz.jei.api.registration.IRecipeRegistration registrationRef;
+    private static net.minecraft.world.item.crafting.RecipeMap pushedMap;
+
+    @Override
+    public void registerRecipeCatalysts(mezz.jei.api.registration.IRecipeCatalystRegistration registration) {
+        // 对撞机方块 = 微型强子对撞配方的催化剂（JEI 里点方块看它能做什么）
+        registration.addCraftingStation(MicroCollisionCategory.TYPE,
+                new ItemStack(ItemRegistry.MICRO_HADRON_COLLIDER_ITEM.get()));
+    }
+
+    @Override
+    public void registerGuiHandlers(mezz.jei.api.registration.IGuiHandlerRegistration registration) {
+        // 对撞机界面里点进度束区域 = 打开 JEI 的微型强子对撞配方列表
+        registration.addRecipeClickArea(org.gwfx.zuoyanmod.client.MicroHadronColliderScreen.class,
+                84, 27, 30, 10, MicroCollisionCategory.TYPE);
     }
 
     @Override

@@ -24,7 +24,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 MOD_ROOT = os.path.dirname(HERE)
 LAYOUT_JAVA = os.path.join(MOD_ROOT, "src", "main", "java", "org", "gwfx", "zuoyanmod",
-                           "util", "KleinTerminalLayout.java")
+                           "core", "KleinTerminalLayout.java")
 GUI_PY = os.path.join(HERE, "gen_klein_terminal_gui.py")
 
 # Java 里引用了别的类（FourDimensionalSpace.COLUMNS / CELL）时的已知取值
@@ -36,6 +36,7 @@ CHECK = [
     "SCROLLBAR_X", "SCROLLBAR_Y", "SCROLLBAR_W", "SCROLLBAR_H",
     "SEPARATOR_Y", "INV_LABEL_Y", "INV_Y", "HOTBAR_Y", "BOTTOM_PAD",
     "INFINITY_X", "INFINITY_Y", "INFINITY_W", "INFINITY_H",
+    "LEFT_FLOW_X", "LEFT_FLOW_Y", "LEFT_FLOW_W", "LEFT_FLOW_H",
     "SIDEBAR_X", "SIDEBAR_W", "CRAFT_LABEL_Y",
     "CRAFT_GRID_X", "CRAFT_GRID_Y", "CRAFT_RESULT_X", "CRAFT_RESULT_Y",
     "FURNACE_LABEL_Y",
@@ -88,6 +89,7 @@ def load_java_constants():
     try:
         values["IMAGE_H"] = values["HOTBAR_Y"] + values["CELL"] + values["BOTTOM_PAD"]
         values["INFINITY_H"] = values["IMAGE_H"] - values["BOTTOM_PAD"] - values["INFINITY_Y"]
+        values["LEFT_FLOW_H"] = values["IMAGE_H"] - values["BOTTOM_PAD"] - values["LEFT_FLOW_Y"]
     except KeyError:
         pass
     return values
