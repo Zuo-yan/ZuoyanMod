@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "V": "zuoyanmod:violet_gold_ingot",
+    "H": "minecraft:heart_of_the_sea"
+  },
+  "pattern": [
+    "VVV",
+    "VHV",
+    "VVV"
+  ],
+  "result": {
+    "id": "zuoyanmod:voodoo_necklace",
+    "count": 1
+  }
+}

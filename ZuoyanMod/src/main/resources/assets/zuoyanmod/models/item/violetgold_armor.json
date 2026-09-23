@@ -1,0 +1,6 @@
+﻿{
+  "parent": "minecraft:item/armor",
+  "textures": {
+    "layer0": "zuoyanmod:item/violetgold_armor"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "V": "zuoyanmod:violet_gold_ingot",
+    "D": "zuoyanmod:dark_matter",
+    "E": "minecraft:ender_eye",
+    "C": "zuoyanmod:relic_core"
+  },
+  "pattern": [
+    "VDV",
+    "ECE",
+    "VDV"
+  ],
+  "result": {
+    "id": "zuoyanmod:space_anchor",
+    "count": 1
+  },
+  "category": "equipment"
+}

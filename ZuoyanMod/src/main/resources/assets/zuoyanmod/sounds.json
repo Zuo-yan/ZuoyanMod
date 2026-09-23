@@ -1,0 +1,26 @@
+{
+  "domain_expansion.activate": {
+    "sounds": [
+      {
+        "name": "zuoyanmod:domain_expansion/activate",
+        "stream": false
+      }
+    ]
+  },
+  "domain_expansion.music": {
+    "sounds": [
+      {
+        "name": "zuoyanmod:domain_expansion/music",
+        "stream": true
+      }
+    ]
+  },
+  "drink.ice_tea": {
+    "sounds": [
+      {
+        "name": "zuoyanmod:drink/ice_tea",
+        "stream": false
+      }
+    ]
+  }
+}

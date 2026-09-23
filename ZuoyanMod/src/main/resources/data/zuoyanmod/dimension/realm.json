@@ -1,0 +1,61 @@
+﻿{
+  "type": "zuoyanmod:realm_type",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "minecraft:plains",
+      "features": false,
+      "lakes": true,
+      "layers": [
+        {
+          "block": "minecraft:bedrock",
+          "height": 1
+        },
+        {
+          "block": "minecraft:oak_log",
+          "height": 8
+        },
+        {
+          "block": "minecraft:spruce_log",
+          "height": 8
+        },
+        {
+          "block": "minecraft:birch_log",
+          "height": 8
+        },
+        {
+          "block": "minecraft:jungle_log",
+          "height": 8
+        },
+        {
+          "block": "minecraft:acacia_log",
+          "height": 8
+        },
+        {
+          "block": "minecraft:dark_oak_log",
+          "height": 8
+        },
+        {
+          "block": "minecraft:mangrove_log",
+          "height": 8
+        },
+        {
+          "block": "minecraft:cherry_log",
+          "height": 8
+        },
+        {
+          "block": "minecraft:stone",
+          "height": 5
+        },
+        {
+          "block": "minecraft:dirt",
+          "height": 5
+        },
+        {
+          "block": "minecraft:grass_block",
+          "height": 1
+        }
+      ]
+    }
+  }
+}

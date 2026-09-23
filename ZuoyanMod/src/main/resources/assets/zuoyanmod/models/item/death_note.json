@@ -1,0 +1,6 @@
+﻿{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "zuoyanmod:item/death_note"
+  }
+}
