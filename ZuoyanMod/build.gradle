@@ -91,7 +91,10 @@ dependencies {
     compileOnly "curse.maven:jei-238222:8941416"
     runtimeOnly "curse.maven:jei-238222:8941416"
 
-    implementation "curse.maven:curios-309927:8945239"
+    // Curios API（可选集成）：仅编译期可见 + 开发运行环境加载，不打包进发布产物。
+    // 运行时由玩家自行安装；未安装 Curios 时饰品走"放背包生效"逻辑。
+    compileOnly "curse.maven:curios-309927:8945239"
+    runtimeOnly "curse.maven:curios-309927:8945239"
 }
 
 // 展开元数据替换属性

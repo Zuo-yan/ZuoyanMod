@@ -11,6 +11,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.item.CounterBeltItem;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
+import org.gwfx.zuoyanmod.util.AccessoryChecks;
 
 import java.util.Map;
 import java.util.UUID;
@@ -58,11 +59,6 @@ public class CounterBeltEventHandler {
     }
 
     private static boolean hasCounterBeltInInventory(Player player) {
-        if (player.getMainHandItem().is(ItemRegistry.COUNTER_BELT.get())) return true;
-        if (player.getOffhandItem().is(ItemRegistry.COUNTER_BELT.get())) return true;
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            if (player.getInventory().getItem(i).is(ItemRegistry.COUNTER_BELT.get())) return true;
-        }
-        return false;
+        return AccessoryChecks.isEquipped(player, ItemRegistry.COUNTER_BELT.get());
     }
 }

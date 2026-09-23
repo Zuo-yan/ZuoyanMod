@@ -24,6 +24,11 @@ public final class MenuRegistry {
             MENUS.register("klein_bottle",
                     () -> new MenuType<>(KleinBottleMenu::new, FeatureFlags.DEFAULT_FLAGS));
 
+    /** 微型强子对撞机：双粒子束对撞，产出奇点核心等高能产物。 */
+    public static final DeferredHolder<MenuType<?>, MenuType<MicroHadronColliderMenu>> MICRO_HADRON_COLLIDER_MENU =
+            MENUS.register("micro_hadron_collider",
+                    () -> new MenuType<>(MicroHadronColliderMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
     private MenuRegistry() {}
 
     public static void register(IEventBus modBus) {
