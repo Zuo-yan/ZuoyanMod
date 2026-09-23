@@ -3,9 +3,13 @@ package org.gwfx.zuoyanmod.item;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.arrow.Arrow;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -13,6 +17,8 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.event.EventHooks;
+import org.gwfx.zuoyanmod.entity.LightSpiritArrow;
 
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
@@ -53,25 +59,51 @@ public class HerculesBowItem extends BowItem {
     }
 
     @Override
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        // 光灵箭由神圣光灵凝聚而成，无需背包中备有箭矢即可拉弓
+        ItemStack stack = player.getItemInHand(hand);
+        InteractionResult ret = EventHooks.onArrowNock(stack, level, player, hand, true);
+        if (ret != null) return ret;
+
+        player.startUsingItem(hand);
+        return InteractionResult.CONSUME;
+    }
+
+    @Override
     public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
         if (entity instanceof Player player) {
             int drawDuration = getUseDuration(stack, entity) - timeLeft;
+            drawDuration = EventHooks.onArrowLoose(stack, level, player, drawDuration, true);
+            if (drawDuration < 0) {
+                return false;
+            }
+
             float charge = calculatePowerForTime(drawDuration, stack);
 
             if (charge >= 0.1f) {
-                Arrow arrow = new Arrow(level, player, stack.copyWithCount(1), null);
-                arrow.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0f, charge * 3.0f, 1.0f);
-
-                if (charge >= 1.0f) {
-                    arrow.setCritArrow(true);
-                }
-
-                arrow.setBaseDamage(3.6D * DAMAGE_MULTIPLIER);
-
                 if (!level.isClientSide()) {
+                    // 发射光灵箭：不消耗真实箭矢，箭体无法被拾取，落地后化作光尘消散
+                    LightSpiritArrow arrow = new LightSpiritArrow(level, player, stack.copyWithCount(1));
+                    arrow.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0f, charge * 3.0f, 1.0f);
+
+                    if (charge >= 1.0f) {
+                        arrow.setCritArrow(true);
+                    }
+
+                    arrow.setBaseDamage(3.6D * DAMAGE_MULTIPLIER);
                     level.addFreshEntity(arrow);
                 }
 
+                level.playSound(
+                        null,
+                        player.getX(),
+                        player.getY(),
+                        player.getZ(),
+                        SoundEvents.ARROW_SHOOT,
+                        SoundSource.PLAYERS,
+                        1.0F,
+                        1.0F / (level.getRandom().nextFloat() * 0.4F + 1.2F) + charge * 0.5F);
+                player.awardStat(Stats.ITEM_USED.get(this));
                 stack.hurtAndBreak(1, player, player.getEquipmentSlotForItem(stack));
                 return true;
             }
@@ -128,6 +160,7 @@ public class HerculesBowItem extends BowItem {
         super.appendHoverText(stack, context, display, tooltip, flag);
         tooltip.accept(Component.literal("§6赫拉克勒斯之弓"));
         tooltip.accept(Component.literal("§7赫拉克勒斯十二试炼的神圣遗物"));
+        tooltip.accept(Component.literal("§7弓中蕴含无穷光灵，无需箭矢即可射出光灵箭"));
 
         BlessingType blessing = getBlessingType(stack);
         if (blessing != null) {

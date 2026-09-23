@@ -12,10 +12,12 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeMap;
 import org.gwfx.zuoyanmod.Zuoyanmod;
+import org.gwfx.zuoyanmod.block.VoidResonancePumpBlockEntity;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
 import org.gwfx.zuoyanmod.menu.KleinBottleMenu;
 import org.gwfx.zuoyanmod.menu.MenuRegistry;
@@ -47,6 +49,7 @@ public class ZuoyanJeiPlugin implements IModPlugin {
     @Override
     public void registerCategories(mezz.jei.api.registration.IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(new MicroCollisionCategory(registration.getJeiHelpers().getGuiHelper()));
+        registration.addRecipeCategories(new VoidPumpCategory(registration.getJeiHelpers().getGuiHelper()));
     }
 
     @Override
@@ -56,6 +59,23 @@ public class ZuoyanJeiPlugin implements IModPlugin {
         // onRuntimeAvailable 之后由缓存事件驱动补推（见下）。
         this.registrationRef = registration;
         pushIfPossible();
+
+        // 虚空共振泵：硬编码逻辑（非数据驱动配方），注册期直接喂展示条目
+        var pump = new org.gwfx.zuoyanmod.client.jei.VoidPumpCategory.VoidPumpDisplay[] {
+                new org.gwfx.zuoyanmod.client.jei.VoidPumpCategory.VoidPumpDisplay(
+                        new ItemStack(Items.ENDER_PEARL),
+                        new ItemStack(ItemRegistry.DARK_MATTER_PARTICLE.get()),
+                        VoidResonancePumpBlockEntity.fuelValue(new ItemStack(Items.ENDER_PEARL))),
+                new org.gwfx.zuoyanmod.client.jei.VoidPumpCategory.VoidPumpDisplay(
+                        new ItemStack(Items.DRAGON_BREATH),
+                        new ItemStack(ItemRegistry.DARK_MATTER_PARTICLE.get()),
+                        VoidResonancePumpBlockEntity.fuelValue(new ItemStack(Items.DRAGON_BREATH))),
+                new org.gwfx.zuoyanmod.client.jei.VoidPumpCategory.VoidPumpDisplay(
+                        new ItemStack(Items.CHORUS_FRUIT),
+                        new ItemStack(ItemRegistry.DARK_MATTER_PARTICLE.get()),
+                        VoidResonancePumpBlockEntity.fuelValue(new ItemStack(Items.CHORUS_FRUIT)))
+        };
+        registration.addRecipes(VoidPumpCategory.TYPE, List.of(pump));
     }
 
     @Override
@@ -103,6 +123,9 @@ public class ZuoyanJeiPlugin implements IModPlugin {
         // 对撞机方块 = 微型强子对撞配方的催化剂（JEI 里点方块看它能做什么）
         registration.addCraftingStation(MicroCollisionCategory.TYPE,
                 new ItemStack(ItemRegistry.MICRO_HADRON_COLLIDER_ITEM.get()));
+        // 虚空共振泵 = 共振转化的催化剂（点泵方块看它能换什么）
+        registration.addCraftingStation(VoidPumpCategory.TYPE,
+                new ItemStack(ItemRegistry.VOID_RESONANCE_PUMP_ITEM.get()));
     }
 
     @Override
@@ -110,6 +133,9 @@ public class ZuoyanJeiPlugin implements IModPlugin {
         // 对撞机界面里点进度束区域 = 打开 JEI 的微型强子对撞配方列表
         registration.addRecipeClickArea(org.gwfx.zuoyanmod.client.MicroHadronColliderScreen.class,
                 84, 27, 30, 10, MicroCollisionCategory.TYPE);
+        // 虚空泵界面里点产出进度条区域 = 打开 JEI 的共振转化列表
+        registration.addRecipeClickArea(org.gwfx.zuoyanmod.client.VoidResonancePumpScreen.class,
+                77, 28, 22, 9, VoidPumpCategory.TYPE);
     }
 
     @Override
