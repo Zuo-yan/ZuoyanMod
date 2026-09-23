@@ -45,6 +45,23 @@ public class ZuoyanJeiPlugin implements IModPlugin {
         return Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "jei");
     }
 
+    /**
+     * 隐藏 JEI 的「方块标签」信息类别（{@code minecraft:tag_recipes/block}）。
+     *
+     * <p>成因：机器方块带 {@code mineable/pickaxe} + {@code needs_iron_tool}，原版自动把它
+     * 归入 {@code incorrect_for_wooden_tool} 等一堆标签，JEI 就为每个标签生成一页"方块标签"
+     * 信息页，查机器时排在配方前面、且毫无信息量。
+     *
+     * <p>JEI 的标签类别是全局的，没有按物品隐藏的 API，只能整类隐藏——查任何方块
+     * 都不再出现"方块标签"页（「物品标签」「流体标签」两个类别不受影响）。
+     */
+    @Override
+    public void onRuntimeAvailable(mezz.jei.api.runtime.IJeiRuntime runtime) {
+        runtime.getRecipeManager()
+                .getRecipeType(Identifier.fromNamespaceAndPath("minecraft", "tag_recipes/block"))
+                .ifPresent(type -> runtime.getRecipeManager().hideRecipeCategory(type));
+    }
+
     @Override
     public void registerCategories(mezz.jei.api.registration.IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(new MicroCollisionCategory(registration.getJeiHelpers().getGuiHelper()));
