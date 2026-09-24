@@ -22,5 +22,13 @@
         "stream": false
       }
     ]
+  },
+  "causality_pistol.shoot": {
+    "sounds": [
+      {
+        "name": "zuoyanmod:causality_pistol/shoot",
+        "stream": false
+      }
+    ]
   }
 }

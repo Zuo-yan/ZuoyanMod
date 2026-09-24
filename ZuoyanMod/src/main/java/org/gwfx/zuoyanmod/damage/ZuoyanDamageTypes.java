@@ -25,5 +25,11 @@ public final class ZuoyanDamageTypes {
             Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "vacuum_decay")
     );
 
+    /** 「平行宇宙射线」湮灭：Boss 降级结算用的穿透伤害，无视护甲（bypasses_armor，见 damage_type JSON） */
+    public static final ResourceKey<DamageType> MULTIVERSE_RAY = ResourceKey.create(
+            Registries.DAMAGE_TYPE,
+            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "multiverse_ray")
+    );
+
     private ZuoyanDamageTypes() {}
 }

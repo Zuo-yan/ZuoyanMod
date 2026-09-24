@@ -38,6 +38,8 @@ public class Zuoyanmod {
         BlockRegistry.register(modEventBus);
         // 生物实体类型先于物品注册：刷怪蛋的 ENTITY_DATA 组件要引用 EntityType
         org.gwfx.zuoyanmod.entity.EntityRegistry.register(modEventBus);
+        // 自定义 DataComponent 先于物品注册：物品默认组件要引用组件类型（当前无自定义组件，保留注册管线）
+        org.gwfx.zuoyanmod.item.ComponentRegistry.register(modEventBus);
         ItemRegistry.register(modEventBus);
         MenuRegistry.register(modEventBus);
         org.gwfx.zuoyanmod.recipe.RecipeRegistry.register(modEventBus);
@@ -86,6 +88,9 @@ public class Zuoyanmod {
         public static void onRegisterRenderers(net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
             event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.RICK.get(),
                     org.gwfx.zuoyanmod.client.RickRenderer::new);
+            // 因果律子弹：自定义 billboard 渲染器，绿色能量球贴图，始终正对摄像机
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.CAUSALITY_BULLET.get(),
+                    org.gwfx.zuoyanmod.client.CausalityBulletRenderer::new);
         }
 
         @SubscribeEvent

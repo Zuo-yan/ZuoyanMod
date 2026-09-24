@@ -26,4 +26,13 @@ public class SoundRegistry {
             "domain_expansion.music",
             () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "domain_expansion.music"))
     );
+
+    /**
+     * 因果律手枪射击音：TACZ（永恒枪械工坊，GPL-3.0）的沙漠之鹰第一人称射击声。
+     * 音源位于 assets/zuoyanmod/sounds/causality_pistol/shoot.ogg。
+     */
+    public static final DeferredHolder<SoundEvent, SoundEvent> CAUSALITY_PISTOL_SHOOT = SOUND_EVENTS.register(
+            "causality_pistol.shoot",
+            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "causality_pistol.shoot"))
+    );
 }

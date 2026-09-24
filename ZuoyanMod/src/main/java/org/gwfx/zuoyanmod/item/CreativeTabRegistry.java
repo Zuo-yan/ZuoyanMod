@@ -23,6 +23,8 @@ public final class CreativeTabRegistry {
                         // 武器与法宝
                         output.accept(ItemRegistry.BEIMING_BLADE.get());
                         output.accept(ItemRegistry.HERCULES_BOW.get());
+                        output.accept(ItemRegistry.CAUSALITY_PISTOL.get());
+                        output.accept(ItemRegistry.ANTIMATTER_BULLET.get());
                         output.accept(ItemRegistry.JACK_THE_RIPPER_SCALPEL.get());
                         output.accept(ItemRegistry.DEATH_NOTE.get());
                         output.accept(ItemRegistry.MING_DAO_SI_MING.get());

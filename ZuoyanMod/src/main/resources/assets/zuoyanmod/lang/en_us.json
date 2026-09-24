@@ -20,6 +20,9 @@
   "item.zuoyanmod.micro_hadron_collider": "Micro Hadron Collider",
   "item.zuoyanmod.singularity_core": "Singularity Core",
   "item.zuoyanmod.antimatter_particle": "Antimatter Particle",
+  "item.zuoyanmod.antimatter_bullet": "Antimatter Bullet",
+  "item.zuoyanmod.causality_pistol": "Causality Pistol",
+  "entity.zuoyanmod.causality_bullet": "Multiverse Divergence Ray",
   "item.zuoyanmod.klein_bottle.desc1": "§7Pocket 4D space: boundless, §fone slot per item type",
   "item.zuoyanmod.klein_bottle.desc2": "§7Built-in §fcrafting table / furnace / anvil§7, store and take anytime",
   "item.zuoyanmod.klein_bottle.desc3": "§7Right-click or press §fK §7to open §dFour-Dimensional Space",
@@ -89,5 +92,10 @@
   "gui.zuoyanmod.klein.anvil_cost": "Costs %s XP levels",
   "gui.zuoyanmod.klein.scrollbar_hint": "Row %s / %s",
   "entity.zuoyanmod.rick": "Rick",
-  "item.zuoyanmod.rick_spawn_egg": "Rick Spawn Egg"
+  "item.zuoyanmod.rick_spawn_egg": "Rick Spawn Egg",
+  "death.attack.zuoyanmod.multiverse_ray": "%1$s was erased by the multiverse divergence ray",
+  "item.zuoyanmod.causality_pistol.desc1": "§7Deals no direct damage on hit — pulls an §fisotope of the target §7from a parallel universe to fight for you",
+  "item.zuoyanmod.causality_pistol.desc2": "§7The isotope exists in this universe for §f15 seconds§7, locked in mutual combat, no loot, no XP",
+  "item.zuoyanmod.causality_pistol.desc3": "§7Against §5players and bosses§7, isotope summoning fails — a §dannihilation ray§7 strikes instead: §f500§7 armor-piercing annihilation damage",
+  "item.zuoyanmod.causality_pistol.desc4": "§7Ammo: antimatter bullets"
 }

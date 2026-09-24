@@ -46,6 +46,23 @@ public final class EntityRegistry {
                             .clientTrackingRange(10)
             );
 
+    /**
+     * 因果律手枪的子弹：纯能量体（MobCategory.MISC，与原版箭/雪球同类，
+     * 不占刷怪上限）。客户端无模型，靠服务端绿色粒子表现（NoopRenderer）。
+     * <p>{@code updateInterval(1)}：高速射线需要每 tick 同步位置，防跳变。
+     */
+    public static final DeferredHolder<EntityType<?>, EntityType<CausalityBulletEntity>> CAUSALITY_BULLET =
+            ENTITY_TYPES.registerEntityType(
+                    "causality_bullet",
+                    CausalityBulletEntity::new,
+                    MobCategory.MISC,
+                    builder -> builder
+                            .sized(0.3F, 0.3F)
+                            .eyeHeight(0.15F)
+                            .clientTrackingRange(10)
+                            .updateInterval(1)
+            );
+
     private EntityRegistry() {}
 
     /**

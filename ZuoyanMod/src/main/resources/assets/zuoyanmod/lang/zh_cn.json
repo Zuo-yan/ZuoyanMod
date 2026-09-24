@@ -21,6 +21,9 @@
   "item.zuoyanmod.micro_hadron_collider": "微型强子对撞机",
   "item.zuoyanmod.singularity_core": "奇点核心",
   "item.zuoyanmod.antimatter_particle": "反物质微粒",
+  "item.zuoyanmod.antimatter_bullet": "反物质子弹",
+  "item.zuoyanmod.causality_pistol": "因果律手枪",
+  "entity.zuoyanmod.causality_bullet": "平行宇宙射线",
   "item.zuoyanmod.ring_of_kills": "杀戮之戒",
   "item.zuoyanmod.wan_hui_ring": "万晦转生之环",
   "item.zuoyanmod.counter_belt": "反击腰带",
@@ -93,5 +96,10 @@
   "gui.zuoyanmod.klein.anvil_cost": "需要 %s 级经验",
   "gui.zuoyanmod.klein.scrollbar_hint": "第 %s / %s 行",
   "entity.zuoyanmod.rick": "瑞克",
-  "item.zuoyanmod.rick_spawn_egg": "瑞克刷怪蛋"
+  "item.zuoyanmod.rick_spawn_egg": "瑞克刷怪蛋",
+  "death.attack.zuoyanmod.multiverse_ray": "%1$s 被平行宇宙的湮灭射线抹除了",
+  "item.zuoyanmod.causality_pistol.desc1": "§7命中生物时不结算伤害——从平行宇宙拉一个 §f目标的同位体§7为你作战",
+  "item.zuoyanmod.causality_pistol.desc2": "§7同位体会在本宇宙存在§f15秒§7，与本体互相死斗，无掉落无经验",
+  "item.zuoyanmod.causality_pistol.desc3": "§7对 §5玩家与 Boss §7无法召唤同位体，改判 §d湮灭射线§7：§f500§7 点无视护甲的湮灭伤害",
+  "item.zuoyanmod.causality_pistol.desc4": "§7弹药：反物质子弹"
 }

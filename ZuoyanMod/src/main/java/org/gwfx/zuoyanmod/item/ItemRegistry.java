@@ -252,6 +252,13 @@ public final class ItemRegistry {
             props -> props.rarity(Rarity.RARE)
     );
 
+    // ===== 反物质子弹（因果律手枪的专用弹药：生存模式每发消耗 1 枚） =====
+    public static final DeferredItem<Item> ANTIMATTER_BULLET = ITEMS.registerItem(
+            "antimatter_bullet",
+            Item::new,
+            props -> props.rarity(Rarity.UNCOMMON)
+    );
+
     // ===== 虚空共振泵方块物品（使用条件说明） =====
     public static final DeferredItem<BlockItem> VOID_RESONANCE_PUMP_ITEM = ITEMS.registerItem(
             "void_resonance_pump",
@@ -310,6 +317,13 @@ public final class ItemRegistry {
                                     new AttributeModifier(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "vacuum_decay_reach"), 2.73F, AttributeModifier.Operation.ADD_VALUE),
                                     EquipmentSlotGroup.MAINHAND)
                             .build()))
+    );
+
+    // ===== 因果律手枪（规则级武器：平行宇宙同位体；反物质子弹供弹） =====
+    public static final DeferredItem<CausalityPistolItem> CAUSALITY_PISTOL = ITEMS.registerItem(
+            "causality_pistol",
+            CausalityPistolItem::new,
+            props -> props.stacksTo(1).rarity(Rarity.EPIC)
     );
 
     // ===== 克莱因瓶（随身存储终端 + 内置工作台 / 无燃料熔炉） =====
