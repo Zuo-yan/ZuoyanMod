@@ -47,7 +47,7 @@ public final class EntityRegistry {
             );
 
     /**
-     * 因果律手枪的子弹：纯能量体（MobCategory.MISC，与原版箭/雪球同类，
+     * 原始黑洞的子弹：纯能量体（MobCategory.MISC，与原版箭/雪球同类，
      * 不占刷怪上限）。客户端无模型，靠服务端绿色粒子表现（NoopRenderer）。
      * <p>{@code updateInterval(1)}：高速射线需要每 tick 同步位置，防跳变。
      */
@@ -61,6 +61,35 @@ public final class EntityRegistry {
                             .eyeHeight(0.15F)
                             .clientTrackingRange(10)
                             .updateInterval(1)
+            );
+
+    /**
+     * 原始黑洞：右键道具释放的奇点场。
+     * <p>
+     * 三个参数都不是随手填的：
+     * <ul>
+     *   <li>{@code sized(2, 2)}：**刻意只给 2×2 的物理体积**，不用效果体积当碰撞箱。
+     *       详见 {@link PrimordialBlackHoleEntity} 的类注释（大 AABB 会撑爆实体分区索引、
+     *       把剔除距离拖到上千格、还和活塞/碰撞查询打架）；
+     *   <li>{@code clientTrackingRange(8)}：128 格内同步给客户端，和
+     *       {@code PrimordialBlackHoleEntity#RENDER_DISTANCE}（也是 128）配套 ——
+     *       同步范围小于渲染距离会出现"看得见但没数据"的空壳；
+     *   <li>{@code updateInterval(3)}：位置几乎不动（只有出生时 setPos 一次），
+     *       没必要每 tick 同步坐标，降到 3 省带宽；
+     *   <li>{@code noSave()}：不写进存档。宁可区块卸载时提前消失，
+     *       也不要读档后场上飘着一个永远不坍缩、又找不到主人的黑洞。
+     * </ul>
+     */
+    public static final DeferredHolder<EntityType<?>, EntityType<PrimordialBlackHoleEntity>> PRIMORDIAL_BLACK_HOLE =
+            ENTITY_TYPES.registerEntityType(
+                    "primordial_black_hole",
+                    PrimordialBlackHoleEntity::new,
+                    MobCategory.MISC,
+                    builder -> builder
+                            .sized(2.0F, 2.0F)
+                            .clientTrackingRange(8)
+                            .updateInterval(3)
+                            .noSave()
             );
 
     private EntityRegistry() {}

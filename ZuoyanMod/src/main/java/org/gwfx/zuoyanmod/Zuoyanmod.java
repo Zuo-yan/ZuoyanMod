@@ -91,6 +91,9 @@ public class Zuoyanmod {
             // 因果律子弹：自定义 billboard 渲染器，绿色能量球贴图，始终正对摄像机
             event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.CAUSALITY_BULLET.get(),
                     org.gwfx.zuoyanmod.client.CausalityBulletRenderer::new);
+            // 原始黑洞：billboard 黑盘 + energySwirl 涡流，无模型，纯几何自绘
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.PRIMORDIAL_BLACK_HOLE.get(),
+                    org.gwfx.zuoyanmod.client.PrimordialBlackHoleRenderer::new);
         }
 
         @SubscribeEvent

@@ -73,6 +73,9 @@ public final class CreativeTabRegistry {
                         output.accept(ItemRegistry.SINGULARITY_CORE.get());
                         output.accept(ItemRegistry.ANTIMATTER_PARTICLE.get());
 
+                        // 原始黑洞（对撞机终局产物，沉重核心 + 暗物质）
+                        output.accept(ItemRegistry.PRIMORDIAL_BLACK_HOLE.get());
+
                         // 真空衰变（万能挖掘锤：负熵灌注 / 分子离解 / 对称破缺）
                         output.accept(ItemRegistry.VACUUM_DECAY.get());
 

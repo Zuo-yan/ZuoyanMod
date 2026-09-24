@@ -280,6 +280,17 @@ public final class ItemRegistry {
             props -> props.rarity(Rarity.RARE)
     );
 
+    // ===== 原始黑洞（对撞产物：沉重核心 + 暗物质；右键释放一个 10 秒的黑洞）=====
+    // 继承 DescribedItem 是为了保留描述行机制；使用规则与具体数值见 PrimordialBlackHoleItem。
+    public static final DeferredItem<DescribedItem> PRIMORDIAL_BLACK_HOLE = ITEMS.registerItem(
+            "primordial_black_hole",
+            props -> new PrimordialBlackHoleItem(props,
+                    "item.zuoyanmod.primordial_black_hole.desc1",
+                    "item.zuoyanmod.primordial_black_hole.desc2",
+                    "item.zuoyanmod.primordial_black_hole.desc3"),
+            props -> props.rarity(Rarity.EPIC)
+    );
+
     // ===== 超流体暗物质（原「暗物质桶」，仅显示名变更，注册 id 保持 dark_matter_bucket） =====
     // craftRemainder(BUCKET)：它要当合成材料（真空衰变的配方要 4 个），必须像原版奶桶那样把空桶还回来，
     // 否则每合成一次就白吞 4 个铁桶。
