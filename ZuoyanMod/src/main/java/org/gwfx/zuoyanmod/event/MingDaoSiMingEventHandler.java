@@ -11,6 +11,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
+import org.gwfx.zuoyanmod.util.AccessoryChecks;
 
 /**
  * 名刀司命：抵挡一次致命伤害，原地留 1 HP，冷却 120 秒。
@@ -75,18 +76,6 @@ public final class MingDaoSiMingEventHandler {
     }
 
     private static ItemStack getMingDaoSiMingStack(Player player) {
-        if (player.getMainHandItem().is(ItemRegistry.MING_DAO_SI_MING.get())) {
-            return player.getMainHandItem();
-        }
-        if (player.getOffhandItem().is(ItemRegistry.MING_DAO_SI_MING.get())) {
-            return player.getOffhandItem();
-        }
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack item = player.getInventory().getItem(i);
-            if (item.is(ItemRegistry.MING_DAO_SI_MING.get())) {
-                return item;
-            }
-        }
-        return ItemStack.EMPTY;
+        return AccessoryChecks.findEquippedStack(player, ItemRegistry.MING_DAO_SI_MING.get());
     }
 }

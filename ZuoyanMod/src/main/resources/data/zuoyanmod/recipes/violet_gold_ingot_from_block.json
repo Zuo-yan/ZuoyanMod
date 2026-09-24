@@ -1,8 +1,8 @@
 {
     "type":  "minecraft:crafting_shapeless",
-    "ingredients":  [
-                        "zuoyanmod:violet_gold_block"
-                    ],
+    "ingredients": [
+            { "item": "zuoyanmod:violet_gold_block" }
+        ],
     "result":  {
                    "count":  9,
                    "item":  "zuoyanmod:violet_gold_ingot"

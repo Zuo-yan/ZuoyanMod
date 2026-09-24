@@ -1,11 +1,11 @@
 {
     "type":  "minecraft:crafting_shapeless",
-    "ingredients":  [
-                        "minecraft:apple",
-                        "minecraft:sweet_berries",
-                        "minecraft:sugar",
-                        "minecraft:sugar"
-                    ],
+    "ingredients": [
+            { "item": "minecraft:apple" },
+            { "item": "minecraft:sweet_berries" },
+            { "item": "minecraft:sugar" },
+            { "item": "minecraft:sugar" }
+        ],
     "result":  {
                    "count":  2,
                    "item":  "zuoyanmod:ice_tea"

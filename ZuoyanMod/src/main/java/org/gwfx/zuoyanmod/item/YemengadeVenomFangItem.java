@@ -21,6 +21,6 @@ public class YemengadeVenomFangItem extends net.minecraft.world.item.Item {
         tooltip.add(Component.literal("§7体力未满时受到攻击，有60%概率使攻击者中毒4秒"));
         tooltip.add(Component.literal("§7若攻击者已带有中毒效果，则触发§c尘世巨蟒§7："));
         tooltip.add(Component.literal("§7反伤等同于自身护甲值的伤害"));
-        tooltip.add(Component.literal("§e§o放入背包即生效"));
+        org.gwfx.zuoyanmod.util.AccessoryChecks.appendEquipHint(tooltip);
     }
 }

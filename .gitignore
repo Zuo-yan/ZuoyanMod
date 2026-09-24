@@ -1,6 +1,20 @@
 # WorkBuddy
 .workbuddy/
-.py
+
+# 生成工具脚本（美术资源/代码为程序生成，脚本仅在本机留存，不进仓库）
+*.py
+/ZuoyanMod/tools/
+/tools/Extract.java
+
+# 项目根目录的预览图
+/*_preview.png
+/klein_terminal_mock.png
+
+# Gradle 生成的运行配置
+ZuoyanMod/.eclipse/
+
+# 第三方参考源码（Minecraft 反编译源码 + Curios / JEI 稀疏克隆，仅本机查阅，不进仓库）
+/mcsrc/
 
 # Gradle
 .gradle/

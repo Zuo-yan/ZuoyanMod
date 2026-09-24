@@ -74,5 +74,20 @@
   "gui.zuoyanmod.klein.anvil_name": "Rename",
   "gui.zuoyanmod.klein.anvil_name_hint": "Rename",
   "gui.zuoyanmod.klein.anvil_cost": "Costs %s XP levels",
-  "gui.zuoyanmod.klein.scrollbar_hint": "Row %s / %s"
+  "gui.zuoyanmod.klein.scrollbar_hint": "Row %s / %s",
+  "block.zuoyanmod.micro_hadron_collider": "Micro Hadron Collider",
+  "item.zuoyanmod.micro_hadron_collider": "Micro Hadron Collider",
+  "item.zuoyanmod.singularity_core": "Singularity Core",
+  "item.zuoyanmod.antimatter_particle": "Antimatter Particle",
+  "item.zuoyanmod.klein_bottle.desc1": "§7Pocket 4D space: boundless, §fone slot per item type",
+  "item.zuoyanmod.klein_bottle.desc2": "§7Built-in §fcrafting table / furnace / anvil§7, store and take anytime",
+  "item.zuoyanmod.klein_bottle.desc3": "§7Right-click or press §fK §7to open §dFour-Dimensional Space",
+  "block.zuoyanmod.micro_hadron_collider.desc1": "§7Powered by redstone, two material beams collide into a product",
+  "block.zuoyanmod.void_resonance_pump.desc2": "§7End only: suspended over the void, produces §fDark Matter Particles",
+  "gui.zuoyanmod.jei.micro_collision": "Micro Hadron Collision",
+  "gui.zuoyanmod.jei.duration": "%s s",
+  "gui.zuoyanmod.jei.void_pump": "Void Resonance",
+  "gui.zuoyanmod.jei.resonance": "Resonance %s · End dimension, suspended",
+  "entity.zuoyanmod.rick": "Rick",
+  "item.zuoyanmod.rick_spawn_egg": "Rick Spawn Egg"
 }

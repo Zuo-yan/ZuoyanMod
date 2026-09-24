@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "S": { "item": "minecraft:shulker_shell" },
+    "G": { "item": "minecraft:tinted_glass" },
+    "N": { "item": "zuoyanmod:singularity_core" },
+    "E": { "item": "minecraft:chorus_fruit" }
+  },
+  "pattern": [
+    "SGS",
+    "GNG",
+    "EEE"
+  ],
+  "result": {
+    "item": "zuoyanmod:klein_bottle",
+    "count": 1
+  },
+  "category": "misc"
+}

@@ -13,6 +13,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SmithingTemplateItem;
+import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
 import net.minecraft.core.registries.Registries;
@@ -240,10 +241,25 @@ public final class ItemRegistry {
     public static final RegistryObject<DarkMatterParticleItem> DARK_MATTER_PARTICLE =
             ITEMS.register("dark_matter_particle", () -> new DarkMatterParticleItem(new Item.Properties().rarity(Rarity.UNCOMMON)));
 
-    // ===== 虚空共振泵方块物品 =====
+    // ===== 反物质微粒（微型强子对撞机产物：潮涌核心 + 烈焰棒） =====
+    public static final RegistryObject<Item> ANTIMATTER_PARTICLE =
+            ITEMS.register("antimatter_particle", () -> new Item(new Item.Properties().rarity(Rarity.RARE)));
+
+    // ===== 虚空共振泵方块物品（使用条件说明） =====
     public static final RegistryObject<BlockItem> VOID_RESONANCE_PUMP_ITEM =
             ITEMS.register("void_resonance_pump",
-                    () -> new BlockItem(BlockRegistry.VOID_RESONANCE_PUMP.get(), new Item.Properties()));
+                    () -> new DescriptionBlockItem(BlockRegistry.VOID_RESONANCE_PUMP.get(), new Item.Properties(),
+                            "block.zuoyanmod.void_resonance_pump.desc2"));
+
+    // ===== 微型强子对撞机（红石充能，双粒子束对撞）方块物品 =====
+    public static final RegistryObject<BlockItem> MICRO_HADRON_COLLIDER_ITEM =
+            ITEMS.register("micro_hadron_collider",
+                    () -> new DescriptionBlockItem(BlockRegistry.MICRO_HADRON_COLLIDER.get(), new Item.Properties(),
+                            "block.zuoyanmod.micro_hadron_collider.desc1"));
+
+    // ===== 奇点核心（对撞产物：克莱因瓶的唯一入口材料） =====
+    public static final RegistryObject<Item> SINGULARITY_CORE =
+            ITEMS.register("singularity_core", () -> new Item(new Item.Properties().rarity(Rarity.RARE)));
 
     // ===== 超流体暗物质（原「暗物质桶」，仅显示名变更，注册 id 保持 dark_matter_bucket） =====
     // craftRemainder(BUCKET)：它要当合成材料（真空衰变的配方要 4 个），必须像原版奶桶那样把空桶还回来，
@@ -287,6 +303,16 @@ public final class ItemRegistry {
     public static final RegistryObject<BlockItem> VIOLET_GOLD_BLOCK_ITEM =
             ITEMS.register("violet_gold_block",
                     () -> new BlockItem(BlockRegistry.VIOLET_GOLD_BLOCK.get(), new Item.Properties()));
+
+    // ===== 生物刷怪蛋 =====
+    // 1.20.1 用 Forge 的 ForgeSpawnEggItem：它接的是 EntityType 的 Supplier，
+    // 因此物品构造时不必要求实体类型已经注册完（26.x 走 ENTITY_DATA 组件）。
+    public static final RegistryObject<SpawnEggItem> RICK_SPAWN_EGG =
+            ITEMS.register("rick_spawn_egg",
+                    () -> new net.minecraftforge.common.ForgeSpawnEggItem(
+                            org.gwfx.zuoyanmod.entity.EntityRegistry.RICK,
+                            0xDDE6EE, 0x8FD8F0,
+                            new Item.Properties()));
 
     private ItemRegistry() {}
 

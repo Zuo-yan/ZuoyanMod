@@ -25,6 +25,6 @@ public class WanHuiRingItem extends net.minecraft.world.item.Item {
         tooltip.add(Component.literal("§7再战天荒: §a+50%攻击力 §e+30%移动速度"));
         tooltip.add(Component.literal("§7再战天荒持续时间: §630秒"));
         tooltip.add(Component.literal("§7冷却时间: §c60秒"));
-        tooltip.add(Component.literal("§e§o放入背包即生效"));
+        org.gwfx.zuoyanmod.util.AccessoryChecks.appendEquipHint(tooltip);
     }
 }

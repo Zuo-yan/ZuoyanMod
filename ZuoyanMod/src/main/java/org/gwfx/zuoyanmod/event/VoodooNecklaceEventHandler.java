@@ -11,6 +11,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
+import org.gwfx.zuoyanmod.util.AccessoryChecks;
 
 import java.util.Random;
 import java.util.UUID;
@@ -88,12 +89,7 @@ public class VoodooNecklaceEventHandler {
     }
 
     private static boolean hasVoodooNecklaceInInventory(Player player) {
-        if (player.getMainHandItem().is(ItemRegistry.VOODOO_NECKLACE.get())) return true;
-        if (player.getOffhandItem().is(ItemRegistry.VOODOO_NECKLACE.get())) return true;
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            if (player.getInventory().getItem(i).is(ItemRegistry.VOODOO_NECKLACE.get())) return true;
-        }
-        return false;
+        return AccessoryChecks.isEquipped(player, ItemRegistry.VOODOO_NECKLACE.get());
     }
 
     private static int countNegativeEffects(Player player) {

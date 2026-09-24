@@ -83,6 +83,16 @@ dependencies {
     // runtimeOnly：开发环境下真的把 JEI 跑起来。
     compileOnly fg.deobf("curse.maven:jei-238222:8367520")
     runtimeOnly fg.deobf("curse.maven:jei-238222:8367520")
+
+    // Curios API 1.20.1 Forge（File ID 6418456，可选集成）：
+    // **只 compileOnly，不进 runtime**。原因：该构建的 mixin 用的是 SRG 版 refmap
+    // （curios.refmap.json 把 getFirstTick 映射成 f_19803_），ForgeGradle 6 的 fg.deobf
+    // 没有把它重映射到 official 名，于是 dev 环境一启动就
+    // "Mixin apply failed curios.mixins.json:AccessorEntity ... No candidates were found
+    //  matching f_19803_:Z"，整个 dev 客户端/服务端起不来（与我们的模组无关）。
+    // 结果：编译期能拿到 Curios API（CuriosCompat 正常编译），dev 环境不加载 Curios
+    // （饰品走"放背包生效"，即本分支原有行为）；正式环境玩家自行装 Curios 即启用饰品栏。
+    compileOnly fg.deobf("curse.maven:curios-309927:6418456")
 }
 
 // mods.toml / pack.mcmeta 里的 ${} 占位符用 gradle.properties 展开

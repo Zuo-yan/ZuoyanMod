@@ -87,6 +87,21 @@ public final class BlockRegistry {
             BLOCK_ENTITY_TYPES.register("void_resonance_pump",
                     () -> new BlockEntityType<>(VoidResonancePumpBlockEntity::new, Set.of(VOID_RESONANCE_PUMP.get()), null));
 
+    // ===== 微型强子对撞机（红石充能，双粒子束对撞产出高能产物） =====
+    public static final RegistryObject<MicroHadronColliderBlock> MICRO_HADRON_COLLIDER = BLOCKS.register(
+            "micro_hadron_collider",
+            () -> new MicroHadronColliderBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .requiresCorrectToolForDrops()
+                    .strength(3.5F, 6.0F)
+                    .sound(SoundType.METAL))
+    );
+
+    public static final RegistryObject<BlockEntityType<?>> MICRO_HADRON_COLLIDER_BE =
+            BLOCK_ENTITY_TYPES.register("micro_hadron_collider",
+                    () -> new BlockEntityType<>(MicroHadronColliderBlockEntity::new,
+                            Set.of(MICRO_HADRON_COLLIDER.get()), null));
+
     private BlockRegistry() {}
 
     public static void register(IEventBus modBus) {

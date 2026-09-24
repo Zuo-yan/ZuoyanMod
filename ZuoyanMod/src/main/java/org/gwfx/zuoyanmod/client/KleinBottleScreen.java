@@ -522,6 +522,10 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
         KleinTheme.infinityFlow(graphics,
                 x + KleinTerminalLayout.INFINITY_X, y + KleinTerminalLayout.INFINITY_Y,
                 KleinTerminalLayout.INFINITY_W, KleinTerminalLayout.INFINITY_H, time);
+        // 左列按钮下方那条空位：同款 ∞，相位错开（不然两条齐刷刷一起流很出戏）
+        KleinTheme.infinityFlow(graphics,
+                x + KleinTerminalLayout.LEFT_FLOW_X, y + KleinTerminalLayout.LEFT_FLOW_Y,
+                KleinTerminalLayout.LEFT_FLOW_W, KleinTerminalLayout.LEFT_FLOW_H, time + 2.1F);
     }
 
     /**

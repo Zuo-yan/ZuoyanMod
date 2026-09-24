@@ -111,6 +111,18 @@ public final class KleinTerminalLayout {
     public static final int INFINITY_W = 14;
     public static final int INFINITY_H;
 
+    /**
+     * 左列四个功能按钮**下方**那条空的竖位——也放一条 ∞。
+     *
+     * <p>按钮只占 y 34..104，下面到物品栏还有一大截空着；放上同款动效之后，
+     * 左列就变成"按钮 + 流动的无限"一根完整的竖栏，和物品栏右侧那条
+     * （{@link #INFINITY_X}）左右呼应。相位在屏幕那边故意错开，两条不会齐刷刷地一起流。</p>
+     */
+    public static final int LEFT_FLOW_X = 9;
+    public static final int LEFT_FLOW_Y = 112;
+    public static final int LEFT_FLOW_W = 14;
+    public static final int LEFT_FLOW_H;
+
     // ===== 右栏 =====
     public static final int SIDEBAR_X = 208;
     public static final int SIDEBAR_W = 102;
@@ -191,6 +203,7 @@ public final class KleinTerminalLayout {
     static {
         IMAGE_H = HOTBAR_Y + CELL + BOTTOM_PAD;
         INFINITY_H = IMAGE_H - BOTTOM_PAD - INFINITY_Y;
+        LEFT_FLOW_H = IMAGE_H - BOTTOM_PAD - LEFT_FLOW_Y;
     }
 
     private KleinTerminalLayout() {}

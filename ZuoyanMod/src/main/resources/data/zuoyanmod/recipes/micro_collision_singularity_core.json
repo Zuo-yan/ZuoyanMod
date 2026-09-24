@@ -1,0 +1,10 @@
+{
+  "type": "zuoyanmod:micro_collision",
+  "ingredient_a": { "item": "minecraft:echo_shard" },
+  "ingredient_b": { "item": "minecraft:netherite_ingot" },
+  "result": {
+    "item": "zuoyanmod:singularity_core",
+    "count": 1
+  },
+  "duration": 200
+}

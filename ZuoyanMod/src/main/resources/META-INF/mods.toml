@@ -25,3 +25,12 @@ mandatory=true
 versionRange="${minecraft_version_range}"
 ordering="NONE"
 side="BOTH"
+
+# Curios API：可选依赖。装有 Curios 时饰品必须佩戴进饰品栏生效；
+# 未安装时饰品放背包生效（判定见 org.gwfx.zuoyanmod.util.AccessoryChecks）。
+[[dependencies.${mod_id}]]
+modId="curios"
+mandatory=false
+versionRange="[5,)"
+ordering="AFTER"
+side="BOTH"

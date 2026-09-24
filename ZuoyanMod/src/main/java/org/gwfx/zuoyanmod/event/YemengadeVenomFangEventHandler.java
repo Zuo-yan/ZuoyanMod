@@ -11,6 +11,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
+import org.gwfx.zuoyanmod.util.AccessoryChecks;
 
 /**
  * 耶梦加得的毒牙：未满血受击概率使攻击者中毒；攻击者中毒时按护甲值反伤。
@@ -50,11 +51,6 @@ public final class YemengadeVenomFangEventHandler {
     }
 
     private static boolean hasVenomFangInInventory(Player player) {
-        if (player.getMainHandItem().is(ItemRegistry.YEMENGADE_VENOM_FANG.get())) return true;
-        if (player.getOffhandItem().is(ItemRegistry.YEMENGADE_VENOM_FANG.get())) return true;
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            if (player.getInventory().getItem(i).is(ItemRegistry.YEMENGADE_VENOM_FANG.get())) return true;
-        }
-        return false;
+        return AccessoryChecks.isEquipped(player, ItemRegistry.YEMENGADE_VENOM_FANG.get());
     }
 }

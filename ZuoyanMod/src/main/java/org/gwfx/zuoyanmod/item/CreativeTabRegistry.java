@@ -17,7 +17,7 @@ public final class CreativeTabRegistry {
     public static final RegistryObject<CreativeModeTab> ZUOYAN_TAB =
             CREATIVE_MODE_TABS.register("zuoyan", () -> CreativeModeTab.builder()
                     .withTabsBefore(CreativeModeTabs.COMBAT)
-                    .icon(() -> new ItemStack(ItemRegistry.MING_DAO_SI_MING.get()))
+                    .icon(() -> new ItemStack(ItemRegistry.KLEIN_BOTTLE.get()))
                     .title(Component.literal("过往浮现"))
                     .displayItems((parameters, output) -> {
                         // 武器与法宝
@@ -35,7 +35,7 @@ public final class CreativeTabRegistry {
                         output.accept(ItemRegistry.WIND_LEGGINGS.get());
                         output.accept(ItemRegistry.WALKER_BOOTS.get());
 
-                        // 饰品（放入背包即生效）
+                        // 饰品（无 Curios 时放入背包即生效，装了 Curios 则需佩戴在饰品栏）
                         output.accept(ItemRegistry.RING_OF_KILLS.get());
                         output.accept(ItemRegistry.WAN_HUI_RING.get());
                         output.accept(ItemRegistry.COUNTER_BELT.get());
@@ -66,11 +66,19 @@ public final class CreativeTabRegistry {
                         // 绝对零度（把暗物质压成超流体的唯一入口）
                         output.accept(ItemRegistry.ABSOLUTE_ZERO.get());
 
+                        // 微型强子对撞机与奇点核心（克莱因瓶的获取链）
+                        output.accept(ItemRegistry.MICRO_HADRON_COLLIDER_ITEM.get());
+                        output.accept(ItemRegistry.SINGULARITY_CORE.get());
+                        output.accept(ItemRegistry.ANTIMATTER_PARTICLE.get());
+
                         // 真空衰变（万能挖掘锤：负熵灌注 / 分子离解 / 对称破缺）
                         output.accept(ItemRegistry.VACUUM_DECAY.get());
 
                         // 克莱因瓶（随身存储终端）
                         output.accept(ItemRegistry.KLEIN_BOTTLE.get());
+
+                        // 生物刷怪蛋
+                        output.accept(ItemRegistry.RICK_SPAWN_EGG.get());
                     }).build());
 
     private CreativeTabRegistry() {}

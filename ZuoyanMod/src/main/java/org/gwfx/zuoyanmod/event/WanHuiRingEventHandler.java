@@ -12,6 +12,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.effect.EffectRegistry;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
+import org.gwfx.zuoyanmod.util.AccessoryChecks;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -134,12 +135,7 @@ public class WanHuiRingEventHandler {
     }
 
     private static boolean hasWanHuiRingInInventory(Player player) {
-        if (player.getMainHandItem().is(ItemRegistry.WAN_HUI_RING.get())) return true;
-        if (player.getOffhandItem().is(ItemRegistry.WAN_HUI_RING.get())) return true;
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            if (player.getInventory().getItem(i).is(ItemRegistry.WAN_HUI_RING.get())) return true;
-        }
-        return false;
+        return AccessoryChecks.isEquipped(player, ItemRegistry.WAN_HUI_RING.get());
     }
 
     private static int countNegativeEffects(Player player) {

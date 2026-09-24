@@ -21,6 +21,6 @@ public class VoodooNecklaceItem extends net.minecraft.world.item.Item {
         tooltip.add(Component.literal("§7受到攻击时有35%概率获得负面效果"));
         tooltip.add(Component.literal("§7每拥有一项负面效果，秒杀概率+1%"));
         tooltip.add(Component.literal("§7负面效果: 失明、反胃、中毒、饥饿、虚弱、缓慢"));
-        tooltip.add(Component.literal("§e§o放入背包即生效"));
+        org.gwfx.zuoyanmod.util.AccessoryChecks.appendEquipHint(tooltip);
     }
 }

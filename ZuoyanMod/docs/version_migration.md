@@ -92,3 +92,69 @@ JEI（`curse.maven:jei-238222:...`）和 Curios（`curse.maven:curios-309927:...
 4. 处理绑定层（client 渲染差异大多不报编译错，要进游戏逐个界面验证）。
 5. 核对资源 JSON 格式（跑 datagen 或对照 vanilla 数据包）。
 6. 游戏内回归：四维空间终端、随身熔炉、真空衰变、领域展开、随身维度切换。
+
+## 6. `1.20.1-forge` 分支专有差异（从 26.x 主线往回迁时必看）
+
+分支的代码结构与主线一致（同样用 mojmap，类名/方法名风格不用切换），
+但下面这些点是**逐条踩过的**，凭记忆改必错：
+
+### 构建侧
+- **必须用 JDK 17 跑 Gradle**：PATH 上的 `java` 可能是 25，ForgeGradle 6 会直接报
+  `Unsupported class file major version 69`。`export JAVA_HOME="C:\Program Files\Java\jdk-17"`。
+- ForgeGradle 6 + Gradle 8.8 + Java 17 toolchain；依赖走 CurseMaven（JEI / Curios 的 file ID
+  随版本变，见 `build.gradle` 注释）。
+- **Curios 只 `compileOnly`，不要加 `runtimeOnly`**：1.20.1 那版 Curios 的 mixin 带的是 SRG
+  refmap，`fg.deobf` 不会把它重映射到 official 名，dev 环境一启动就
+  `Mixin apply failed curios.mixins.json:AccessorEntity` 直接崩溃（与我们的模组无关）。
+  只 compileOnly → 编译期能拿到 API，dev 不加载 Curios（饰品走背包判定），
+  正式环境玩家装 Curios 即启用饰品栏。
+
+### 资源目录/格式（全是"目录名或键名对不上 → 静默失效"）
+| 26.x | 1.20.1 |
+|---|---|
+| `data/<ns>/recipe/` | `data/<ns>/recipes/` |
+| `data/<ns>/loot_table/` | `data/<ns>/loot_tables/` |
+| `data/<ns>/loot_table/inject/` | `data/<ns>/loot_tables/inject/` |
+| `data/<ns>/structure/*.nbt`（结构模板） | `data/<ns>/structures/*.nbt`（**复数**） |
+| `data/minecraft/tags/block/`、`tags/item/` | `data/minecraft/tags/blocks/`、`tags/items/` |
+| `data/curios/tags/item/` | `data/curios/tags/items/` |
+| `data/neoforge/biome_modifier/` | `data/<ns>/forge/biome_modifier/` |
+| `assets/<ns>/items/<name>.json`（物品定义） | 无此机制，靠 `models/item/` + 注册代码里的属性 |
+| `src/main/templates/META-INF/neoforge.mods.toml` | `src/main/resources/META-INF/mods.toml` |
+| 配方 `result: { id, count }`（1.21+） | `result: { item, count }`；ingredient 必须写成 `{ "item": ... }` 或 `{ "tag": ... }`，**裸字符串非法** |
+| 战利品表 pool 里 `"condition": {...}` | pool 里 `"conditions": [ {...} ]`（数组） |
+
+### 结构 NBT（最容易静默翻车的一条）
+- 1.20.1 的 `NbtUtils.readBlockState` 只认调色板里的 **`Name` / `Properties`**（首字母大写）；
+  26.x 是 **`id` / `properties`**（全小写）。
+  **键名不对 → 每个方块都读成空气 → `/place template` 放下一片空地，且没有任何报错。**
+- 顺便把 `DataVersion` 改成目标版本（1.20.1 = **3465**），否则结构数据修复器会拿新版本号去跑旧修复链。
+- 转换工具：`tools/rick_structure_nbt.py retag <nbt> [--data-version 3465]`（会先备份 `.orig`，
+  **备份务必放在 `tools/` 里**，放 `src/main/resources` 旁边会被 `processResources` 打进 jar）。
+
+### 代码层（编译期就会报，或只在服务端暴露）
+- `DeferredRegister.create(Registries.X, MODID)` + `RegistryObject`；没有 `DeferredRegister.Blocks/Items` 便捷包装。
+- `MenuType` 构造要传 `FeatureFlags.DEFAULT_FLAGS`。
+- 方块实体存档是 `saveAdditional(CompoundTag)` / `load(CompoundTag)`；`SimpleContainer` 没有 `getItems()`。
+- 方块交互是 `use(...)`（26.x 的 `useWithoutItem`）；破坏钩子是 `onRemove(...)`（26.x 的 `affectNeighborsAfterRemoval`）。
+- `level.isClientSide` 是**字段**不是方法。
+- `Recipe<C extends Container>`：`matches/assemble/getResultItem/canCraftInDimensions` + 显式 `getId()`；
+  `RecipeSerializer` 是接口（要自己实现 `fromJson` / `fromNetwork` / `toNetwork`）；
+  `RecipeType.simple(ResourceLocation)` 造匿名实例。
+- 配方查询 `level.getRecipeManager().getRecipeFor(...)` 返回**裸配方**（1.20.1 没有 RecipeHolder 包装）。
+- 属性修改器用 **UUID** 标识（26.x 是 ResourceLocation）；`LivingDamageEvent` 直接有 getAmount/setAmount。
+- 实体：`EntitySpawnReason`→`MobSpawnType`；`finalizeSpawn` 多一个 `@Nullable CompoundTag` 参数；
+  `Arrow` 在 `world.entity.projectile` 包、构造只有 `(Level, LivingEntity)`、落地判定读 `inGround` 字段。
+- **`Mob` 的领地（restriction）与 `NeutralMob` 的仇恨在 1.20.1 都不落盘**，
+  自己的实体必须在 `addAdditionalSaveData` / `readAdditionalSaveData` 里手工存读。
+- `NeutralMob` 在 1.20.1 是 `int` 剩余仇恨 tick + `UUID` 目标（26.x 是 `EntityReference` + 绝对结束时刻）。
+- 渲染器没有 render state 分层：`HumanoidMobRenderer<T, M>` + `getTextureLocation(T)`；
+  `EntityType.Builder` 没有 `eyeHeight(...)`。
+- **common 包（非 `client` 包）里绝不能让 JVM 校验被迫加载客户端类**，否则专用服务端直接
+  `NoClassDefFoundError: Screen`。客户端入口要挪进 `client` 包且**方法签名只用通用类型**，
+  例：`client/DeathNoteClient.openScreen(ItemStack)`、`client/ClientPacketSender.sendToServer(...)`。
+
+### 冒烟测试
+`bash tools/verify_1201_sync.sh` —— 起 `runServer`（用独立 `level-name`，不动 `run/world`），
+等 `Done (` 后走 RCON 跑 `/place template` + 查实体，最后把错误/数据包告警汇总到
+`tools/verify_1201_result.txt`。**"common 引客户端类"这类校验期崩溃只有起服务端才看得见。**

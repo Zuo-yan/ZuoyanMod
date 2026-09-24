@@ -22,6 +22,6 @@ public class RingItem extends net.minecraft.world.item.Item {
         tooltip.add(Component.literal("§7永久提升20%基础生命值"));
         tooltip.add(Component.literal("§7同时降低10%攻击伤害"));
         tooltip.add(Component.literal("§7卸下戒指后效果重置"));
-        tooltip.add(Component.literal("§e§o放入背包即生效"));
+        org.gwfx.zuoyanmod.util.AccessoryChecks.appendEquipHint(tooltip);
     }
 }
