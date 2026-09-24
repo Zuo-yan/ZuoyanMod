@@ -56,9 +56,9 @@ public class IceTeaItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§6§l巧乐兹"));
-        tooltip.accept(Component.literal("§7§o饮用后获得你嘴唇有点发紫.和心脏麻痹状态"));
-        tooltip.accept(Component.literal("§6§o你嘴唇有点发紫.：下一次攻击必定秒杀目标，持续60秒"));
-        tooltip.accept(Component.literal("§c§o心脏麻痹：41秒后倒计时结束直接死亡(可被不死图腾抵挡)"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.ice_tea.desc1"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.ice_tea.desc2"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.ice_tea.desc3"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.ice_tea.desc4"));
     }
 }

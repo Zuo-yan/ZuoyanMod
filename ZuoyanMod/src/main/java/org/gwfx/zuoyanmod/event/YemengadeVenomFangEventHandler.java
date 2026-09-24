@@ -33,7 +33,7 @@ public final class YemengadeVenomFangEventHandler {
         if (player.getHealth() < player.getMaxHealth()) {
             if (player.getRandom().nextFloat() < 0.60f) {
                 attacker.addEffect(new MobEffectInstance(MobEffects.POISON, 20 * 4, 0));
-                player.sendSystemMessage(Component.literal("§5耶梦加得的毒牙§7：攻击者被毒牙侵蚀，中毒 4 秒"));
+                player.sendSystemMessage(Component.translatable("message.zuoyanmod.venom_fang.poisoned_attacker"));
             }
         }
 
@@ -42,7 +42,7 @@ public final class YemengadeVenomFangEventHandler {
             float armorDamage = (float) player.getArmorValue();
             if (armorDamage > 0.0f && attacker.level() instanceof ServerLevel serverLevel) {
                 attacker.hurtServer(serverLevel, player.damageSources().thorns(player), armorDamage);
-                player.sendSystemMessage(Component.literal("§c尘世巨蟒§7：反伤 §c" + armorDamage + "§7 点"));
+                player.sendSystemMessage(Component.translatable("message.zuoyanmod.venom_fang.reflect", armorDamage));
             }
         }
     }

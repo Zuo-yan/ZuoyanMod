@@ -19,10 +19,10 @@ public class MingDaoSiMingItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§6名刀司命"));
-        tooltip.accept(Component.literal("§7免死一次，濒死时保留生命"));
-        tooltip.accept(Component.literal("§5一个真正想赢的人，脸上，是不会有笑容的 "));
-        tooltip.accept(Component.literal("§2冷却:120s"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.ming_dao_si_ming.desc1"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.ming_dao_si_ming.desc2"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.ming_dao_si_ming.desc3"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.ming_dao_si_ming.desc4"));
         AccessoryChecks.appendEquipHint(tooltip);
     }
 }

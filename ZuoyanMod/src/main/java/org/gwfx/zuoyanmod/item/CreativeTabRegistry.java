@@ -18,7 +18,7 @@ public final class CreativeTabRegistry {
             CREATIVE_MODE_TABS.register("zuoyan", () -> CreativeModeTab.builder()
                     .withTabsBefore(CreativeModeTabs.COMBAT)
                     .icon(() -> new ItemStack(ItemRegistry.KLEIN_BOTTLE.get()))
-                    .title(Component.literal("过往浮现"))
+                    .title(Component.translatable("itemGroup.zuoyanmod"))
                     .displayItems((parameters, output) -> {
                         // 武器与法宝
                         output.accept(ItemRegistry.BEIMING_BLADE.get());

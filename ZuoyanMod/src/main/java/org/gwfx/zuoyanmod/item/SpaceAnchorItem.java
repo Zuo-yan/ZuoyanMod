@@ -85,7 +85,7 @@ public class SpaceAnchorItem extends Item {
         ItemStack anchor = findHeldAnchor(player);
         if (!anchor.isEmpty()) {
             saveAnchor(player, anchor);
-            player.sendSystemMessage(Component.literal("§b空间锚点 §7- 锚点已重新校准"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.recalibrated"));
         }
         player.releaseUsingItem();
     }
@@ -105,11 +105,11 @@ public class SpaceAnchorItem extends Item {
         }
         if (!hasAnchor(anchor)) {
             saveAnchor(player, anchor);
-            player.sendSystemMessage(Component.literal("§b空间锚点 §7- 已记录当前坐标"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.saved"));
             return true;
         }
         if (teleportToAnchor(player, anchor)) {
-            player.sendSystemMessage(Component.literal("§b空间锚点 §7- 已回溯至锚点"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.recalled"));
         }
         return true;
     }
@@ -162,7 +162,7 @@ public class SpaceAnchorItem extends Item {
     public static boolean teleportToAnchor(Player player, ItemStack stack) {
         AnchorPos pos = readAnchorPos(stack);
         if (pos == null) {
-            player.sendSystemMessage(Component.literal("§7空间锚点尚未记录坐标"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.not_set"));
             return false;
         }
         return teleportNow(player, pos);
@@ -183,7 +183,7 @@ public class SpaceAnchorItem extends Item {
         ResourceKey<Level> dimensionKey = ResourceKey.create(Registries.DIMENSION, Identifier.parse(pos.dimension()));
         ServerLevel target = server.getLevel(dimensionKey);
         if (target == null) {
-            player.sendSystemMessage(Component.literal("§7空间锚点所在的维度不可用"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.dimension_unavailable"));
             return false;
         }
 
@@ -225,25 +225,25 @@ public class SpaceAnchorItem extends Item {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
                                 Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§b空间锚点"));
-        tooltip.accept(Component.literal("§7潜行右键: 记录当前坐标"));
-        tooltip.accept(Component.literal("§7再次潜行右键: 传送至锚点"));
-        tooltip.accept(Component.literal("§7潜行长按右键 1 秒: 覆盖锚点"));
-        tooltip.accept(Component.literal("§7受到致命伤害时抵挡并回溯至锚点"));
-        tooltip.accept(Component.literal("§2冷却:120s"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc1"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc2"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc3"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc4"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc5"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc6"));
 
         CompoundTag tag = readTag(stack);
         if (tag.getBoolean(KEY_SET).orElse(false)) {
             String dimensionId = tag.getString(KEY_DIM).orElse("");
-            tooltip.accept(Component.literal("§8锚点: " + dimensionId + " "
-                    + String.format("%.0f, %.0f, %.0f",
-                    tag.getDouble(KEY_X).orElse(0D),
-                    tag.getDouble(KEY_Y).orElse(0D),
-                    tag.getDouble(KEY_Z).orElse(0D))));
+            tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc9", dimensionId,
+                    String.format("%.0f, %.0f, %.0f",
+                            tag.getDouble(KEY_X).orElse(0D),
+                            tag.getDouble(KEY_Y).orElse(0D),
+                            tag.getDouble(KEY_Z).orElse(0D))));
         } else {
-            tooltip.accept(Component.literal("§8锚点: 未设置"));
+            tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc7"));
         }
 
-        tooltip.accept(Component.literal("§e§o需手持（主手/副手）生效"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc8"));
     }
 }

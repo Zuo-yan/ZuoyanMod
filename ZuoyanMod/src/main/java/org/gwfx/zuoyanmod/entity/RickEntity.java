@@ -414,7 +414,7 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
 
         if (this.isAngry()) {
             if (!this.level().isClientSide()) {
-                player.sendSystemMessage(Component.literal("§7瑞克：我现在没心情做生意。"));
+                player.sendSystemMessage(Component.translatable("message.zuoyanmod.rick.not_in_mood"));
             }
             return InteractionResult.SUCCESS;
         }

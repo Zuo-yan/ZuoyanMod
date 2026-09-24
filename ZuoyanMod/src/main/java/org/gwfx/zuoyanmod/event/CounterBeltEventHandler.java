@@ -50,7 +50,7 @@ public class CounterBeltEventHandler {
                 }
 
                 attacker.sendSystemMessage(
-                        Component.literal("§6§l反击腰带 §7- 「几曾识干戈」激活! 对目标造成 §c" + Math.round(counterDamage) + " §7点伤害")
+                        Component.translatable("message.zuoyanmod.counter_belt.triggered", Math.round(counterDamage))
                 );
             } finally {
                 IS_COUNTERING.remove(attacker.getUUID());

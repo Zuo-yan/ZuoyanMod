@@ -19,11 +19,11 @@ public class RingItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§6杀戮之戒"));
-        tooltip.accept(Component.literal("§7佩戴后每击杀一个生物"));
-        tooltip.accept(Component.literal("§7永久提升20%基础生命值"));
-        tooltip.accept(Component.literal("§7同时降低10%攻击伤害"));
-        tooltip.accept(Component.literal("§7卸下戒指后效果重置"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.ring.desc1"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.ring.desc2"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.ring.desc3"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.ring.desc4"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.ring.desc5"));
         AccessoryChecks.appendEquipHint(tooltip);
     }
 }

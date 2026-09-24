@@ -52,7 +52,7 @@ public class DomainExpansionItem extends Item {
 
             LivingEntity target = findLookTarget(player, 32.0D);
             if (target == null) {
-                player.sendSystemMessage(Component.literal("§c你必须要对准目标释放领域展开"));
+                player.sendSystemMessage(Component.translatable("message.zuoyanmod.domain_expansion.must_target"));
                 return InteractionResult.FAIL;
             }
             LOGGER.info("Domain expansion target acquired: {}", target);
@@ -81,9 +81,9 @@ public class DomainExpansionItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§5§l领域展开"));
-        tooltip.accept(Component.literal("§7对准目标后可将自身与目标一同拉入决斗领域"));
-        tooltip.accept(Component.literal("§7决斗期间双方无法离开，直到其中一方死亡"));
-        tooltip.accept(Component.literal("§7释放后施法者获得一分钟再战天荒效果"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.domain_expansion.desc1"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.domain_expansion.desc2"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.domain_expansion.desc3"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.domain_expansion.desc4"));
     }
 }

@@ -19,10 +19,10 @@ public class YemengadeVenomFangItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§5耶梦加得的毒牙"));
-        tooltip.accept(Component.literal("§7体力未满时受到攻击，有60%概率使攻击者中毒4秒"));
-        tooltip.accept(Component.literal("§7若攻击者已带有中毒效果，则触发§c尘世巨蟒§7："));
-        tooltip.accept(Component.literal("§7反伤等同于自身护甲值的伤害"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.yemengade_venom_fang.desc1"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.yemengade_venom_fang.desc2"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.yemengade_venom_fang.desc3"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.yemengade_venom_fang.desc4"));
         AccessoryChecks.appendEquipHint(tooltip);
     }
 }

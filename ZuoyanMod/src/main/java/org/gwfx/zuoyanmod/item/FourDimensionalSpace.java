@@ -520,7 +520,7 @@ public class FourDimensionalSpace {
             }
         }
         if (any) {
-            LOGGER.info("[FourDimensionalSpace] 已把旧版逐格存档合并成 {} 种物品", entries.size());
+            LOGGER.info("[FourDimensionalSpace] Migrated legacy per-slot save data into {} item types", entries.size());
         }
     }
 }

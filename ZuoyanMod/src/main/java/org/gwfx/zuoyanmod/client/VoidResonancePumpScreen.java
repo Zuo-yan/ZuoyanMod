@@ -84,8 +84,8 @@ public class VoidResonancePumpScreen extends AbstractContainerScreen<VoidResonan
 
         int level = menu.getResonanceLevel();
         String status = level > 0
-                ? "共振 L" + level + " · " + menu.getResonance() + "/" + RES_MAX
-                : "休眠 · 待投料";
+                ? Component.translatable("gui.zuoyanmod.void_pump.status.resonating", level, menu.getResonance(), RES_MAX).getString()
+                : Component.translatable("gui.zuoyanmod.void_pump.status.idle").getString();
         int color = level > 0 ? levelColor(level) : 0xFF7A6E96;
         graphics.text(font, status, TEX_W - 9 - font.width(status), titleLabelY, color, false);
     }

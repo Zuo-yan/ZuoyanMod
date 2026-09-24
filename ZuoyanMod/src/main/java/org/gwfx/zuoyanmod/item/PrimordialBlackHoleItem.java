@@ -73,13 +73,13 @@ public class PrimordialBlackHoleItem extends DescribedItem {
         // 注意：60 秒冷却远长于 10 秒寿命，正常途径下第二次右键根本进不到这里 ——
         // 这条是兜底（防其它模组清冷却、防 /clear 指令、防跨维度快速重放）。
         if (PrimordialBlackHoleEntity.hasActiveBlackHole(server, player.getUUID())) {
-            player.sendSystemMessage(Component.literal("§7你还有一个黑洞尚未坍缩"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.primordial_black_hole.already_active"));
             return InteractionResult.FAIL;
         }
 
         // 全局上限：每个黑洞每 2 tick 都要扫一遍 10 格内的实体，数量必须封顶
         if (PrimordialBlackHoleEntity.countActive(server) >= PrimordialBlackHoleEntity.MAX_ACTIVE_HOLES) {
-            player.sendSystemMessage(Component.literal("§7空间已经承受不住更多奇点"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.primordial_black_hole.limit_reached"));
             return InteractionResult.FAIL;
         }
 

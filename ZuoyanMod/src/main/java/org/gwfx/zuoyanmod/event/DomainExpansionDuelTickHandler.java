@@ -51,7 +51,7 @@ public final class DomainExpansionDuelTickHandler {
     private static void sendCountdown(MinecraftServer server, UUID participant, int seconds) {
         var player = server.getPlayerList().getPlayer(participant);
         if (player != null) {
-            player.sendOverlayMessage(Component.literal("§e" + seconds + "秒后回到原世界").withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            player.sendOverlayMessage(Component.translatable("message.zuoyanmod.domain_expansion.return_countdown", seconds).withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
         }
     }
 

@@ -67,33 +67,33 @@ public class VacuumDecayItem extends Item {
                                 Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
 
-        tooltip.accept(Component.literal("§5§l真空衰变"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc1"));
 
-        tooltip.accept(Component.literal("§b【普朗克解构】"));
-        tooltip.accept(Component.literal("§7一切方块都能被正确采集"));
-        tooltip.accept(Component.literal("§8  · 无论它是石头、木头、泥土还是矿石"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc2"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc3"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc4"));
 
-        tooltip.accept(Component.literal("§3【负熵灌注】"));
-        tooltip.accept(Component.literal("§7手持时，自身受到的伤害降低 §f"
-                + (int) (VacuumDecayEventHandler.DAMAGE_REDUCTION * 100) + "%"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc5"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.neg_entropy",
+                (int) (VacuumDecayEventHandler.DAMAGE_REDUCTION * 100)));
 
-        tooltip.accept(Component.literal("§5【分子离解】"));
-        tooltip.accept(Component.literal("§7命中目标时附加 §f"
-                + (VacuumDecayEventHandler.DISSOCIATION_TICKS / 20) + " §7秒「分子离解」"));
-        tooltip.accept(Component.literal("§8  · 每秒 §f4 §8点相位侵蚀真伤（无视护甲与抗性）"));
-        tooltip.accept(Component.literal("§8  · 全套§b圣辉套装§8免疫该侵蚀伤害"));
-        tooltip.accept(Component.literal("§8  · 饮用牛奶可清除（清掉就没有引信了）"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc6"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.dissociation",
+                VacuumDecayEventHandler.DISSOCIATION_TICKS / 20));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc7"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc8"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc9"));
 
-        tooltip.accept(Component.literal("§d【对称破缺】"));
-        tooltip.accept(Component.literal("§7攻击已带「分子离解」的目标时，引爆该效果："));
-        tooltip.accept(Component.literal("§8  · 在目标位置展开真空衰变泡，持续 §f5 §8秒"));
-        tooltip.accept(Component.literal("§8  · 把 §f"
-                + (int) VacuumDecayBlackHoleManager.PULL_RADIUS + " §8格内除自身外的所有实体拽向中心"));
-        tooltip.accept(Component.literal("§8  · 坍缩时对 §f"
-                + (int) VacuumDecayBlackHoleManager.BLAST_RADIUS + " §8格内的活体造成 §f"
-                + (int) VacuumDecayBlackHoleManager.BLAST_DAMAGE + " §8点伤害"));
-        tooltip.accept(Component.literal("§8  · 自身不受牵引、不被爆炸波及"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc10"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc11"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc12"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.pull",
+                (int) VacuumDecayBlackHoleManager.PULL_RADIUS));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.blast",
+                (int) VacuumDecayBlackHoleManager.BLAST_RADIUS,
+                (int) VacuumDecayBlackHoleManager.BLAST_DAMAGE));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc13"));
 
-        tooltip.accept(Component.literal("§2无限耐久"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.vacuum_decay.desc14"));
     }
 }

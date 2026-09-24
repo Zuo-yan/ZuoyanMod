@@ -17,7 +17,7 @@ public class VioletGoldIngotItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§eBaby我去吧"));
-        tooltip.accept(Component.literal("§d瞬间就爱上雷神!"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.violet_gold_ingot.desc1"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.violet_gold_ingot.desc2"));
     }
 }

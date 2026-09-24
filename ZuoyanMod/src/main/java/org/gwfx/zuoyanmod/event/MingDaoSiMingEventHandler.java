@@ -70,7 +70,7 @@ public final class MingDaoSiMingEventHandler {
         tag.putLong("zuoyan_mingdao_cooldown_until", player.level().getGameTime() + 120L * 20L);
         mingDaoStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
-        player.sendSystemMessage(Component.literal("§6名刀司命触发，抵挡了致命伤害！"));
+        player.sendSystemMessage(Component.translatable("message.zuoyanmod.ming_dao.blocked_fatal"));
     }
 
     private static ItemStack getMingDaoSiMingStack(Player player) {
