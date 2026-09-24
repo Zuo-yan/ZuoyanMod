@@ -12,7 +12,7 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.network.PacketHandler;
 
-/** 克莱因瓶的 K 键：把背包里的随身终端召出来。 */
+/** 克莱因瓶的 K 键：把背包里的随身终端召出来。分类复用 {@link RealmKeybindHandler#CATEGORY}，由后者统一注册。 */
 @EventBusSubscriber(modid = Zuoyanmod.MODID, value = Dist.CLIENT)
 public final class KleinBottleKeyHandler {
 
@@ -23,6 +23,7 @@ public final class KleinBottleKeyHandler {
 
     @SubscribeEvent
     public static void onRegisterKeys(RegisterKeyMappingsEvent event) {
+        // 分类由 RealmKeybindHandler 登记，这里只登记按键，避免同一个分类被 registerCategory 两次。
         event.register(OPEN_KLEIN_BOTTLE);
     }
 

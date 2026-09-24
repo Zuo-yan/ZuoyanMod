@@ -34,7 +34,7 @@ public class SpriteDrinkItem extends Item {
             player.sendSystemMessage(Component.translatable("message.zuoyanmod.sprite_drink.triggered"));
             if (!level.isClientSide()) {
                 level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                        SoundRegistry.ICE_TEA_DRINK.get(), SoundSource.PLAYERS, 0.9F, 1.15F);
+                        SoundRegistry.CHILLED_DRINK.get(), SoundSource.PLAYERS, 0.9F, 1.15F);
             }
         }
 

@@ -1,0 +1,28 @@
+{
+  "parent": "zuoyanmod:root",
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipes": [
+          "zuoyanmod:relic_core"
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:relic_core"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.relic_core.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.relic_core.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

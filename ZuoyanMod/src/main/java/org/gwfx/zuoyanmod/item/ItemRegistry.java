@@ -32,6 +32,7 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.entity.EntityRegistry;
+import org.gwfx.zuoyanmod.sound.SoundRegistry;
 import org.gwfx.zuoyanmod.fluid.FluidRegistry;
 import org.gwfx.zuoyanmod.block.BlockRegistry;
 
@@ -80,9 +81,9 @@ public final class ItemRegistry {
     );
 
     // ===== 消耗与功能道具 =====
-    public static final DeferredItem<IceTeaItem> ICE_TEA = ITEMS.registerItem(
-            "ice_tea",
-            IceTeaItem::new,
+    public static final DeferredItem<ChocolateCrispItem> CHOCOLATE_CRISP = ITEMS.registerItem(
+            "chocolate_crisp",
+            ChocolateCrispItem::new,
             props -> props.stacksTo(16).food(
                     new FoodProperties.Builder()
                             .nutrition(3)
@@ -372,6 +373,31 @@ public final class ItemRegistry {
             "rick_spawn_egg",
             SpawnEggItem::new,
             props -> props.spawnEgg(EntityRegistry.RICK.get())
+    );
+
+
+    // ===== 音乐唱片（三首外部曲子，放进唱片机即可播放）=====
+    // 26.x 已没有 RecordItem：唱片 = 普通 Item 挂 JUKEBOX_PLAYABLE 组件，
+    // 曲目元数据（时长 / 比较器输出 / 描述）在 data/zuoyanmod/jukebox_song/*.json。
+    // jukeboxPlayable 用 delayedComponent 延迟解析，注册期不触碰点歌注册表，
+    // 但如果对应 json 缺失，物品首次实例化会直接抛异常——两个文件必须成对存在。
+    // stacksTo(1)：唱片机一次只收 1 张，原版唱片同样是 1。
+    public static final DeferredItem<Item> MUSIC_DISC_SHOTS = ITEMS.registerItem(
+            "music_disc_shots",
+            Item::new,
+            props -> props.stacksTo(1).rarity(Rarity.RARE).jukeboxPlayable(SoundRegistry.SONG_SHOTS)
+    );
+
+    public static final DeferredItem<Item> MUSIC_DISC_NIGHT_DANCER = ITEMS.registerItem(
+            "music_disc_night_dancer",
+            Item::new,
+            props -> props.stacksTo(1).rarity(Rarity.RARE).jukeboxPlayable(SoundRegistry.SONG_NIGHT_DANCER)
+    );
+
+    public static final DeferredItem<Item> MUSIC_DISC_CASTLE = ITEMS.registerItem(
+            "music_disc_castle",
+            Item::new,
+            props -> props.stacksTo(1).rarity(Rarity.RARE).jukeboxPlayable(SoundRegistry.SONG_CASTLE)
     );
 
     private ItemRegistry() {}

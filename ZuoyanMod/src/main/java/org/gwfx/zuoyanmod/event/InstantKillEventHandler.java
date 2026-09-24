@@ -10,15 +10,21 @@ import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.effect.EffectRegistry;
 
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
-public class MambaForceEventHandler {
+/**
+ * 消费 {@link org.gwfx.zuoyanmod.effect.InstantKillEffect}：把持有者的下一次攻击换成必杀。
+ *
+ * <p><b>为什么改名：</b>原类名带 Mamba，但它只处理"一击必杀"这一件事，
+ * 和黑曼巴这个梗没有任何代码上的关系（梗只体现在 lang 文案里）。名字按职责取。
+ */
+public class InstantKillEventHandler {
 
     @SubscribeEvent
     public static void onLivingIncomingDamage(LivingIncomingDamageEvent event) {
         if (event.getSource().getEntity() instanceof Player attacker) {
-            if (attacker.hasEffect(EffectRegistry.MAMBA_FORCE_ATTACK)) {
+            if (attacker.hasEffect(EffectRegistry.INSTANT_KILL)) {
                 LivingEntity target = event.getEntity();
 
-                attacker.removeEffect(EffectRegistry.MAMBA_FORCE_ATTACK);
+                attacker.removeEffect(EffectRegistry.INSTANT_KILL);
                 event.setCanceled(true);
 
                 if (target.level() instanceof ServerLevel serverLevel) {

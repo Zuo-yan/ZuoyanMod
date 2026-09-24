@@ -10,15 +10,16 @@
   "domain_expansion.music": {
     "sounds": [
       {
-        "name": "zuoyanmod:domain_expansion/music",
-        "stream": true
+        "name": "zuoyanmod:music_disc/castle",
+        "stream": true,
+        "attenuation_distance": 64
       }
     ]
   },
-  "drink.ice_tea": {
+  "drink.chilled": {
     "sounds": [
       {
-        "name": "zuoyanmod:drink/ice_tea",
+        "name": "zuoyanmod:drink/chilled",
         "stream": false
       }
     ]
@@ -28,6 +29,30 @@
       {
         "name": "zuoyanmod:causality_pistol/shoot",
         "stream": false
+      }
+    ]
+  },
+  "music_disc.shots": {
+    "sounds": [
+      {
+        "name": "zuoyanmod:music_disc/shots",
+        "stream": true
+      }
+    ]
+  },
+  "music_disc.night_dancer": {
+    "sounds": [
+      {
+        "name": "zuoyanmod:music_disc/night_dancer",
+        "stream": true
+      }
+    ]
+  },
+  "music_disc.castle": {
+    "sounds": [
+      {
+        "name": "zuoyanmod:music_disc/castle",
+        "stream": true
       }
     ]
   }

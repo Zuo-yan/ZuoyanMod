@@ -45,7 +45,7 @@ public final class CreativeTabRegistry {
                         output.accept(ItemRegistry.YEMENGADE_VENOM_FANG.get());
 
                         // 补给饮品
-                        output.accept(ItemRegistry.ICE_TEA.get());
+                        output.accept(ItemRegistry.CHOCOLATE_CRISP.get());
                         output.accept(ItemRegistry.SPRITE_DRINK.get());
 
                         // 紫金材料与方块
@@ -81,6 +81,11 @@ public final class CreativeTabRegistry {
 
                         // 克莱因瓶（随身存储终端）
                         output.accept(ItemRegistry.KLEIN_BOTTLE.get());
+
+                        // 音乐唱片（放进唱片机播放）
+                        output.accept(ItemRegistry.MUSIC_DISC_SHOTS.get());
+                        output.accept(ItemRegistry.MUSIC_DISC_NIGHT_DANCER.get());
+                        output.accept(ItemRegistry.MUSIC_DISC_CASTLE.get());
 
                         // 生物刷怪蛋
                         output.accept(ItemRegistry.RICK_SPAWN_EGG.get());

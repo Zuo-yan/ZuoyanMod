@@ -1,0 +1,35 @@
+{
+  "parent": "zuoyanmod:discovery",
+  "criteria": {
+    "hit": {
+      "trigger": "minecraft:entity_hurt_player",
+      "conditions": {
+        "damage": {
+          "type": {
+            "tags": [
+              {
+                "id": "zuoyanmod:primordial_black_hole",
+                "expected": true
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:primordial_black_hole"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.caught_in_black_hole.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.caught_in_black_hole.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": true
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "zuoyanmod:chain_antimatter",
+  "criteria": {
+    "traded_with_rick": {
+      "trigger": "minecraft:villager_trade",
+      "conditions": {
+        "villager": {
+          "type": "minecraft:entity_properties",
+          "entity": "this",
+          "predicate": {
+            "entity_type": "zuoyanmod:rick"
+          }
+        }
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:antimatter_bullet"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.met_rick.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.met_rick.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

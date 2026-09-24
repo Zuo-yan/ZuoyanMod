@@ -1,0 +1,28 @@
+{
+  "parent": "zuoyanmod:root",
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipes": [
+          "zuoyanmod:hercules_bow"
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:hercules_bow"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.hercules_bow.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.hercules_bow.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

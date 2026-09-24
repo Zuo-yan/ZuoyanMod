@@ -49,8 +49,10 @@ public record DeathNotePacket(String targetName, int durationSeconds) implements
                 return;
             }
             int durationTicks = Math.max(1, packet.durationSeconds()) * 20;
+            // 死亡笔记的"处刑"就是给目标挂这个定时必死效果：写下名字不立刻生效，
+            // 中间的倒计时才是这个道具的全部内容（也给目标留了自救的窗口）。
             target.addEffect(new MobEffectInstance(
-                    EffectRegistry.MAMBA_FORCE_DEFENSE,
+                    EffectRegistry.HEART_PARALYSIS,
                     durationTicks,
                     0,
                     false,

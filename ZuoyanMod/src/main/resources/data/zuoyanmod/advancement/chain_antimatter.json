@@ -1,0 +1,23 @@
+{
+  "parent": "zuoyanmod:root",
+  "criteria": {
+    "placeholder": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:antimatter_particle"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.chain_antimatter.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.chain_antimatter.description"
+    },
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

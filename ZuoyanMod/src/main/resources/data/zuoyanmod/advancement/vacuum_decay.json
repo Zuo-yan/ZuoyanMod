@@ -1,0 +1,28 @@
+{
+  "parent": "zuoyanmod:chain_dark",
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipes": [
+          "zuoyanmod:vacuum_decay"
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:vacuum_decay"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.vacuum_decay.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.vacuum_decay.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

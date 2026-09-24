@@ -1,0 +1,28 @@
+{
+  "parent": "zuoyanmod:discovery",
+  "criteria": {
+    "got_effect": {
+      "trigger": "minecraft:effects_changed",
+      "conditions": {
+        "effects": {
+          "zuoyanmod:fight_again": {}
+        }
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:domain_expansion"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.fight_again.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.fight_again.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}
