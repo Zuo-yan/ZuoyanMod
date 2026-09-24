@@ -35,6 +35,27 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
+// 强制所有文本处理走 UTF-8。
+// 为什么不依赖构建机的默认编码：Gradle 的 ProcessResources（含 expand()）与 javac
+// 默认按 "平台编码" 读写文本，Windows 中文系统的旧版 JDK 该值是 GBK。
+// 本仓库源码含 430 处中文字符串字面量（GUI 文本、物品提示）与 122 个中文 javadoc 文件，
+// 资源侧 lang/*.json 与 neoforge.mods.toml 也是 UTF-8 —— 一旦在 GBK 机器上构建，
+// javac 会把 UTF-8 的中文常量按 GBK 读入再写进 class 常量池，expand() 会破坏 mods.toml，
+// 结果是别人克隆过去一编译，游戏内文字全成乱码（本机 file.encoding=UTF-8 时反而看不出来）。
+// 因此这里显式锁死编码，与构建机环境解耦。
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(ProcessResources).configureEach {
+    filteringCharset = 'UTF-8'
+}
+
+// javadoc 同样需要显式指定，否则中文注释在 GBK 机器上会告警/乱码
+tasks.withType(Javadoc).configureEach {
+    options.encoding = 'UTF-8'
+}
+
 neoForge {
     // 指定要使用的 NeoForge 版本
     version = project.neo_version
