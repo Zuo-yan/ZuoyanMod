@@ -1,5 +1,12 @@
 {
+  "replace": false,
   "values": [
-    "zuoyanmod:vacuum_decay"
+    "zuoyanmod:vacuum_decay",
+    "zuoyanmod:wooden_universal_tool",
+    "zuoyanmod:stone_universal_tool",
+    "zuoyanmod:golden_universal_tool",
+    "zuoyanmod:iron_universal_tool",
+    "zuoyanmod:diamond_universal_tool",
+    "zuoyanmod:netherite_universal_tool"
   ]
 }

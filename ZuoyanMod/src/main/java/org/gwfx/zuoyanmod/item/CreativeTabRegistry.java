@@ -20,6 +20,14 @@ public final class CreativeTabRegistry {
                     .icon(() -> new ItemStack(ItemRegistry.KLEIN_BOTTLE.get()))
                     .title(Component.translatable("itemGroup.zuoyanmod"))
                     .displayItems((parameters, output) -> {
+                        // 万能工具（前期工具：镐·斧·铲·锄·剑 五合一）
+                        output.accept(ItemRegistry.WOODEN_UNIVERSAL_TOOL.get());
+                        output.accept(ItemRegistry.STONE_UNIVERSAL_TOOL.get());
+                        output.accept(ItemRegistry.GOLDEN_UNIVERSAL_TOOL.get());
+                        output.accept(ItemRegistry.IRON_UNIVERSAL_TOOL.get());
+                        output.accept(ItemRegistry.DIAMOND_UNIVERSAL_TOOL.get());
+                        output.accept(ItemRegistry.NETHERITE_UNIVERSAL_TOOL.get());
+
                         // 武器与法宝
                         output.accept(ItemRegistry.BEIMING_BLADE.get());
                         output.accept(ItemRegistry.HERCULES_BOW.get());

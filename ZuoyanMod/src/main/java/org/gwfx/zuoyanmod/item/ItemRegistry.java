@@ -18,6 +18,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SmithingTemplateItem;
 import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.component.Weapon;
@@ -128,6 +129,44 @@ public final class ItemRegistry {
             BeimingBlade::new,
             // 剑类武器：攻击力 33（1 基础 + 32）、攻速 3（4 基础 - 1）、攻击距离正常
             props -> swordComponents(props.stacksTo(1).attributes(swordAttributes(32.0F, -1.0F)))
+    );
+
+    // ===== 万能工具（镐·斧·铲·锄·剑 五合一，数值取自对应 ToolMaterial，攻击取同材质斧） =====
+    public static final DeferredItem<UniversalToolItem> WOODEN_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "wooden_universal_tool",
+            UniversalToolItem::new,
+            props -> UniversalToolItem.properties(ToolMaterial.WOOD, 6.0F, -3.2F)
+    );
+
+    public static final DeferredItem<UniversalToolItem> STONE_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "stone_universal_tool",
+            UniversalToolItem::new,
+            props -> UniversalToolItem.properties(ToolMaterial.STONE, 7.0F, -3.2F)
+    );
+
+    public static final DeferredItem<UniversalToolItem> GOLDEN_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "golden_universal_tool",
+            UniversalToolItem::new,
+            props -> UniversalToolItem.properties(ToolMaterial.GOLD, 6.0F, -3.0F)
+    );
+
+    public static final DeferredItem<UniversalToolItem> IRON_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "iron_universal_tool",
+            UniversalToolItem::new,
+            props -> UniversalToolItem.properties(ToolMaterial.IRON, 6.0F, -3.1F)
+    );
+
+    public static final DeferredItem<UniversalToolItem> DIAMOND_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "diamond_universal_tool",
+            UniversalToolItem::new,
+            props -> UniversalToolItem.properties(ToolMaterial.DIAMOND, 5.0F, -3.0F)
+    );
+
+    public static final DeferredItem<UniversalToolItem> NETHERITE_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "netherite_universal_tool",
+            UniversalToolItem::new,
+            // 下界合金同原版：防火不掉落（岩浆里烧不坏）
+            props -> UniversalToolItem.properties(ToolMaterial.NETHERITE, 5.0F, -3.0F).fireResistant()
     );
 
     // ===== 阶段三新武器 =====
