@@ -56,6 +56,12 @@ tasks.withType(Javadoc).configureEach {
     options.encoding = 'UTF-8'
 }
 
+// 源码统一按 UTF-8 编译，防止 JDK17 等老工具链在中文 Windows 上按 GBK 误读
+// 导致字符串字面量（Component.literal 里的中文）变成乱码
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
 neoForge {
     // 指定要使用的 NeoForge 版本
     version = project.neo_version
