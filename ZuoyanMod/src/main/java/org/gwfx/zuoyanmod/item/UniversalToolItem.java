@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.TooltipFlag;
@@ -27,6 +28,8 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.common.ItemAbility;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -50,9 +53,12 @@ import java.util.function.Consumer;
  * 这里覆写 {@link #useOn}，按 斧 → 锄 → 铲 的顺序依次尝试原版三个 transformer，
  * 谁先命中就执行谁——相当于三合一，且自动跟随原版后续更新。
  * <p>
- * <b>附魔</b>：物品注册进原版 {@code #axes / #pickaxes / #shovels / #hoes / #swords} 五张物品标签，
- * 于是效率 / 时运 / 精准采集 / 锋利 / 抢夺 / 火焰附加 / 横扫之刃 / 击退 / 耐久 / 经验修补
- * 等通用附魔全部可上，附魔能力用材质本身的值（木 15 / 石 5 / 金 22 / 铁 14 / 钻 10 / 合金 15）。
+ * <b>附魔</b>：物品**不进** {@code #axes / #pickaxes / #shovels / #hoes / #swords} 这五张"工具身份"标签 ——
+ * 26.3 里它们只剩能力钩子的默认实现在读（{@code #swords} 只影响横扫判定，见 {@link #canPerformAction}），
+ * 进不进对挖掘与附魔都没有影响。真正决定附魔可上性的是 {@code #minecraft:enchantable/} 下的标签，
+ * 本工具注册进了其中的 mining / mining_loot / weapon / melee_weapon / sharp_weapon / sweeping /
+ * fire_aspect / durability 八张，于是效率 / 时运 / 精准采集 / 锋利 / 抢夺 / 火焰附加 / 横扫之刃 /
+ * 击退 / 耐久 / 经验修补等通用附魔全部可上，附魔能力用材质本身的值（木 15 / 石 5 / 金 22 / 铁 14 / 钻 10 / 合金 15）。
  */
 public class UniversalToolItem extends Item {
 
@@ -130,6 +136,33 @@ public class UniversalToolItem extends Item {
             }
         }
         return super.useOn(context);
+    }
+
+    // ===== 能力钩子：补全「剑」的横扫与「铲」的扑灭营火 =====
+
+    /**
+     * 26.3 把"这是什么工具"彻底数据化了：判定能否横扫**不再看物品类型**，而是问
+     * {@code ItemAbilities.SWORD_SWEEP}（见 {@code Player#isSweepAttack}）。
+     * 这个钩子的最上层默认实现在 NeoForge 的 {@code IItemExtension} 里，内容就是
+     * {@code stack.is(ItemTags.SWORDS)} —— 也就是说，剑类物品已被删除之后，
+     * "是不是剑"等价于"在不在 {@code #minecraft:swords} 标签里"。
+     * <p>
+     * 本工具是五合一，不该对外宣称自己是剑（{@code #swords} 是给所有模组读的公开语义），
+     * 所以选择覆写钩子、只对横扫放行。这本来也正是 NeoForge 把原版写死的
+     * {@code ItemTags.SWORDS} 判断抽成钩子的用意。不覆写的话，物品能附上横扫之刃
+     * （已挂 {@code #minecraft:enchantable/sweeping}）却永远不触发横扫，
+     * 附魔给的那个 {@code sweeping_damage_ratio} 属性加成没有任何东西可以加成 —— 等于白附。
+     * <p>
+     * 顺便放行 {@code SHOVEL_DOUSE}：它同样只认 {@code #minecraft:douses_campfires} 标签，
+     * 不挂就点不熄营火。三合一的"铲"那一路只有补上它才算真的完整。
+     * 其余能力仍交回默认实现，以免以后原版加东西时这里被写死。
+     */
+    @Override
+    public boolean canPerformAction(ItemInstance stack, ItemAbility itemAbility) {
+        if (itemAbility == ItemAbilities.SWORD_SWEEP || itemAbility == ItemAbilities.SHOVEL_DOUSE) {
+            return true;
+        }
+        return super.canPerformAction(stack, itemAbility);
     }
 
     // ===== 描述 =====

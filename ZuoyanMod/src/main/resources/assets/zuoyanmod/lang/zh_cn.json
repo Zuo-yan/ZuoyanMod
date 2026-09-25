@@ -76,7 +76,7 @@
   "item.zuoyanmod.klein_bottle": "克莱因瓶",
   "item.zuoyanmod.klein_bottle.desc1": "§7随身四维空间：容量无界，§f同种物品只占一格",
   "item.zuoyanmod.klein_bottle.desc2": "§7内嵌 §f合成台 / 熔炉 / 铁砧§7，物品随存随取",
-  "item.zuoyanmod.klein_bottle.desc3": "§7右键或按 §fK §7打开 §d四维空间",
+  "item.zuoyanmod.klein_bottle.desc3": "§7存在于背包时按 %s §7打开 §d四维空间",
   "block.zuoyanmod.micro_hadron_collider.desc1": "§7红石信号充能后，两束材料对撞生成产物",
   "block.zuoyanmod.void_resonance_pump.desc2": "§7仅限末地：悬空于虚空之上，产出 §f暗物质粒子",
   "gui.zuoyanmod.jei.micro_collision": "微型强子对撞",

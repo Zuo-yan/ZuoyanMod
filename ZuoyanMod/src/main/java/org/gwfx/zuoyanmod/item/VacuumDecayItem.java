@@ -4,11 +4,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.common.ItemAbility;
 import org.gwfx.zuoyanmod.event.VacuumDecayBlackHoleManager;
 import org.gwfx.zuoyanmod.event.VacuumDecayEventHandler;
 
@@ -32,6 +35,10 @@ import java.util.function.Consumer;
  * <b>无限耐久</b>：本物品在注册时**不设 {@code durability}**，26.x 里"没有 max_damage 组件"
  * 就等于不可损坏，所以 {@code hurtAndBreak} 内部直接短路、也不需要任何修复材料。
  * 上面的 {@link #mineBlock} 因此不再扣耐久（保留覆写只为返回 {@code true} 以统计"物品使用次数"）。
+ * <p>
+ * <b>横扫</b>：本物品挂在 {@code #minecraft:enchantable/sweeping} 上，横扫之刃附得上去，
+ * 但 26.3 判定"能不能横扫"只看 {@link #canPerformAction}（默认实现是"在不在 {@code #swords} 里"），
+ * 不覆写就永远不触发 —— 附魔白附。理由与取舍同 {@link UniversalToolItem}。
  */
 public class VacuumDecayItem extends Item {
 
@@ -58,6 +65,25 @@ public class VacuumDecayItem extends Item {
     public boolean mineBlock(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity owner) {
         // 无限耐久 → 不调用 hurtAndBreak；返回 true 让"物品使用次数"统计仍然增长
         return true;
+    }
+
+    // ===== 横扫：放行 SWORD_SWEEP =====
+
+    /**
+     * 26.3 里"能不能横扫"只看这一个钩子（{@code Player#isSweepAttack} 调它），
+     * 而它的默认实现（NeoForge 的 {@code IItemExtension}）是 {@code stack.is(ItemTags.SWORDS)}。
+     * 本物品能附魔横扫之刃却不在 {@code #swords} 里，于是附魔给出的
+     * {@code sweeping_damage_ratio} 永远用不上，属于"能附魔但一定无效"的骗局。
+     * <p>
+     * 这里不把物品塞进 {@code #swords} —— 那是给所有模组读的公开语义，一把锤子不该自称是剑，
+     * 覆写钩子才是 NeoForge 留这个 {@code ItemAbility} 的本意。
+     */
+    @Override
+    public boolean canPerformAction(ItemInstance stack, ItemAbility itemAbility) {
+        if (itemAbility == ItemAbilities.SWORD_SWEEP) {
+            return true;
+        }
+        return super.canPerformAction(stack, itemAbility);
     }
 
     // ===== 描述：把全部设定写进来 =====

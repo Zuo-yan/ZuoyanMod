@@ -37,7 +37,7 @@
   "entity.zuoyanmod.causality_bullet": "Multiverse Divergence Ray",
   "item.zuoyanmod.klein_bottle.desc1": "§7Pocket 4D space: boundless, §fone slot per item type",
   "item.zuoyanmod.klein_bottle.desc2": "§7Built-in §fcrafting table / furnace / anvil§7, store and take anytime",
-  "item.zuoyanmod.klein_bottle.desc3": "§7Right-click or press §fK §7to open §dFour-Dimensional Space",
+  "item.zuoyanmod.klein_bottle.desc3": "§7While in your inventory, press %s §7to open §dFour-Dimensional Space",
   "block.zuoyanmod.micro_hadron_collider.desc1": "§7Powered by redstone, two material beams collide into a product",
   "block.zuoyanmod.void_resonance_pump.desc2": "§7End only: suspended over the void, produces §fDark Matter Particles",
   "gui.zuoyanmod.jei.micro_collision": "Micro Hadron Collision",
