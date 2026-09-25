@@ -1,0 +1,23 @@
+{
+  "parent": "zuoyanmod:root",
+  "criteria": {
+    "placeholder": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "item": "zuoyanmod:dark_matter"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.chain_dark.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.chain_dark.description"
+    },
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

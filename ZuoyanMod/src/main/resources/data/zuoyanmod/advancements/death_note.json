@@ -1,0 +1,26 @@
+{
+  "parent": "zuoyanmod:discovery",
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "zuoyanmod:death_note"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "item": "zuoyanmod:death_note"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.death_note.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.death_note.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

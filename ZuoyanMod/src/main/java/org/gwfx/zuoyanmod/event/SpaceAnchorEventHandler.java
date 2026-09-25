@@ -65,7 +65,7 @@ public final class SpaceAnchorEventHandler {
 
         // 传送排队到本 tick 末尾，避免在伤害事件内做维度切换
         FatalProtection.queueTeleport(player, pos.dimension(), pos.x(), pos.y(), pos.z(), pos.yRot(), pos.xRot());
-        player.sendSystemMessage(Component.literal("§b空间锚点 §7- 抵挡致命伤害，正在回溯"));
+        player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.saving_fatal"));
     }
 
     @SubscribeEvent
@@ -78,9 +78,9 @@ public final class SpaceAnchorEventHandler {
             return;
         }
         if (FatalProtection.flushTeleport(player)) {
-            player.sendSystemMessage(Component.literal("§b空间锚点 §7- 已回溯至锚点"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.recalled"));
         } else if (FatalProtection.consumeFailedTeleport(player)) {
-            player.sendSystemMessage(Component.literal("§7空间锚点回溯失败，锚点维度不可用"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.recall_failed"));
         }
     }
 }

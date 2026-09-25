@@ -29,6 +29,12 @@ import java.util.List;
  * <b>无限耐久</b>：注册用的 Tier {@code getUses() = 0} → maxDamage 0 →
  * {@code isDamageableItem} 为 false，{@code hurtAndBreak} 内部短路，也不需要修复材料。
  * 上面的 {@link #mineBlock} 因此不再扣耐久（保留覆写只为返回 {@code true} 以统计"物品使用次数"）。
+ * <p>
+ * <b>1.20.1 适配（横扫之刃那一处不用补代码）</b>：26.3 的
+ * {@code canPerformAction} 覆写放行了 {@code SWORD_SWEEP}，是为了让"能附上横扫之刃"
+ * 真的能触发横扫（26.x 的横扫判定问的是物品能力钩子）。1.20.1 的横扫判定走
+ * {@code EnchantmentHelper.getSweepingDamageRatio(player)}，<b>只看附魔等级、不认物品类型</b>，
+ * 而本物品继承 {@link SwordItem}、附魔可上性本来就对，所以这里一行都不用加。
  */
 public class VacuumDecayItem extends SwordItem {
 
@@ -66,33 +72,33 @@ public class VacuumDecayItem extends SwordItem {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
 
-        tooltip.add(Component.literal("§5§l真空衰变"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc1"));
 
-        tooltip.add(Component.literal("§b【普朗克解构】"));
-        tooltip.add(Component.literal("§7一切方块都能被正确采集"));
-        tooltip.add(Component.literal("§8  · 无论它是石头、木头、泥土还是矿石"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc3"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc4"));
 
-        tooltip.add(Component.literal("§3【负熵灌注】"));
-        tooltip.add(Component.literal("§7手持时，自身受到的伤害降低 §f"
-                + (int) (VacuumDecayEventHandler.DAMAGE_REDUCTION * 100) + "%"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc5"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.neg_entropy",
+                (int) (VacuumDecayEventHandler.DAMAGE_REDUCTION * 100)));
 
-        tooltip.add(Component.literal("§5【分子离解】"));
-        tooltip.add(Component.literal("§7命中目标时附加 §f"
-                + (VacuumDecayEventHandler.DISSOCIATION_TICKS / 20) + " §7秒「分子离解」"));
-        tooltip.add(Component.literal("§8  · 每秒 §f4 §8点相位侵蚀真伤（无视护甲与抗性）"));
-        tooltip.add(Component.literal("§8  · 全套§b圣辉套装§8免疫该侵蚀伤害"));
-        tooltip.add(Component.literal("§8  · 饮用牛奶可清除（清掉就没有引信了）"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc6"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.dissociation",
+                VacuumDecayEventHandler.DISSOCIATION_TICKS / 20));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc7"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc8"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc9"));
 
-        tooltip.add(Component.literal("§d【对称破缺】"));
-        tooltip.add(Component.literal("§7攻击已带「分子离解」的目标时，引爆该效果："));
-        tooltip.add(Component.literal("§8  · 在目标位置展开真空衰变泡，持续 §f5 §8秒"));
-        tooltip.add(Component.literal("§8  · 把 §f"
-                + (int) VacuumDecayBlackHoleManager.PULL_RADIUS + " §8格内除自身外的所有实体拽向中心"));
-        tooltip.add(Component.literal("§8  · 坍缩时对 §f"
-                + (int) VacuumDecayBlackHoleManager.BLAST_RADIUS + " §8格内的活体造成 §f"
-                + (int) VacuumDecayBlackHoleManager.BLAST_DAMAGE + " §8点伤害"));
-        tooltip.add(Component.literal("§8  · 自身不受牵引、不被爆炸波及"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc10"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc11"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc12"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.pull",
+                (int) VacuumDecayBlackHoleManager.PULL_RADIUS));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.blast",
+                (int) VacuumDecayBlackHoleManager.BLAST_RADIUS,
+                (int) VacuumDecayBlackHoleManager.BLAST_DAMAGE));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc13"));
 
-        tooltip.add(Component.literal("§2无限耐久"));
+        tooltip.add(Component.translatable("item.zuoyanmod.vacuum_decay.desc14"));
     }
 }

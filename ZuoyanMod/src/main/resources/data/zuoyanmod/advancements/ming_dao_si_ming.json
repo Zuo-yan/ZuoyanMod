@@ -1,0 +1,26 @@
+{
+  "parent": "zuoyanmod:root",
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "zuoyanmod:ming_dao_si_ming"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "item": "zuoyanmod:ming_dao_si_ming"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.ming_dao_si_ming.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.ming_dao_si_ming.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

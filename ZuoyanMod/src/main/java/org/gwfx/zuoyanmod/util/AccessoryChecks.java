@@ -99,9 +99,9 @@ public final class AccessoryChecks {
     public static void appendEquipHint(List<Component> tooltip) {
         Consumer<Component> sink = tooltip::add;
         if (isCuriosLoaded()) {
-            sink.accept(Component.literal("§e§o需佩戴在饰品栏生效"));
+            sink.accept(Component.translatable("tooltip.zuoyanmod.accessory.need_equipped"));
         } else {
-            sink.accept(Component.literal("§e§o放入背包即生效"));
+            sink.accept(Component.translatable("tooltip.zuoyanmod.accessory.inventory_ok"));
         }
     }
 }

@@ -18,11 +18,21 @@ public final class CreativeTabRegistry {
             CREATIVE_MODE_TABS.register("zuoyan", () -> CreativeModeTab.builder()
                     .withTabsBefore(CreativeModeTabs.COMBAT)
                     .icon(() -> new ItemStack(ItemRegistry.KLEIN_BOTTLE.get()))
-                    .title(Component.literal("过往浮现"))
+                    .title(Component.translatable("itemGroup.zuoyanmod"))
                     .displayItems((parameters, output) -> {
+                        // 万能工具（前期工具：镐·斧·铲·锄·剑 五合一）
+                        output.accept(ItemRegistry.WOODEN_UNIVERSAL_TOOL.get());
+                        output.accept(ItemRegistry.STONE_UNIVERSAL_TOOL.get());
+                        output.accept(ItemRegistry.GOLDEN_UNIVERSAL_TOOL.get());
+                        output.accept(ItemRegistry.IRON_UNIVERSAL_TOOL.get());
+                        output.accept(ItemRegistry.DIAMOND_UNIVERSAL_TOOL.get());
+                        output.accept(ItemRegistry.NETHERITE_UNIVERSAL_TOOL.get());
+
                         // 武器与法宝
                         output.accept(ItemRegistry.BEIMING_BLADE.get());
                         output.accept(ItemRegistry.HERCULES_BOW.get());
+                        output.accept(ItemRegistry.CAUSALITY_PISTOL.get());
+                        output.accept(ItemRegistry.ANTIMATTER_BULLET.get());
                         output.accept(ItemRegistry.JACK_THE_RIPPER_SCALPEL.get());
                         output.accept(ItemRegistry.DEATH_NOTE.get());
                         output.accept(ItemRegistry.MING_DAO_SI_MING.get());
@@ -43,7 +53,7 @@ public final class CreativeTabRegistry {
                         output.accept(ItemRegistry.YEMENGADE_VENOM_FANG.get());
 
                         // 补给饮品
-                        output.accept(ItemRegistry.ICE_TEA.get());
+                        output.accept(ItemRegistry.CHOCOLATE_CRISP.get());
                         output.accept(ItemRegistry.SPRITE_DRINK.get());
 
                         // 紫金材料与方块
@@ -71,11 +81,19 @@ public final class CreativeTabRegistry {
                         output.accept(ItemRegistry.SINGULARITY_CORE.get());
                         output.accept(ItemRegistry.ANTIMATTER_PARTICLE.get());
 
+                        // 原始黑洞（对撞机终局产物，沉重核心 + 暗物质）
+                        output.accept(ItemRegistry.PRIMORDIAL_BLACK_HOLE.get());
+
                         // 真空衰变（万能挖掘锤：负熵灌注 / 分子离解 / 对称破缺）
                         output.accept(ItemRegistry.VACUUM_DECAY.get());
 
                         // 克莱因瓶（随身存储终端）
                         output.accept(ItemRegistry.KLEIN_BOTTLE.get());
+
+                        // 音乐唱片（放进唱片机播放）
+                        output.accept(ItemRegistry.MUSIC_DISC_SHOTS.get());
+                        output.accept(ItemRegistry.MUSIC_DISC_NIGHT_DANCER.get());
+                        output.accept(ItemRegistry.MUSIC_DISC_CASTLE.get());
 
                         // 生物刷怪蛋
                         output.accept(ItemRegistry.RICK_SPAWN_EGG.get());

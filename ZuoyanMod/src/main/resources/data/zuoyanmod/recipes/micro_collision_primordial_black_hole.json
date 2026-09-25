@@ -1,0 +1,14 @@
+{
+  "type": "zuoyanmod:micro_collision",
+  "ingredient_a": {
+    "item": "minecraft:netherite_block"
+  },
+  "ingredient_b": {
+    "item": "zuoyanmod:dark_matter"
+  },
+  "result": {
+    "item": "zuoyanmod:primordial_black_hole",
+    "count": 1
+  },
+  "duration": 400
+}

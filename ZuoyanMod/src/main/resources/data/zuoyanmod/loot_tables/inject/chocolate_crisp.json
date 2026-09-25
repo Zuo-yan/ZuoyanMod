@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "zuoyanmod:ice_tea",
+          "name": "zuoyanmod:chocolate_crisp",
           "functions": [
             {
               "function": "minecraft:set_count",

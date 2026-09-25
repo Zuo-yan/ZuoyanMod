@@ -15,7 +15,7 @@ public class DeathNoteScreen extends Screen {
     private EditBox durationBox;
 
     public DeathNoteScreen(ItemStack stack) {
-        super(Component.literal("死亡笔记"));
+        super(Component.translatable("gui.zuoyanmod.death_note.title"));
         this.stack = stack;
     }
 
@@ -24,22 +24,22 @@ public class DeathNoteScreen extends Screen {
         int centerX = this.width / 2;
         int centerY = this.height / 2;
 
-        this.addRenderableWidget(new StringWidget(centerX - 100, centerY - 60, 200, 16, Component.literal("§c死亡笔记 - 写入目标"), this.font));
-        this.addRenderableWidget(new StringWidget(centerX - 100, centerY - 44, 200, 14, Component.literal("目标玩家 ID:"), this.font));
+        this.addRenderableWidget(new StringWidget(centerX - 100, centerY - 60, 200, 16, Component.translatable("gui.zuoyanmod.death_note.header"), this.font));
+        this.addRenderableWidget(new StringWidget(centerX - 100, centerY - 44, 200, 14, Component.translatable("gui.zuoyanmod.death_note.target_label"), this.font));
 
-        this.targetBox = new EditBox(this.font, centerX - 100, centerY - 28, 200, 20, Component.literal("玩家ID"));
+        this.targetBox = new EditBox(this.font, centerX - 100, centerY - 28, 200, 20, Component.translatable("gui.zuoyanmod.death_note.target_hint"));
         this.targetBox.setMaxLength(64);
         this.targetBox.setValue("");
         this.addRenderableWidget(this.targetBox);
 
-        this.addRenderableWidget(new StringWidget(centerX - 100, centerY - 2, 200, 14, Component.literal("持续秒数 (默认 41 秒):"), this.font));
+        this.addRenderableWidget(new StringWidget(centerX - 100, centerY - 2, 200, 14, Component.translatable("gui.zuoyanmod.death_note.duration_label"), this.font));
 
-        this.durationBox = new EditBox(this.font, centerX - 100, centerY + 14, 200, 20, Component.literal("时长秒数"));
+        this.durationBox = new EditBox(this.font, centerX - 100, centerY + 14, 200, 20, Component.translatable("gui.zuoyanmod.death_note.duration_hint"));
         this.durationBox.setMaxLength(6);
         this.durationBox.setValue("41");
         this.addRenderableWidget(this.durationBox);
 
-        this.addRenderableWidget(Button.builder(Component.literal("写入死亡笔记"), button -> submit())
+        this.addRenderableWidget(Button.builder(Component.translatable("gui.zuoyanmod.death_note.submit"), button -> submit())
                 .bounds(centerX - 100, centerY + 42, 200, 20)
                 .build());
     }

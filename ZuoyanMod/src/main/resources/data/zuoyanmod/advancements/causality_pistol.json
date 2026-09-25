@@ -1,0 +1,32 @@
+{
+  "parent": "zuoyanmod:chain_antimatter",
+  "criteria": {
+    "got_pistol": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "zuoyanmod:causality_pistol"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "item": "zuoyanmod:causality_pistol"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.causality_pistol.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.causality_pistol.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

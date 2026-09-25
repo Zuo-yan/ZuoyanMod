@@ -17,10 +17,10 @@ public class MingDaoSiMingItem extends net.minecraft.world.item.Item {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.literal("§6名刀司命"));
-        tooltip.add(Component.literal("§7免死一次，濒死时保留生命"));
-        tooltip.add(Component.literal("§5一个真正想赢的人，脸上，是不会有笑容的 "));
-        tooltip.add(Component.literal("§2冷却:120s"));
+        tooltip.add(Component.translatable("item.zuoyanmod.ming_dao_si_ming.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.ming_dao_si_ming.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.ming_dao_si_ming.desc3"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc6"));
         org.gwfx.zuoyanmod.util.AccessoryChecks.appendEquipHint(tooltip);
     }
 }

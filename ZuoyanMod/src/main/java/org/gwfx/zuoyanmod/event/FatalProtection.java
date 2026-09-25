@@ -105,13 +105,13 @@ public final class FatalProtection {
             }
             ResourceLocation dimensionLocation = ResourceLocation.tryParse(dimensionId);
             if (dimensionLocation == null) {
-                player.sendSystemMessage(Component.literal("§7空间锚点记录的维度 ID 无效"));
+                player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.dimension_unavailable"));
                 return false;
             }
             ResourceKey<Level> dimensionKey = ResourceKey.create(Registries.DIMENSION, dimensionLocation);
             ServerLevel target = server.getLevel(dimensionKey);
             if (target == null) {
-                player.sendSystemMessage(Component.literal("§7空间锚点所在的维度不可用"));
+                player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.dimension_unavailable"));
                 return false;
             }
             // 骑乘状态下传送会丢载具，先解除

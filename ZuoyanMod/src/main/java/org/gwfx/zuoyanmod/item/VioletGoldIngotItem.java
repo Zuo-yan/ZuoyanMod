@@ -17,7 +17,7 @@ public class VioletGoldIngotItem extends net.minecraft.world.item.Item {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.literal("§eBaby我去吧"));
-        tooltip.add(Component.literal("§d瞬间就爱上雷神!"));
+        tooltip.add(Component.translatable("item.zuoyanmod.violet_gold_ingot.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.violet_gold_ingot.desc2"));
     }
 }

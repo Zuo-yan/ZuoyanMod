@@ -86,7 +86,7 @@ public class SpaceAnchorItem extends Item {
         ItemStack anchor = findHeldAnchor(player);
         if (!anchor.isEmpty()) {
             saveAnchor(player, anchor);
-            player.sendSystemMessage(Component.literal("§b空间锚点 §7- 锚点已重新校准"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.recalibrated"));
         }
         player.releaseUsingItem();
     }
@@ -107,11 +107,11 @@ public class SpaceAnchorItem extends Item {
         }
         if (!hasAnchor(anchor)) {
             saveAnchor(player, anchor);
-            player.sendSystemMessage(Component.literal("§b空间锚点 §7- 已记录当前坐标"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.saved"));
             return;
         }
         if (teleportToAnchor(player, anchor)) {
-            player.sendSystemMessage(Component.literal("§b空间锚点 §7- 已回溯至锚点"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.recalled"));
         }
     }
 
@@ -154,7 +154,7 @@ public class SpaceAnchorItem extends Item {
     public static boolean teleportToAnchor(Player player, ItemStack stack) {
         AnchorPos pos = readAnchorPos(stack);
         if (pos == null) {
-            player.sendSystemMessage(Component.literal("§7空间锚点尚未记录坐标"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.not_set"));
             return false;
         }
         return teleportNow(player, pos);
@@ -174,13 +174,13 @@ public class SpaceAnchorItem extends Item {
         }
         ResourceLocation dimensionId = ResourceLocation.tryParse(pos.dimension());
         if (dimensionId == null) {
-            player.sendSystemMessage(Component.literal("§7空间锚点所在的维度不可用"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.dimension_unavailable"));
             return false;
         }
         ResourceKey<Level> dimensionKey = ResourceKey.create(Registries.DIMENSION, dimensionId);
         ServerLevel target = server.getLevel(dimensionKey);
         if (target == null) {
-            player.sendSystemMessage(Component.literal("§7空间锚点所在的维度不可用"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.dimension_unavailable"));
             return false;
         }
 
@@ -218,26 +218,26 @@ public class SpaceAnchorItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.literal("§b空间锚点"));
-        tooltip.add(Component.literal("§7潜行右键: 记录当前坐标"));
-        tooltip.add(Component.literal("§7再次潜行右键: 传送至锚点"));
-        tooltip.add(Component.literal("§7潜行长按右键 1 秒: 覆盖锚点"));
-        tooltip.add(Component.literal("§7受到致命伤害时抵挡并回溯至锚点"));
-        tooltip.add(Component.literal("§2冷却:120s"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc3"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc4"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc5"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc6"));
 
         CompoundTag tag = stack.getTag();
         if (tag != null && tag.getBoolean(KEY_SET)) {
             String dimensionId = tag.getString(KEY_DIM);
-            tooltip.add(Component.literal("§8锚点: " + dimensionId + " "
-                    + String.format("%.0f, %.0f, %.0f",
-                    tag.getDouble(KEY_X),
-                    tag.getDouble(KEY_Y),
-                    tag.getDouble(KEY_Z))));
+            tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc9", dimensionId,
+                    String.format("%.0f, %.0f, %.0f",
+                            tag.getDouble(KEY_X),
+                            tag.getDouble(KEY_Y),
+                            tag.getDouble(KEY_Z))));
         } else {
-            tooltip.add(Component.literal("§8锚点: 未设置"));
+            tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc7"));
         }
 
-        tooltip.add(Component.literal("§e§o需手持（主手/副手）生效"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc8"));
     }
 }
 

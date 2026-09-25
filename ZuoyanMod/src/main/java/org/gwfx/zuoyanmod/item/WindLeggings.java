@@ -19,11 +19,11 @@ public class WindLeggings extends ArmorItem {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.literal("§6§l圣辉套装·§3§l疾风护腿"));
-        tooltip.add(Component.literal("§7§o被动：抗性提升 II（20%减伤）"));
-        tooltip.add(Component.literal("§7§o生命：+20最大生命值 + 25%移动速度"));
-        tooltip.add(Component.literal("§7§o疾风掠影：生命低于10%时+100%移动速度 + 免疫掉落伤害"));
-        tooltip.add(Component.literal("§e§l全套圣辉套装效果："));
-        tooltip.add(Component.literal("§7§o纵横三千界：创造飞行 + 每次攻击造成目标最大生命值10%的伤害"));
+        tooltip.add(Component.translatable("item.zuoyanmod.wind_leggings.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.wind_leggings.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.wind_leggings.desc3"));
+        tooltip.add(Component.translatable("item.zuoyanmod.wind_leggings.desc4"));
+        tooltip.add(Component.translatable("item.zuoyanmod.wind_leggings.desc5"));
+        tooltip.add(Component.translatable("item.zuoyanmod.wind_leggings.desc6"));
     }
 }

@@ -1,0 +1,26 @@
+{
+  "parent": "zuoyanmod:discovery",
+  "criteria": {
+    "entered": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "zuoyanmod:realm"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "item": "minecraft:grass_block"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.enter_realm.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.enter_realm.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

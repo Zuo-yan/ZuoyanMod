@@ -41,7 +41,7 @@ public final class SpriteDrinkEventHandler {
         long endTick = data.getLong("zuoyan_sprite_end_tick");
         if (endTick > 0L && player.level().getGameTime() >= endTick) {
             clear(player);
-            player.sendSystemMessage(Component.literal("§7雪碧效果结束"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.sprite_drink.ended"));
             return;
         }
 

@@ -17,8 +17,8 @@ public class DarkMatterParticleItem extends net.minecraft.world.item.Item {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.literal("§5暗物质粒子"));
-        tooltip.add(Component.literal("§7虚空共振泵在末地悬空处共振的产物"));
-        tooltip.add(Component.literal("§79 个可聚合成 1 个暗物质"));
+        tooltip.add(Component.translatable("item.zuoyanmod.dark_matter_particle.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.dark_matter_particle.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.dark_matter_particle.desc3"));
     }
 }

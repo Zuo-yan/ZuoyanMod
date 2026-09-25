@@ -11,11 +11,11 @@ public class EffectRegistry {
     public static final DeferredRegister<MobEffect> EFFECTS =
             DeferredRegister.create(Registries.MOB_EFFECT, Zuoyanmod.MODID);
 
-    public static final RegistryObject<MambaForceDefenseEffect> MAMBA_FORCE_DEFENSE =
-            EFFECTS.register("mamba_force_defense", MambaForceDefenseEffect::new);
+    public static final RegistryObject<HeartParalysisEffect> HEART_PARALYSIS =
+            EFFECTS.register("mamba_force_defense", HeartParalysisEffect::new);
 
-    public static final RegistryObject<MobEffect> MAMBA_FORCE_ATTACK =
-            EFFECTS.register("mamba_force_attack", MambaForceAttackEffect::new);
+    public static final RegistryObject<MobEffect> INSTANT_KILL =
+            EFFECTS.register("mamba_force_attack", InstantKillEffect::new);
 
     public static final RegistryObject<FightAgainEffect> FIGHT_AGAIN =
             EFFECTS.register("fight_again", FightAgainEffect::new);

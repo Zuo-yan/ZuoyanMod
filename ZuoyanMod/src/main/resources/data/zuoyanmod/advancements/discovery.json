@@ -1,0 +1,23 @@
+{
+  "parent": "zuoyanmod:root",
+  "criteria": {
+    "placeholder": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "item": "zuoyanmod:chocolate_crisp"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.discovery.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.discovery.description"
+    },
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

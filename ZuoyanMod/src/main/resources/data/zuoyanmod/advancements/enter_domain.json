@@ -1,0 +1,26 @@
+{
+  "parent": "zuoyanmod:discovery",
+  "criteria": {
+    "entered": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "zuoyanmod:domain_expansion"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "item": "minecraft:echo_shard"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.enter_domain.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.enter_domain.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

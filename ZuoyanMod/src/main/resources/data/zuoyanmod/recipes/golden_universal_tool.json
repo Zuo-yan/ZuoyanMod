@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "AHW",
+    " X "
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:golden_pickaxe"
+    },
+    "A": {
+      "item": "minecraft:golden_axe"
+    },
+    "H": {
+      "item": "minecraft:golden_hoe"
+    },
+    "W": {
+      "item": "minecraft:golden_sword"
+    },
+    "X": {
+      "item": "minecraft:golden_shovel"
+    }
+  },
+  "result": {
+    "item": "zuoyanmod:golden_universal_tool",
+    "count": 1
+  }
+}

@@ -17,10 +17,10 @@ public class VoodooNecklaceItem extends net.minecraft.world.item.Item {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.literal("§5千厄噬魂之坠"));
-        tooltip.add(Component.literal("§7受到攻击时有35%概率获得负面效果"));
-        tooltip.add(Component.literal("§7每拥有一项负面效果，秒杀概率+1%"));
-        tooltip.add(Component.literal("§7负面效果: 失明、反胃、中毒、饥饿、虚弱、缓慢"));
+        tooltip.add(Component.translatable("item.zuoyanmod.voodoo_necklace.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.voodoo_necklace.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.voodoo_necklace.desc3"));
+        tooltip.add(Component.translatable("item.zuoyanmod.voodoo_necklace.desc4"));
         org.gwfx.zuoyanmod.util.AccessoryChecks.appendEquipHint(tooltip);
     }
 }

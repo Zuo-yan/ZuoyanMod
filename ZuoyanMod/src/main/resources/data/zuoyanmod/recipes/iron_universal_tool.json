@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "AHW",
+    " X "
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:iron_pickaxe"
+    },
+    "A": {
+      "item": "minecraft:iron_axe"
+    },
+    "H": {
+      "item": "minecraft:iron_hoe"
+    },
+    "W": {
+      "item": "minecraft:iron_sword"
+    },
+    "X": {
+      "item": "minecraft:iron_shovel"
+    }
+  },
+  "result": {
+    "item": "zuoyanmod:iron_universal_tool",
+    "count": 1
+  }
+}

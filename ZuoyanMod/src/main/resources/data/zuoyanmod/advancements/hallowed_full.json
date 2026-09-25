@@ -1,0 +1,47 @@
+{
+  "parent": "zuoyanmod:root",
+  "criteria": {
+    "all_four": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "zuoyanmod:shadow_helmet"
+            ]
+          },
+          {
+            "items": [
+              "zuoyanmod:shengtian_chestplate"
+            ]
+          },
+          {
+            "items": [
+              "zuoyanmod:wind_leggings"
+            ]
+          },
+          {
+            "items": [
+              "zuoyanmod:walker_boots"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "item": "zuoyanmod:shengtian_chestplate"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.hallowed_full.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.hallowed_full.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

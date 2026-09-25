@@ -113,6 +113,10 @@ public class Zuoyanmod {
                 net.minecraftforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
             event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.RICK.get(),
                     org.gwfx.zuoyanmod.client.RickRenderer::new);
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.CAUSALITY_BULLET.get(),
+                    org.gwfx.zuoyanmod.client.CausalityBulletRenderer::new);
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.PRIMORDIAL_BLACK_HOLE.get(),
+                    org.gwfx.zuoyanmod.client.PrimordialBlackHoleRenderer::new);
         }
 
         @SubscribeEvent

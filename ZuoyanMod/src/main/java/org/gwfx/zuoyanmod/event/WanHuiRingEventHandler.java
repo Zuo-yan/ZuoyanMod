@@ -121,7 +121,7 @@ public class WanHuiRingEventHandler {
 
         try {
             player.sendSystemMessage(
-                    Component.literal("§d§l万晦转生之环 §7- 「百战无伤」触发! 清除所有效果，获得30秒再战天荒")
+                    Component.translatable("message.zuoyanmod.wan_hui_ring.triggered")
             );
         } catch (Exception e) {
             LOGGER.warn("Error sending system message", e);

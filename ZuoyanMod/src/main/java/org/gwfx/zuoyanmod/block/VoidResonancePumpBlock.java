@@ -81,9 +81,9 @@ public class VoidResonancePumpBlock extends BaseEntityBlock {
             return InteractionResult.PASS;
         }
         if (!VoidResonancePumpBlockEntity.canRun(level, pos)) {
-            player.sendSystemMessage(Component.literal(level.dimension() != Level.END
-                    ? "§7虚空共振泵：仅在末地生效"
-                    : "§7虚空共振泵：需悬空于虚空之上"));
+            player.sendSystemMessage(level.dimension() != Level.END
+                    ? Component.translatable("gui.zuoyanmod.void_pump.error.end_only")
+                    : Component.translatable("gui.zuoyanmod.void_pump.error.must_be_void"));
             return InteractionResult.SUCCESS;
         }
         player.openMenu(pump);

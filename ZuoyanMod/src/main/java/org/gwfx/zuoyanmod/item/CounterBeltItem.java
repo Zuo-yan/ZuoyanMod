@@ -17,10 +17,10 @@ public class CounterBeltItem extends net.minecraft.world.item.Item {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.literal("§6反击腰带"));
-        tooltip.add(Component.literal("§7当单次伤害≤0.9时"));
-        tooltip.add(Component.literal("§7激活「几曾识干戈」"));
-        tooltip.add(Component.literal("§7对目标造成99%最大生命值伤害"));
+        tooltip.add(Component.translatable("item.zuoyanmod.counter_belt.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.counter_belt.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.counter_belt.desc3"));
+        tooltip.add(Component.translatable("item.zuoyanmod.counter_belt.desc4"));
         org.gwfx.zuoyanmod.util.AccessoryChecks.appendEquipHint(tooltip);
     }
 }

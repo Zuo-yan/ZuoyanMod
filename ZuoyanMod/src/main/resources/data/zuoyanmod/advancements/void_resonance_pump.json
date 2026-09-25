@@ -1,0 +1,26 @@
+{
+  "parent": "zuoyanmod:chain_dark",
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "zuoyanmod:void_resonance_pump"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "item": "zuoyanmod:void_resonance_pump"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.void_resonance_pump.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.void_resonance_pump.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

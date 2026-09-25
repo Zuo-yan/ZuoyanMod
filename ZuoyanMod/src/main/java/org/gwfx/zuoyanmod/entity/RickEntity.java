@@ -3,10 +3,13 @@ package org.gwfx.zuoyanmod.entity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,6 +29,10 @@ import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.trading.Merchant;
+import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -64,7 +71,7 @@ import java.util.UUID;
  * </ul>
  * </p>
  */
-public class RickEntity extends PathfinderMob implements NeutralMob {
+public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
 
     /** 复活后的瑞克继承的仇恨时间：够它跑到凶手面前再打一架。 */
     private static final int REBIRTH_ANGER_TICKS = 200;
@@ -82,6 +89,9 @@ public class RickEntity extends PathfinderMob implements NeutralMob {
      * 无需与墙严格对齐——真正挡住它的是墙，这个半径负责的是别让它"想"出去。</p>
      */
     private static final int STRUCTURE_HOME_RADIUS = 7;
+
+    /** 界面还能不能开着：玩家与瑞克的距离上限（格）。 */
+    private static final double TRADE_DISTANCE = 4.0D;
 
     /**
      * 守卫标签：打上它的瑞克会把出生点认作领地。
@@ -108,6 +118,12 @@ public class RickEntity extends PathfinderMob implements NeutralMob {
     /** 剩余仇恨 tick 数与仇恨目标（1.20.1 的 NeutralMob 语义）。 */
     private int persistentAngerTicks;
     private @Nullable UUID persistentAngerTarget;
+
+    /** 正在交易的那位玩家（同一时间只允许一个人开界面，与村民一致）。 */
+    private @Nullable Player tradingPlayer;
+
+    /** 报价表，第一次有人开界面时才构造（见 {@link #getOffers}）。 */
+    private @Nullable MerchantOffers offers;
 
     public RickEntity(EntityType<? extends RickEntity> type, Level level) {
         super(type, level);
@@ -390,22 +406,210 @@ public class RickEntity extends PathfinderMob implements NeutralMob {
         }
     }
 
+    // ===================== 交易（Merchant）=====================
+
+    /**
+     * 右键开商店。
+     *
+     * <p>三种情况不交易：
+     * <ul>
+     *   <li>实体已经死了 / 别人正在跟它交易 —— 交给 super，什么都不做；</li>
+     *   <li>玩家按着潜行键右键 —— 沿用原版村民的约定，把"潜行交互"留给以后可能加的功能；</li>
+     *   <li><b>它正被激怒</b>（{@link NeutralMob#isAngry()}）—— 正在气头上不做买卖，
+     *       不然会出现"玩家一边被它追着打、一边悠闲地翻它的货架"这种荒唐画面。</li>
+     * </ul>
+     *
+     * <p>真正的开门动作是 {@link #startTrading}：它也是接口默认方法
+     * {@link Merchant#openTradingScreen} 的唯一调用点，内部自己开 {@code MerchantMenu}
+     * 并把报价表推给客户端，所以我们一行网络包都不用写。
+     * 界面标题直接用它自己的名字，玩家给瑞克改了名牌的话标题会跟着变。
+     */
+    @Override
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (!this.isAlive() || this.isTrading() || player.isSecondaryUseActive()) {
+            return super.mobInteract(player, hand);
+        }
+
+        if (this.isAngry()) {
+            if (!this.level().isClientSide()) {
+                player.sendSystemMessage(Component.translatable("message.zuoyanmod.rick.not_in_mood"));
+            }
+            return InteractionResult.SUCCESS;
+        }
+
+        if (!this.level().isClientSide()) {
+            this.startTrading(player);
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * 真正开界面：<b>先登记交易对象，再开界面</b>。顺序不能反。
+     *
+     * <p>原版 {@link Merchant#openTradingScreen} 只管开菜单，<b>不会</b>帮你调
+     * {@code setTradingPlayer}。而 {@code MerchantMenu#stillValid} 要求
+     * {@code getTradingPlayer() == player}，容器每 tick 都会查一次 ——
+     * 少了这一句的话，界面会在开出后的第一个 tick 就被判为失效并自动关掉，
+     * 表现就是"界面闪一下没了"。村民那边的对应实现在
+     * {@code Villager#startTrading}，同样是先 {@code setTradingPlayer} 再开。
+     */
+    private void startTrading(Player player) {
+        this.setTradingPlayer(player);
+        // level 传 1：不显示村民那条等级进度条（showProgressBar() 也是 false），
+        // 只是为了让原版界面有一个合法的"商人等级"可读，避免出现等级 0 的空标题。
+        this.openTradingScreen(player, this.getName(), 1);
+    }
+
+    /** 是否已有人在跟它交易（原版村民用它避免两个人同时开同一个界面）。 */
+    public boolean isTrading() {
+        return this.tradingPlayer != null;
+    }
+
+    @Override
+    public void setTradingPlayer(@Nullable Player player) {
+        this.tradingPlayer = player;
+    }
+
+    @Override
+    public @Nullable Player getTradingPlayer() {
+        return this.tradingPlayer;
+    }
+
+    /**
+     * 报价表，懒建一次然后复用。
+     *
+     * <p>与 {@code AbstractVillager#getOffers} 的差异：村民的报价要用服务端注册表里的
+     * TradeSet 现算，所以它在客户端调用会直接抛异常；我们的报价是写死的数据，
+     * 两端构造都安全，因此不做端侧限制。实际上客户端也走不到这条路 ——
+     * 那边的 {@code MerchantMenu} 持有的是原版 {@code ClientSideMerchant}，不是这只瑞克。
+     */
+    @Override
+    public MerchantOffers getOffers() {
+        if (this.offers == null) {
+            this.offers = RickTrades.createOffers();
+        }
+        return this.offers;
+    }
+
+    /** 客户端同步报价时会用到；对我们这只实体实际上不会被调用（见 {@link #getOffers}）。 */
+    @Override
+    public void overrideOffers(MerchantOffers offers) {
+        this.offers = offers;
+    }
+
+    /**
+     * 成交回调。
+     *
+     * <p><b>故意不调 {@code offer.increaseUses()}</b>：原版村民靠 uses 累加到 maxUses 来"售罄"，
+     * 我们这里是无限次交易，所以既不累加、也不改供需（demand 恒为 0，价格恒定）。
+     *
+     * <p>唯一做的事是重置环境音计时。<b>注意这不是在放音效</b> —— 瑞克全身上下已经被静音了
+     * （见「音效 / 杂项」一节），重置计时器的意义是让 {@link #notifyTradeUpdated} 那套
+     * 限流逻辑保持和原版一致的节奏，将来若要给它加回声音，这里不用再改。
+     *
+     * <p>注意客户端那份 {@code ClientSideMerchant} 会老老实实按原版调 increaseUses，
+     * 靠 {@link RickTrades} 里把 maxUses 顶到 int 上限来保证客户端也永远不会灰化交易项。
+     */
+    @Override
+    public void notifyTrade(MerchantOffer offer) {
+        this.ambientSoundTime = -this.getAmbientSoundInterval();
+    }
+
+    /**
+     * 材料槽内容变化时的即时反馈。
+     *
+     * <p>原版村民在这里按"放够了 / 放不够"分别播 yes / no 两条音效，<b>这里是空实现</b> ——
+     * 应要求把瑞克发出的声音全部去掉了。保留这个方法（而不是删掉）是因为
+     * {@link Merchant} 把它定为抽象方法，必须实现；
+     * 而且 {@code MerchantContainer#updateSellItem} 每次改动材料槽都会调它，
+     * 将来若要加回音效，逻辑（含 20 tick 限流）照抄 {@code AbstractVillager} 即可。
+     */
+    @Override
+    public void notifyTradeUpdated(ItemStack stack) {
+        // 有意为空：瑞克不发出任何声音。
+    }
+
+    /** 不给交易经验：瑞克不升级，也没有等级体系。 */
+    @Override
+    public int getVillagerXp() {
+        return 0;
+    }
+
+    @Override
+    public void overrideXp(int xp) {
+        // 有意为空：原版 MerchantResultSlot 每次成交都会回调这里，我们全部忽略。
+    }
+
+    /** 不显示村民界面上那条等级进度条 —— 瑞克没有等级。 */
+    @Override
+    public boolean showProgressBar() {
+        return false;
+    }
+
+    /**
+     * 交易成交音。
+     *
+     * <p>接口规定必须返回一个 {@link SoundEvent}，不接受 null
+     * （{@code MerchantMenu#playTradeSound} 里直接把它喂给
+     * {@code Level#playLocalSound}，那个方法参数非空，返回 null 会 NPE）。
+     * 所以返回原版的 {@link SoundEvents#EMPTY}：它是注册表里一个
+     * <b>故意不带任何音频文件的占位音效</b>（id 为 {@code minecraft:intentionally_empty}），
+     * 播放它等于什么都不播 —— 这正是"瑞克不出声"想要的效果。
+     */
+    @Override
+    public SoundEvent getNotifyTradeSound() {
+        return SoundEvents.EMPTY;
+    }
+
+    @Override
+    public boolean isClientSide() {
+        return this.level().isClientSide();
+    }
+
+    /**
+     * 界面是否还该开着：必须是同一个玩家、瑞克还活着、且人没走远。
+     *
+     * <p><b>1.20.1 下这个方法是个"预留件"</b>：{@code Merchant#stillValid} 是 1.20.2 才进接口的，
+     * 1.20.1 的 {@code MerchantMenu#stillValid} 只查 {@code getTradingPlayer() == player}，
+     * 不会调用这里，所以"玩家走远 / 瑞克死亡"在原版流程里不会自动关界面。
+     * 保留实现是为了：① 与 26.3 主线同名，方便两分支对照；
+     * ② 以后若自己接管容器校验，这里有现成的判定可用。
+     * {@code player.isWithinEntityInteractionRange(...)} 在 1.20.1 也不存在，
+     * 用等价的 {@link net.minecraft.world.entity.Entity#closerThan} 表达。
+     */
+    public boolean stillValid(Player player) {
+        return this.getTradingPlayer() == player
+                && this.isAlive()
+                && this.closerThan(player, TRADE_DISTANCE);
+    }
+
     // ===================== 音效 / 杂项 =====================
+    //
+    // 瑞克被设定为「不发声」的生物：三个语音音效（环境音/受伤/死亡）全部返回 null。
+    // 为什么返回 null 而不是 getSoundVolume() = 0：
+    //   ① 原版这三处调用点都做了 null 判断（见 LivingEntity#makeSound、
+    //      #handleDamageEvent、#handleEntityEvent），null 是官方支持的"这个生物没这条音效"的写法，
+    //      像盔甲架这类哑巴实体就是这么干的；
+    //   ② getSoundVolume() 会连带压低脚步声、游泳声、装备穿脱声等所有经由
+    //      Entity#playSound 的声音，语义太脏，而且"0 音量"仍然会发包，不如直接不播。
+    //
+    // ⚠️ 仍然发声的部分：脚步（playStepSound）和落水（getSwimSound）走的是方块/通用音效，
+    //    对所有生物一视同仁，所以没动。要连这些一起消掉，再覆写
+    //    playStepSound / getSwimSound / getSwimSplashSound 返回空即可。
 
     @Override
     protected @Nullable SoundEvent getAmbientSound() {
-        // 用玩家的呼吸声，比僵尸的喉音更贴合人形中立生物
-        return SoundEvents.PLAYER_BREATH;
+        return null;
     }
 
     @Override
-    protected SoundEvent getHurtSound(DamageSource source) {
-        return SoundEvents.PLAYER_HURT;
+    protected @Nullable SoundEvent getHurtSound(DamageSource source) {
+        return null;
     }
 
     @Override
-    protected SoundEvent getDeathSound() {
-        return SoundEvents.PLAYER_DEATH;
+    protected @Nullable SoundEvent getDeathSound() {
+        return null;
     }
 
     @Override

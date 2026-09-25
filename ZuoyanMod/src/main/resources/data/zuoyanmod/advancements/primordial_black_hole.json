@@ -1,0 +1,32 @@
+{
+  "parent": "zuoyanmod:chain_antimatter",
+  "criteria": {
+    "first_hole": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "zuoyanmod:primordial_black_hole"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "item": "zuoyanmod:primordial_black_hole"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.primordial_black_hole.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.primordial_black_hole.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

@@ -45,25 +45,26 @@ public class DeathNotePacket {
             }
             MinecraftServer server = serverLevel.getServer();
             if (server == null) {
-                sender.sendSystemMessage(Component.literal("§c服务器信息不可用"));
+                sender.sendSystemMessage(Component.translatable("message.zuoyanmod.death_note.server_unavailable"));
                 return;
             }
             ServerPlayer target = server.getPlayerList().getPlayerByName(msg.targetName);
             if (target == null) {
-                sender.sendSystemMessage(Component.literal("§c未找到目标玩家：" + msg.targetName));
+                sender.sendSystemMessage(Component.translatable("message.zuoyanmod.death_note.target_not_found", msg.targetName));
                 return;
             }
             int durationTicks = Math.max(1, msg.durationSeconds) * 20;
             target.addEffect(new MobEffectInstance(
-                    EffectRegistry.MAMBA_FORCE_DEFENSE.get(),
+                    EffectRegistry.HEART_PARALYSIS.get(),
                     durationTicks,
                     0,
                     false,
                     true,
                     true
             ));
-            sender.sendSystemMessage(Component.literal("§a已写入死亡笔记：" + target.getName().getString() + "，剩余" + msg.durationSeconds + "秒"));
-            target.sendSystemMessage(Component.literal("§4你已被写入死亡笔记，心脏麻痹倒计时开始"));
+            sender.sendSystemMessage(Component.translatable("message.zuoyanmod.death_note.written",
+                    target.getName().getString(), msg.durationSeconds));
+            target.sendSystemMessage(Component.translatable("message.zuoyanmod.death_note.victim_notice"));
             LOGGER.info("[DeathNote] {} wrote {} for {} seconds", sender.getName().getString(), target.getName().getString(), msg.durationSeconds);
         });
         ctx.get().setPacketHandled(true);

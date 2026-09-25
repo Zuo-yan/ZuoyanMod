@@ -17,11 +17,11 @@ public class RingItem extends net.minecraft.world.item.Item {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.literal("§6杀戮之戒"));
-        tooltip.add(Component.literal("§7佩戴后每击杀一个生物"));
-        tooltip.add(Component.literal("§7永久提升20%基础生命值"));
-        tooltip.add(Component.literal("§7同时降低10%攻击伤害"));
-        tooltip.add(Component.literal("§7卸下戒指后效果重置"));
+        tooltip.add(Component.translatable("item.zuoyanmod.ring.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.ring.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.ring.desc3"));
+        tooltip.add(Component.translatable("item.zuoyanmod.ring.desc4"));
+        tooltip.add(Component.translatable("item.zuoyanmod.ring.desc5"));
         org.gwfx.zuoyanmod.util.AccessoryChecks.appendEquipHint(tooltip);
     }
 }

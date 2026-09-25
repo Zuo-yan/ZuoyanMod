@@ -12,10 +12,12 @@ import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.item.SmithingTemplateItem;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.Tiers;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Blocks;
@@ -25,6 +27,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.block.BlockRegistry;
 import org.gwfx.zuoyanmod.fluid.FluidRegistry;
+import org.gwfx.zuoyanmod.sound.SoundRegistry;
 
 import java.util.List;
 import java.util.Map;
@@ -62,8 +65,10 @@ public final class ItemRegistry {
             ));
 
     // ===== 消耗与功能道具 =====
-    public static final RegistryObject<IceTeaItem> ICE_TEA =
-            ITEMS.register("ice_tea", () -> new IceTeaItem(new Item.Properties().stacksTo(16).food(
+    // 注册 id 由主线与 26.3 同步改名为 chocolate_crisp（显示名一直是「巧乐兹」，id 才对不上）。
+    // 旧存档里的 zuoyanmod:ice_tea 由 Zuoyanmod 的 MissingMappings 钩子改名续命，见那里的注释。
+    public static final RegistryObject<ChocolateCrispItem> CHOCOLATE_CRISP =
+            ITEMS.register("chocolate_crisp", () -> new ChocolateCrispItem(new Item.Properties().stacksTo(16).food(
                     new FoodProperties.Builder()
                             .nutrition(3)
                             .saturationMod(0.5f)
@@ -132,6 +137,34 @@ public final class ItemRegistry {
     public static final RegistryObject<BeimingBlade> BEIMING_BLADE =
             ITEMS.register("beiming_blade", () -> new BeimingBlade(VIOLET_GOLD_TIER, 32, -1.0F,
                     new Item.Properties().stacksTo(1)));
+
+    // ===== 万能工具（镐·斧·铲·锄·剑 五合一，数值取自对应 ToolMaterial）=====
+    // 1.20.1 适配：26.x 用 ToolMaterial + DataComponents.TOOL；1.20.1 的等价物是 Tiers + DiggerItem，
+    // 攻击力/攻速由 DiggerItem 构造器按「同材质斧」的基线给（见 UniversalToolItem 的类注释）。
+    public static final RegistryObject<UniversalToolItem> WOODEN_UNIVERSAL_TOOL =
+            ITEMS.register("wooden_universal_tool", () -> new UniversalToolItem(
+                    Tiers.WOOD, 6.0F, -3.2F, UniversalToolItem.properties(Tiers.WOOD)));
+
+    public static final RegistryObject<UniversalToolItem> STONE_UNIVERSAL_TOOL =
+            ITEMS.register("stone_universal_tool", () -> new UniversalToolItem(
+                    Tiers.STONE, 7.0F, -3.2F, UniversalToolItem.properties(Tiers.STONE)));
+
+    public static final RegistryObject<UniversalToolItem> GOLDEN_UNIVERSAL_TOOL =
+            ITEMS.register("golden_universal_tool", () -> new UniversalToolItem(
+                    Tiers.GOLD, 6.0F, -3.0F, UniversalToolItem.properties(Tiers.GOLD)));
+
+    public static final RegistryObject<UniversalToolItem> IRON_UNIVERSAL_TOOL =
+            ITEMS.register("iron_universal_tool", () -> new UniversalToolItem(
+                    Tiers.IRON, 6.0F, -3.1F, UniversalToolItem.properties(Tiers.IRON)));
+
+    public static final RegistryObject<UniversalToolItem> DIAMOND_UNIVERSAL_TOOL =
+            ITEMS.register("diamond_universal_tool", () -> new UniversalToolItem(
+                    Tiers.DIAMOND, 5.0F, -3.0F, UniversalToolItem.properties(Tiers.DIAMOND)));
+
+    // 下界合金同原版：防火不掉落（岩浆里烧不坏）
+    public static final RegistryObject<UniversalToolItem> NETHERITE_UNIVERSAL_TOOL =
+            ITEMS.register("netherite_universal_tool", () -> new UniversalToolItem(
+                    Tiers.NETHERITE, 5.0F, -3.0F, UniversalToolItem.properties(Tiers.NETHERITE).fireResistant()));
 
     // ===== 阶段三新武器 =====
     public static final RegistryObject<HerculesBowItem> HERCULES_BOW =
@@ -245,6 +278,10 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> ANTIMATTER_PARTICLE =
             ITEMS.register("antimatter_particle", () -> new Item(new Item.Properties().rarity(Rarity.RARE)));
 
+    // ===== 反物质子弹（因果律手枪的专用弹药：生存模式每发消耗 1 枚） =====
+    public static final RegistryObject<Item> ANTIMATTER_BULLET =
+            ITEMS.register("antimatter_bullet", () -> new Item(new Item.Properties().rarity(Rarity.UNCOMMON)));
+
     // ===== 虚空共振泵方块物品（使用条件说明） =====
     public static final RegistryObject<BlockItem> VOID_RESONANCE_PUMP_ITEM =
             ITEMS.register("void_resonance_pump",
@@ -260,6 +297,15 @@ public final class ItemRegistry {
     // ===== 奇点核心（对撞产物：克莱因瓶的唯一入口材料） =====
     public static final RegistryObject<Item> SINGULARITY_CORE =
             ITEMS.register("singularity_core", () -> new Item(new Item.Properties().rarity(Rarity.RARE)));
+
+    // ===== 原始黑洞（对撞产物：沉重核心 + 暗物质；右键释放一个 20 秒的黑洞）=====
+    // 继承 DescribedItem 是为了保留描述行机制；使用规则与具体数值见 PrimordialBlackHoleItem。
+    public static final RegistryObject<PrimordialBlackHoleItem> PRIMORDIAL_BLACK_HOLE =
+            ITEMS.register("primordial_black_hole", () -> new PrimordialBlackHoleItem(
+                    new Item.Properties().rarity(Rarity.EPIC),
+                    "item.zuoyanmod.primordial_black_hole.desc1",
+                    "item.zuoyanmod.primordial_black_hole.desc2",
+                    "item.zuoyanmod.primordial_black_hole.desc3"));
 
     // ===== 超流体暗物质（原「暗物质桶」，仅显示名变更，注册 id 保持 dark_matter_bucket） =====
     // craftRemainder(BUCKET)：它要当合成材料（真空衰变的配方要 4 个），必须像原版奶桶那样把空桶还回来，
@@ -303,6 +349,37 @@ public final class ItemRegistry {
     public static final RegistryObject<BlockItem> VIOLET_GOLD_BLOCK_ITEM =
             ITEMS.register("violet_gold_block",
                     () -> new BlockItem(BlockRegistry.VIOLET_GOLD_BLOCK.get(), new Item.Properties()));
+
+    // ===== 因果律手枪（规则级武器：平行宇宙同位体；反物质子弹供弹） =====
+    public static final RegistryObject<CausalityPistolItem> CAUSALITY_PISTOL =
+            ITEMS.register("causality_pistol", () -> new CausalityPistolItem(
+                    new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
+
+    // ===== 音乐唱片（三首外部曲子，放进唱片机即可播放）=====
+    // 1.20.1 适配：26.x 里唱片 = 普通 Item 挂 JUKEBOX_PLAYABLE 组件 + data/zuoyanmod/jukebox_song/*.json
+    // 描述曲目元数据；1.20.1 没有这套机制，唱片就是原版 {@code RecordItem}。
+    // 前三参（比较器输出、音效、长度）取自 26.3 的 jukebox_song json 里的
+    // comparator_output / length_in_seconds —— 注意该构造器的长度单位是 **tick**（不是秒），
+    // 原版 3 参重载内部才 *20，这里直接给秒会变成「放 3 秒就停」。
+    public static final RegistryObject<RecordItem> MUSIC_DISC_SHOTS =
+            ITEMS.register("music_disc_shots", () -> new RecordItem(
+                    1, SoundRegistry.MUSIC_DISC_SHOTS, new Item.Properties().stacksTo(1).rarity(Rarity.RARE),
+                    SECONDS_TO_TICKS(191.6)));
+
+    public static final RegistryObject<RecordItem> MUSIC_DISC_NIGHT_DANCER =
+            ITEMS.register("music_disc_night_dancer", () -> new RecordItem(
+                    2, SoundRegistry.MUSIC_DISC_NIGHT_DANCER, new Item.Properties().stacksTo(1).rarity(Rarity.RARE),
+                    SECONDS_TO_TICKS(211.0)));
+
+    public static final RegistryObject<RecordItem> MUSIC_DISC_CASTLE =
+            ITEMS.register("music_disc_castle", () -> new RecordItem(
+                    3, SoundRegistry.MUSIC_DISC_CASTLE, new Item.Properties().stacksTo(1).rarity(Rarity.RARE),
+                    SECONDS_TO_TICKS(187.0)));
+
+    /** 26.3 的曲目时长按「秒」写在 jukebox_song json 里，1.20.1 要 tick —— 换算收在这一处。 */
+    private static int SECONDS_TO_TICKS(double seconds) {
+        return (int) Math.ceil(seconds * 20.0D);
+    }
 
     // ===== 生物刷怪蛋 =====
     // 1.20.1 用 Forge 的 ForgeSpawnEggItem：它接的是 EntityType 的 Supplier，

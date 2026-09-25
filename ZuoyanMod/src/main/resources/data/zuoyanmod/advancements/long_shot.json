@@ -1,0 +1,32 @@
+{
+  "parent": "zuoyanmod:discovery",
+  "criteria": {
+    "far_hit": {
+      "trigger": "minecraft:player_hurt_entity",
+      "conditions": {
+        "entity": {
+          "distance": {
+            "horizontal": {
+              "min": 50
+            }
+          }
+        }
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "item": "zuoyanmod:hercules_bow"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.long_shot.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.long_shot.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

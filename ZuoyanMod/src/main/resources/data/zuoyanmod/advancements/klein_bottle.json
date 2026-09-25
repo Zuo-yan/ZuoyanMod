@@ -1,0 +1,26 @@
+{
+  "parent": "zuoyanmod:discovery",
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "zuoyanmod:klein_bottle"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "item": "zuoyanmod:klein_bottle"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.klein_bottle.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.klein_bottle.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

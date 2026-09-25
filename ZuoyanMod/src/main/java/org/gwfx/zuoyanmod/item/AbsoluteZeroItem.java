@@ -49,7 +49,7 @@ public class AbsoluteZeroItem extends Item {
         }
         // 场上已有未消散的凝聚场：拒绝，避免连点白白烧掉一次耐久
         if (TimeFreezeManager.hasActiveField(player)) {
-            player.sendSystemMessage(Component.literal("§7凝聚场尚未消散"));
+            player.sendSystemMessage(Component.translatable("message.zuoyanmod.absolute_zero.field_active"));
             return InteractionResultHolder.fail(stack);
         }
 
@@ -62,10 +62,10 @@ public class AbsoluteZeroItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.literal("§3绝对零度"));
-        tooltip.add(Component.literal("§7右键: 释放「玻色-爱因斯坦凝聚」"));
-        tooltip.add(Component.literal("§7· 冻结周围实体 §f15 §7秒"));
-        tooltip.add(Component.literal("§7· 地上的暗物质 → §d超流体暗物质"));
-        tooltip.add(Component.literal("§2耐久: " + MAX_USES + " 次"));
+        tooltip.add(Component.translatable("item.zuoyanmod.absolute_zero.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.absolute_zero.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.absolute_zero.desc3"));
+        tooltip.add(Component.translatable("item.zuoyanmod.absolute_zero.desc4"));
+        tooltip.add(Component.translatable("item.zuoyanmod.absolute_zero.desc5", MAX_USES));
     }
 }

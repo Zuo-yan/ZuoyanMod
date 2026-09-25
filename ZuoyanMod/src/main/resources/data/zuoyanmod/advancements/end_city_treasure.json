@@ -1,0 +1,32 @@
+{
+  "parent": "zuoyanmod:root",
+  "criteria": {
+    "got_template": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "zuoyanmod:hallowed_upgrade_smithing_template"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "item": "zuoyanmod:hallowed_upgrade_smithing_template"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.end_city_treasure.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.end_city_treasure.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

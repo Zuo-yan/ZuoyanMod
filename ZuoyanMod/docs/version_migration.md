@@ -158,3 +158,84 @@ JEI（`curse.maven:jei-238222:...`）和 Curios（`curse.maven:curios-309927:...
 `bash tools/verify_1201_sync.sh` —— 起 `runServer`（用独立 `level-name`，不动 `run/world`），
 等 `Done (` 后走 RCON 跑 `/place template` + 查实体，最后把错误/数据包告警汇总到
 `tools/verify_1201_result.txt`。**"common 引客户端类"这类校验期崩溃只有起服务端才看得见。**
+
+### 本轮（2.5 同步）新增的差异
+
+上面几节是第一次移植时踩的。第二次把主线 `3afe6ca..main` 的 19 个提交搬过来时，
+又撞上一批新的，按「资源 → 代码」分组记在这里。
+
+#### 资源层（静默失效的重灾区）
+
+| 26.x | 1.20.1 | 失效表现 |
+|---|---|---|
+| `data/<ns>/advancement/` | `data/<ns>/advancements/` | 整批成就消失 |
+| 成就 `display.icon.id` | `display.icon.item` | 图标解析失败，成就**整条**加载不了 |
+| 成就 `recipe_crafted` 的 `recipes: [id]` | `recipe_id: "id"`（单个字符串） | 触发条件解析报错 |
+| `ItemPredicate.items` 可写裸字符串 | **必须是数组** | 同上 |
+| `DamageType` JSON 里的 `bypasses_armor` 字段 | 没有这个字段，改走 `data/minecraft/tags/damage_types/bypasses_armor.json` | 护甲照常挡 |
+| 唱片 = Item + `JUKEBOX_PLAYABLE` 组件 + `data/<ns>/jukebox_song/*.json` | 原版 `RecordItem(比较器输出, soundSupplier, props, lengthInTicks)` | 唱片放进去没反应 |
+
+两条特别值得记：
+
+- **成就里的 `damage.type.tags[].id` 在 1.20.1 只能是「标签」**。
+  `TagPredicate.fromJson` 会把那个字符串直接 `TagKey.create` 出来，写伤害类型 id
+  等于引用一个不存在的标签 → 判定恒为 false → 成就静默不触发。
+  修法是给每个伤害类型建一个同名标签（`data/<ns>/tags/damage_types/<name>.json`），
+  成就 JSON 一个字都不用改。
+- **「上下文实体谓词」多包了一层，1.20.1 没有这层**。26.x 的条件写成
+  ```json
+  "entity": { "type": "minecraft:entity_properties", "entity": "this", "predicate": { ... } }
+  ```
+  1.20.1 的条件里直接就是 `EntityPredicate`（把包一层去掉、内容提上来），
+  而且实体类型字段叫 **`type`**（26.x 是 `entity_type`）。
+  不改的后果很隐蔽：1.20.1 会把 `minecraft:entity_properties` 当成**实体类型**去解析，
+  报 `Unknown entity type 'minecraft:entity_properties'`，**整条成就被丢掉**
+  （`Readme: long_shot` / `met_rick` 就是这么坏的）。
+- **`RecordItem` 的第四个参数是 tick 不是秒**。三参重载内部才 `*20`，
+  照抄 26.x 的 `length_in_seconds` 会变成「放三秒就停」。
+- **别把 1.21 的物品写进 1.20.1 的数据包**。主线配方里的 `minecraft:heavy_core`
+  （沉重核心，1.21 的试炼密室战利品）在 1.20.1 不存在，配方加载会报
+  `JsonSyntaxException: Unknown item`。本分支的替换表收在
+  `tools/sync_resources.py` 的 `ITEM_SUBSTITUTES`（目前一条：heavy_core → netherite_block，
+  用法见同目录的 `sync_26x_to_1201.md`；`tools/` 整体 gitignore，是新机器上没有的本机工具），
+  改内容记得同步 `docs/primordial_black_hole.md` 的说明。
+
+#### 代码层
+
+- `ItemCooldowns` 在 1.20.1 **按 Item 记账**：`addCooldown(Item, int)` / `isOnCooldown(Item)`，
+  没有接收 `ItemStack` 的重载。一次性道具的语义不受影响（本来就要全局冷却），
+  但同一物品的不同堆叠会共用冷却。
+- **`ItemStack#consume` 不存在**：等价写法是 `if (!player.getAbilities().instabuild) stack.shrink(1)`。
+- **`Inventory#findSlotMatchingItem` 在 1.20.1 不存在**：找弹药槽要自己用
+  `ItemStack.isSameItemSameTags` 扫一遍背包（语义照抄原版即可）。
+- `Entity#getEntityInAnyDimension(uuid)` 在 1.20.1 没有 → 遍历 `getAllLevels()` + `ServerLevel#getEntity(uuid)`。
+- 实体克隆走 NBT：`saveWithoutId(CompoundTag)` **不会写 `id` 键**，
+  而 `EntityType.create(CompoundTag, Level)` 完全靠它定位类型 → 必须手工补
+  `snapshot.putString("id", target.getEncodeId())`。常量名也变了：
+  1.20.1 是 `Entity.UUID_TAG`（26.x 是 `TAG_UUID`），`LivingEntity.TAG_BRAIN` 不存在（直接写 `"Brain"`）。
+- `forceSetRotation(...)` → `absMoveTo(x, y, z, yRot, xRot)`（会顺带同步 `yRotO/xRotO`，客户端插值不甩尾）。
+- **附魔可上性是硬编码 instanceof**：`EnchantmentCategory.WEAPON` 要 `instanceof SwordItem`、
+  `DIGGER` 要 `instanceof DiggerItem`。所以「五合一工具」这类跨类别物品，
+  在 1.20.1 只能靠 Forge 的 `Item#canApplyAtEnchantingTable` 覆写放行
+  （`data/minecraft/tags/items/enchantable/*` 那套标签在 1.20.1 没有作用）。
+- 反过来，**横扫之刃不用补任何钩子**：1.20.1 的横扫判定是
+  `EnchantmentHelper.getSweepingDamageRatio(player)`，只看附魔等级、不认物品类型。
+- `Registry#getTag(TagKey)` 返回 `Optional<HolderSet.Named>`；
+  26.x 那个会抛异常的 `getOrThrow(TagKey)` 在 1.20.1 不存在。
+- `LevelHeightAccessor#getMinY` → `getMinBuildHeight`；
+  `IntProvider#minInclusive/maxInclusive` → `getMinValue/getMaxValue`。
+- **`CountPlacement#count()` 与 `RarityFilter#chance()` 在 1.20.1 是 private 且无 getter**。
+  要读放置次数只能把修饰符按 `PlacementModifier.CODEC` 编回 JSON 再解
+  （按字段名反射在正式服会因子类混淆而失效）——见 `worldgen/RealmOreBandGenerator#countOf`。
+- `ChunkGenerator#refreshFeaturesPerStep` 在 1.20.1 不存在：缓存失效靠
+  「`/reload` 会由 codec 重建整个 ChunkGenerator」这一事实，不需要重载回调。
+- `Registries.CHUNK_GENERATOR` 存的是普通 `Codec`（26.x 是 `MapCodec`），
+  生成器 codec 用 `RecordCodecBuilder.create(...)` 而不是 `mapCodec(...)`。
+- **商人**：`MerchantOffer` 在 1.20.1 用 `ItemStack` 当价格槽（没有 `ItemCost`），
+  `Merchant#stillValid` 是 1.20.2+ 才进接口的 —— 1.20.1 的 `MerchantMenu#stillValid`
+  只查 `getTradingPlayer() == player`，所以「玩家走远自动关界面」在 1.20.1 没有。
+  `EnchantmentHelper.createBook` 也不存在，用 `EnchantedBookItem.createForEnchantment`。
+- 1.20.1 顶点写入**必须显式 `endVertex()`**（26.x 的缓冲 API 不需要）。
+- **注册 id 改名要配 `MissingMappingsEvent`**：Forge 在「存档里有、注册表里没有」时会静默丢弃
+  条目。1.20.1 分支可能会有长期存在的存档，所以同步 `ice_tea → chocolate_crisp` 这类改名时，
+  补一张迁移表（见 `item/LegacyIdRemapper`）比让玩家的东西凭空消失划算。

@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "AHW",
+    " X "
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:stone_pickaxe"
+    },
+    "A": {
+      "item": "minecraft:stone_axe"
+    },
+    "H": {
+      "item": "minecraft:stone_hoe"
+    },
+    "W": {
+      "item": "minecraft:stone_sword"
+    },
+    "X": {
+      "item": "minecraft:stone_shovel"
+    }
+  },
+  "result": {
+    "item": "zuoyanmod:stone_universal_tool",
+    "count": 1
+  }
+}

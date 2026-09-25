@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "AHW",
+    " X "
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:netherite_pickaxe"
+    },
+    "A": {
+      "item": "minecraft:netherite_axe"
+    },
+    "H": {
+      "item": "minecraft:netherite_hoe"
+    },
+    "W": {
+      "item": "minecraft:netherite_sword"
+    },
+    "X": {
+      "item": "minecraft:netherite_shovel"
+    }
+  },
+  "result": {
+    "item": "zuoyanmod:netherite_universal_tool",
+    "count": 1
+  }
+}

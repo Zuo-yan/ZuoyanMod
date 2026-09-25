@@ -59,7 +59,7 @@ public final class DomainExpansionDuelTickHandler {
         var player = server.getPlayerList().getPlayer(participant);
         if (player != null) {
             // 1.20.1 没有 sendOverlayMessage，用 displayClientMessage(actionBar=true) 等价实现
-            player.displayClientMessage(Component.literal("§e" + seconds + "秒后回到原世界").withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)), true);
+            player.displayClientMessage(Component.translatable("message.zuoyanmod.domain_expansion.return_countdown", seconds).withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)), true);
         }
     }
 
