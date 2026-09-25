@@ -6,18 +6,14 @@
         "predicate_type": "minecraft:tag_match",
         "tag": "minecraft:stone_ore_replaceables"
       },
-      "state": {
-        "id": "zuoyanmod:violet_gold_ore"
-      }
+      "state": "zuoyanmod:violet_gold_ore"
     },
     {
       "target": {
         "predicate_type": "minecraft:tag_match",
         "tag": "minecraft:deepslate_ore_replaceables"
       },
-      "state": {
-        "id": "zuoyanmod:deepslate_violet_gold_ore"
-      }
+      "state": "zuoyanmod:deepslate_violet_gold_ore"
     }
   ],
   "size": 4,
