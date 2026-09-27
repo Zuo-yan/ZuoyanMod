@@ -22,6 +22,6 @@ public class MingDaoSiMingItem extends Item {
         tooltip.add(Component.translatable("item.zuoyanmod.ming_dao_si_ming.desc2"));
         tooltip.add(Component.translatable("item.zuoyanmod.ming_dao_si_ming.desc3"));
         tooltip.add(Component.translatable("item.zuoyanmod.ming_dao_si_ming.desc4"));
-        AccessoryChecks.appendEquipHint(tooltip);
+        AccessoryChecks.appendEquipHint(tooltip::add);
     }
 }

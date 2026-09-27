@@ -48,11 +48,7 @@ public class CausalityBulletEntity extends ThrowableProjectile {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
     }
 
-    @Override
-    protected float getAirDrag() {
-        // 射线是规则级能量体：几乎无空气阻力，保持手枪的平直弹道
-        return 0.99F;
-    }
+    // 空气阻力：1.21.1 的 ThrowableProjectile#tick 硬编码 0.99，与 26.x 的 getAirDrag()=0.99 等价，无需覆写
 
     @Override
     protected double getDefaultGravity() {

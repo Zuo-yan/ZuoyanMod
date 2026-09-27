@@ -100,13 +100,13 @@ public class JackTheRipperEventHandler {
         if (player.getAttribute(Attributes.ATTACK_DAMAGE) != null) {
             player.getAttribute(Attributes.ATTACK_DAMAGE).removeModifier(DAMAGE_MODIFIER);
             player.getAttribute(Attributes.ATTACK_DAMAGE).addTransientModifier(
-                    new AttributeModifier(DAMAGE_MODIFIER, multiplier, AttributeModifier.Operation.MULTIPLY_TOTAL)
+                    new AttributeModifier(DAMAGE_MODIFIER, multiplier, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)
             );
         }
         if (player.getAttribute(Attributes.ATTACK_SPEED) != null) {
             player.getAttribute(Attributes.ATTACK_SPEED).removeModifier(ATTACK_SPEED_MODIFIER);
             player.getAttribute(Attributes.ATTACK_SPEED).addTransientModifier(
-                    new AttributeModifier(ATTACK_SPEED_MODIFIER, multiplier, AttributeModifier.Operation.MULTIPLY_TOTAL)
+                    new AttributeModifier(ATTACK_SPEED_MODIFIER, multiplier, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)
             );
         }
     }

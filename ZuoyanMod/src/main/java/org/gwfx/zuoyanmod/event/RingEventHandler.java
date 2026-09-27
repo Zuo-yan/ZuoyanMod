@@ -91,7 +91,7 @@ public class RingEventHandler {
         if (attr == null) return;
         attr.removeModifier(HEALTH_BONUS_ID);
         if (bonus > 0) {
-            attr.addTransientModifier(new AttributeModifier(HEALTH_BONUS_ID, bonus, AttributeModifier.Operation.ADDITION));
+            attr.addTransientModifier(new AttributeModifier(HEALTH_BONUS_ID, bonus, AttributeModifier.Operation.ADD_VALUE));
             player.heal(bonus);
         }
     }

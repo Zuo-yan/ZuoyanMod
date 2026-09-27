@@ -51,7 +51,7 @@ public final class MingDaoSiMingEventHandler {
 
         CustomData customData = mingDaoStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         CompoundTag tag = customData.copyTag();
-        long cooldownUntil = tag.getLong("zuoyan_mingdao_cooldown_until").orElse(0L);
+        long cooldownUntil = tag.getLong("zuoyan_mingdao_cooldown_until");
 
         if (cooldownUntil > player.level().getGameTime()) {
             return;

@@ -3,13 +3,10 @@ package org.gwfx.zuoyanmod.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -26,19 +23,15 @@ import org.gwfx.zuoyanmod.entity.PrimordialBlackHoleEntity;
  * 因为 {@code energySwirl} 的管线自带 <b>ADDITIVE 混合 + 自发光 + 关闭背面剔除</b>，
  * 等于白送一层"发光能量"的观感，不用自己写 shader 也不用自定义 RenderType（少一堆兼容坑）。
  *
- * <p><b>⚠️ 与参考实现最大的差别：涡流必须发四边形，不能发三角形。</b>
- * 参考实现用的是"随机旋转的三角链"，但本版本的 {@code ENERGY_SWIRL} 管线是
- * {@code PrimitiveTopology.QUADS}（见 {@code RenderPipelines.ENERGY_SWIRL_SNIPPET}），
- * 顶点会被**按 4 个一组**解释成四边形。照抄三角链的话每 4 个顶点会被拼成一片随机四边形，
- * 画面会糊成一团。所以这里改成"一整圈四边形带"（{@link #buildSwirlRing}），
- * 再靠纹理里的螺旋纹路提供细节。
+ * <p><b>⚠️ 涡流必须发四边形，不能发三角形。</b>
+ * {@code energySwirl} 走的是实体四边形顶点格式，顶点会被**按 4 个一组**解释成四边形。
+ * 照抄三角链的话每 4 个顶点会被拼成一片随机四边形，画面会糊成一团。
+ * 所以这里改成"一整圈四边形带"（{@link #buildSwirlRing}），再靠纹理里的螺旋纹路提供细节。
  *
- * <p>26.3 渲染管线：泛型是 {@code EntityRenderer<实体, 自定义RenderState>}，
- * 额外字段必须由 {@link #extractRenderState} 从实体拷进 state，再在 {@link #submit} 里绘制
- * （模板见本项目的 {@link CausalityBulletRenderer}）。
+ * <p>1.21.1 渲染管线：经典 {@code EntityRenderer<PrimordialBlackHoleEntity>} 单泛型、
+ * 无 RenderState——半径、年龄等直接在 {@link #render} 里从实体读取。
  */
-public class PrimordialBlackHoleRenderer
-        extends EntityRenderer<PrimordialBlackHoleEntity, PrimordialBlackHoleRenderer.BlackHoleRenderState> {
+public class PrimordialBlackHoleRenderer extends EntityRenderer<PrimordialBlackHoleEntity> {
 
     /** 事件视界贴图（平面贴图：整张图就是那个圆盘） */
     private static final ResourceLocation CORE_TEXTURE =
@@ -49,7 +42,7 @@ public class PrimordialBlackHoleRenderer
             ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/primordial_black_hole_swirl.png");
 
     /** 黑盘：硬边缘透明，适合"实体球体"的剪影 */
-    private static final RenderType CORE_TYPE = RenderTypes.entityCutout(CORE_TEXTURE);
+    private static final RenderType CORE_TYPE = RenderType.entityCutout(CORE_TEXTURE);
 
     /**
      * 涡流：原版能量涡流管线（ADDITIVE + EMISSIVE）。
@@ -57,7 +50,7 @@ public class PrimordialBlackHoleRenderer
      * 传 0 还有一个好处：RenderType 可以做成静态常量，不必每帧新建对象
      * （每次 new 都会在渲染管线缓存里多一条记录）。
      */
-    private static final RenderType SWIRL_TYPE = RenderTypes.energySwirl(SWIRL_TEXTURE, 0.0F, 0.0F);
+    private static final RenderType SWIRL_TYPE = RenderType.energySwirl(SWIRL_TEXTURE, 0.0F, 0.0F);
 
     /** 黑盘 quad 的缩放系数：最终边长 = 视觉半径 × 该值。1.05 让盘略大于"半径"本身，边缘更饱满。 */
     private static final float CORE_QUAD_SCALE = 1.05F;
@@ -92,66 +85,57 @@ public class PrimordialBlackHoleRenderer
      * 整团特效会被一起剔掉 —— 表现为"走到跟前黑洞就消失"。
      */
     @Override
-    protected AABB getBoundingBoxForCulling(PrimordialBlackHoleEntity entity, float partialTicks) {
-        return entity.getBoundingBox().inflate(PrimordialBlackHoleEntity.VISUAL_RADIUS + 1.5D);
+    public boolean shouldRender(PrimordialBlackHoleEntity entity, net.minecraft.client.renderer.culling.Frustum camera,
+                                double camX, double camY, double camZ) {
+        if (!entity.shouldRender(camX, camY, camZ)) {
+            return false;
+        }
+        if (entity.noCulling) {
+            return true;
+        }
+        AABB aabb = entity.getBoundingBox().inflate(PrimordialBlackHoleEntity.VISUAL_RADIUS + 1.5D);
+        return camera.isVisible(aabb);
     }
 
     @Override
-    public BlackHoleRenderState createRenderState() {
-        return new BlackHoleRenderState();
-    }
-
-    @Override
-    public void extractRenderState(PrimordialBlackHoleEntity entity, BlackHoleRenderState state, float partialTicks) {
-        // 基类会填好坐标、光照、ageInTicks（= tickCount + partialTicks）等公共字段
-        super.extractRenderState(entity, state, partialTicks);
-        // 半径是唯一需要同步的量：客户端实体是新建的，普通字段拿不到服务端的值
-        state.radius = entity.getVisualRadius();
-    }
-
-    @Override
-    public void submit(BlackHoleRenderState state, PoseStack poseStack,
-                       SubmitNodeCollector collector, CameraRenderState camera) {
-        float age = state.ageInTicks;
+    public void render(PrimordialBlackHoleEntity entity, float entityYaw, float partialTicks,
+                       PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        float age = entity.tickCount + partialTicks;
 
         // 张开程度**直接问实体类要**，不要在这里另写一套曲线。
         // 服务端的牵引半径用的是同一个 scaleFactor()，两边共用一个函数才能保证
         // "看着在长大"和"吸力范围在变大"是同一件事 —— 上一版的毛病就是这两条曲线脱钩了
         // （视觉在长大、吸力却是恒定的），玩家一眼就能看出是假的。
-        float scale = state.radius * PrimordialBlackHoleEntity.scaleFactor(age);
+        float scale = entity.getVisualRadius() * PrimordialBlackHoleEntity.scaleFactor(age);
 
-        if (scale <= 0.01F) {
-            // 还没长出来 / 已经收束完：什么都不画
-            super.submit(state, poseStack, collector, camera);
-            return;
+        if (scale > 0.01F) {
+            poseStack.pushPose();
+            // billboard：把本地坐标系转到相机朝向，之后所有绘制都在"屏幕平面"上做
+            poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
+
+            // ---- 事件视界：黑盘 ----
+            poseStack.pushPose();
+            poseStack.scale(scale * CORE_QUAD_SCALE, scale * CORE_QUAD_SCALE, 1.0F);
+            VertexConsumer coreBuffer = bufferSource.getBuffer(CORE_TYPE);
+            buildCoreQuad(packedLight, poseStack.last(), coreBuffer);
+            poseStack.popPose();
+
+            // ---- 能量涡流：绕视线自转的四边形环带 ----
+            poseStack.pushPose();
+            // 朝相机方向挪一点点：即使两条管线的批次顺序变了，深度测试也能保证
+            // 涡流永远叠在黑盘之上
+            poseStack.translate(0.0F, 0.0F, 0.01F);
+            poseStack.mulPose(Axis.ZP.rotationDegrees(age * SWIRL_SPIN_DEG_PER_TICK));
+            float inner = scale * SWIRL_INNER;
+            float outer = scale * SWIRL_OUTER;
+            VertexConsumer swirlBuffer = bufferSource.getBuffer(SWIRL_TYPE);
+            buildSwirlRing(packedLight, poseStack.last(), swirlBuffer, inner, outer);
+            poseStack.popPose();
+
+            poseStack.popPose();
         }
 
-        poseStack.pushPose();
-        // billboard：把本地坐标系转到相机朝向，之后所有绘制都在"屏幕平面"上做
-        poseStack.rotate(camera.orientation);
-
-        // ---- 事件视界：黑盘 ----
-        poseStack.pushPose();
-        poseStack.scale(scale * CORE_QUAD_SCALE, scale * CORE_QUAD_SCALE, 1.0F);
-        collector.order(0).submitCustomGeometry(poseStack, CORE_TYPE,
-                (pose, buffer) -> buildCoreQuad(state, pose, buffer));
-        poseStack.popPose();
-
-        // ---- 能量涡流：绕视线自转的四边形环带 ----
-        poseStack.pushPose();
-        // 朝相机方向挪一点点：这样即使两根管线的提交顺序变了，深度测试也能保证
-        // 涡流永远叠在黑盘之上（顺序上再加 order(1) 做双保险）
-        poseStack.translate(0.0F, 0.0F, 0.01F);
-        poseStack.rotateDegrees(Axis.ZP, age * SWIRL_SPIN_DEG_PER_TICK);
-        float inner = scale * SWIRL_INNER;
-        float outer = scale * SWIRL_OUTER;
-        collector.order(1).submitCustomGeometry(poseStack, SWIRL_TYPE,
-                (pose, buffer) -> buildSwirlRing(state, pose, buffer, inner, outer));
-        poseStack.popPose();
-
-        poseStack.popPose();
-
-        super.submit(state, poseStack, collector, camera);
+        super.render(entity, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
     }
 
     /**
@@ -160,23 +144,23 @@ public class PrimordialBlackHoleRenderer
      * 因为 {@code entityCutout} 管线是开背面剔除的，绕序反了会被剔掉看不见。
      * <p>贴图本身是径向对称的，所以上下翻转与否不影响观感。
      */
-    private static void buildCoreQuad(BlackHoleRenderState state, PoseStack.Pose pose, VertexConsumer buffer) {
+    private static void buildCoreQuad(int light, PoseStack.Pose pose, VertexConsumer buffer) {
         float h = 0.5F;
-        vertex(buffer, pose, state.lightCoords, -h, -h, 0.0F, 0.0F, 0.0F, 0xFFFFFFFF);
-        vertex(buffer, pose, state.lightCoords, h, -h, 0.0F, 1.0F, 0.0F, 0xFFFFFFFF);
-        vertex(buffer, pose, state.lightCoords, h, h, 0.0F, 1.0F, 1.0F, 0xFFFFFFFF);
-        vertex(buffer, pose, state.lightCoords, -h, h, 0.0F, 0.0F, 1.0F, 0xFFFFFFFF);
+        vertex(buffer, pose, light, -h, -h, 0.0F, 0.0F, 0.0F, 0xFFFFFFFF);
+        vertex(buffer, pose, light,  h, -h, 0.0F, 1.0F, 0.0F, 0xFFFFFFFF);
+        vertex(buffer, pose, light,  h,  h, 0.0F, 1.0F, 1.0F, 0xFFFFFFFF);
+        vertex(buffer, pose, light, -h,  h, 0.0F, 0.0F, 1.0F, 0xFFFFFFFF);
     }
 
     /**
      * 一整圈四边形带（外环 - 内环）。
      *
-     * <p><b>每 4 个顶点 = 1 片</b>，这是 {@code ENERGY_SWIRL} 的 QUADS 拓扑要求的，不能改成三角形。
+     * <p><b>每 4 个顶点 = 1 片</b>，这是实体四边形顶点格式的要求，不能改成三角形。
      *
      * <p>UV 的取法：u 沿圆周展开（0→1 绕一圈）、v 沿半径方向（0 = 内圈，1 = 外圈）。
      * 贴图就是按这个参数空间画的 —— 螺旋纹在 u 方向必须能首尾相接，否则环上会出现一道接缝。
      */
-    private static void buildSwirlRing(BlackHoleRenderState state, PoseStack.Pose pose,
+    private static void buildSwirlRing(int light, PoseStack.Pose pose,
                                        VertexConsumer buffer, float inner, float outer) {
         float twoPi = (float) (Math.PI * 2.0);
         for (int i = 0; i < SWIRL_SEGMENTS; i++) {
@@ -189,10 +173,10 @@ public class PrimordialBlackHoleRenderer
             float u0 = (float) i / SWIRL_SEGMENTS;
             float u1 = (float) (i + 1) / SWIRL_SEGMENTS;
 
-            vertex(buffer, pose, state.lightCoords, cos0 * inner, sin0 * inner, 0.0F, u0, 0.0F, SWIRL_TINT);
-            vertex(buffer, pose, state.lightCoords, cos0 * outer, sin0 * outer, 0.0F, u0, 1.0F, SWIRL_TINT);
-            vertex(buffer, pose, state.lightCoords, cos1 * outer, sin1 * outer, 0.0F, u1, 1.0F, SWIRL_TINT);
-            vertex(buffer, pose, state.lightCoords, cos1 * inner, sin1 * inner, 0.0F, u1, 0.0F, SWIRL_TINT);
+            vertex(buffer, pose, light, cos0 * inner, sin0 * inner, 0.0F, u0, 0.0F, SWIRL_TINT);
+            vertex(buffer, pose, light, cos0 * outer, sin0 * outer, 0.0F, u0, 1.0F, SWIRL_TINT);
+            vertex(buffer, pose, light, cos1 * outer, sin1 * outer, 0.0F, u1, 1.0F, SWIRL_TINT);
+            vertex(buffer, pose, light, cos1 * inner, sin1 * inner, 0.0F, u1, 0.0F, SWIRL_TINT);
         }
     }
 
@@ -207,12 +191,8 @@ public class PrimordialBlackHoleRenderer
                 .setNormal(pose, 0.0F, 0.0F, 1.0F);
     }
 
-    /**
-     * 自定义 render state：额外携带视觉半径。
-     * <p>动画进度不用带 —— {@link EntityRenderState#ageInTicks} 由基类从实体的 tickCount 算好，
-     * 两端各自累加就对得上，没必要为它花同步带宽。
-     */
-    public static class BlackHoleRenderState extends EntityRenderState {
-        public float radius;
+    @Override
+    public ResourceLocation getTextureLocation(PrimordialBlackHoleEntity entity) {
+        return CORE_TEXTURE;
     }
 }

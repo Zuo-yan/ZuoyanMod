@@ -23,6 +23,6 @@ public class RingItem extends Item {
         tooltip.add(Component.translatable("item.zuoyanmod.ring.desc3"));
         tooltip.add(Component.translatable("item.zuoyanmod.ring.desc4"));
         tooltip.add(Component.translatable("item.zuoyanmod.ring.desc5"));
-        AccessoryChecks.appendEquipHint(tooltip);
+        AccessoryChecks.appendEquipHint(tooltip::add);
     }
 }

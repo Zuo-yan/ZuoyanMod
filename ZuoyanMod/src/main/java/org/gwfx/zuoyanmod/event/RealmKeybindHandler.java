@@ -2,7 +2,6 @@ package org.gwfx.zuoyanmod.event;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -13,19 +12,13 @@ import org.gwfx.zuoyanmod.Zuoyanmod;
 public final class RealmKeybindHandler {
 
     /**
-     * 按键分类。这里的 {@link ResourceLocation} 路径 {@code zuoyan} 同时决定了两件事：
-     * 分类在按键设置里的排序位置，以及它去 lang 文件里取的名字
-     * （{@code key.category.zuoyanmod.zuoyan}）。
-     *
-     * <p>为什么不在这里调 {@code KeyMapping.Category.register(...)}：那个方法在 NeoForge 里
-     * 已标 {@code @Deprecated}，它会把分类塞进一个全局静态表，注册时机不受控。
-     * 正解是在 {@link RegisterKeyMappingsEvent#registerCategory} 里登记，
-     * 由加载器决定何时收集——见下方 {@link #onRegisterKeys}。
+     * 按键分类。1.21.1 的分类就是一个普通的字符串（本身就是 lang 键，
+     * 这里取 {@code key.categories.zuoyanmod.zuoyan}）；构造 {@link KeyMapping}
+     * 时会自动把新分类登记进原版的分类集合，不需要单独注册。
      */
-    public static final KeyMapping.Category CATEGORY =
-            new KeyMapping.Category(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "zuoyan"));
+    public static final String CATEGORY = "key.categories.zuoyanmod.zuoyan";
 
-    // 26.x 使用 SDL scancode：InputConstants.KEY_HOME
+    // 1.21.1 使用 GLFW keycode：InputConstants.KEY_HOME
     public static final KeyMapping TOGGLE_REALM =
             new KeyMapping("key.zuoyanmod.toggle_realm", InputConstants.KEY_HOME, CATEGORY);
 
@@ -33,7 +26,6 @@ public final class RealmKeybindHandler {
 
     @SubscribeEvent
     public static void onRegisterKeys(RegisterKeyMappingsEvent event) {
-        event.registerCategory(CATEGORY);
         event.register(TOGGLE_REALM);
     }
 }

@@ -4,7 +4,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -26,7 +26,7 @@ import org.gwfx.zuoyanmod.network.ModToastPacket;
  *
  * <h2>冷却期间收不到任何回调 —— 这不是 bug</h2>
  * {@code ServerPlayerGameMode#useItem} 的第一段就是：
- * <pre>{@code if (player.getCooldowns().isOnCooldown(itemStack)) return InteractionResult.PASS; }</pre>
+ * <pre>{@code if (player.getCooldowns().isOnCooldown(itemStack.getItem())) return InteractionResult.PASS; }</pre>
  * 也就是说冷却期间本方法**根本不会被调用**，想在这里发"还在冷却"的提示是徒劳的。
  * 原版给的反馈是物品图标上的灰色冷却扇形（{@code ItemCooldowns} 会自动同步给客户端），
  * 这是原版标准 UX，我们不再另加消息。
@@ -51,21 +51,21 @@ public class PrimordialBlackHoleItem extends DescribedItem {
     }
 
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
         // 防御性检查：正常情况下服务端在冷却中根本不会调到这里（见类注释），
         // 但客户端路径与其它模组清冷却的异常情况可能绕过原版那层拦截，多一道判断不亏。
-        if (player.getCooldowns().isOnCooldown(stack)) {
-            return InteractionResult.FAIL;
+        if (player.getCooldowns().isOnCooldown(stack.getItem())) {
+            return InteractionResultHolder.fail(stack);
         }
 
         // 客户端只做挥手的动作预测，真正的生成由服务端完成
         if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
+            return InteractionResultHolder.success(stack);
         }
         if (!(level instanceof ServerLevel serverLevel)) {
-            return InteractionResult.PASS;
+            return InteractionResultHolder.pass(stack);
         }
 
         MinecraftServer server = serverLevel.getServer();
@@ -75,13 +75,13 @@ public class PrimordialBlackHoleItem extends DescribedItem {
         // 这条是兜底（防其它模组清冷却、防 /clear 指令、防跨维度快速重放）。
         if (PrimordialBlackHoleEntity.hasActiveBlackHole(server, player.getUUID())) {
             ModToastPacket.send(player, Component.translatable("message.zuoyanmod.primordial_black_hole.already_active"));
-            return InteractionResult.FAIL;
+            return InteractionResultHolder.fail(stack);
         }
 
         // 全局上限：每个黑洞每 2 tick 都要扫一遍 10 格内的实体，数量必须封顶
         if (PrimordialBlackHoleEntity.countActive(server) >= PrimordialBlackHoleEntity.MAX_ACTIVE_HOLES) {
             ModToastPacket.send(player, Component.translatable("message.zuoyanmod.primordial_black_hole.limit_reached"));
-            return InteractionResult.FAIL;
+            return InteractionResultHolder.fail(stack);
         }
 
         PrimordialBlackHoleEntity.spawn(serverLevel, player, resolveImpact(player));
@@ -89,11 +89,12 @@ public class PrimordialBlackHoleItem extends DescribedItem {
         // ⚠️ 顺序不能反：先加冷却再扣数量。
         // 反过来（先 consume）的话，当这是最后一个黑洞时物品栏那一格会变成空气，
         // addCooldown 就会加在空物品上，冷却条直接不显示 —— 玩家会以为没进冷却。
-        player.getCooldowns().addCooldown(stack, COOLDOWN_TICKS);
+        // 1.21.1 的 ItemCooldowns 只认 Item：同一物品共享冷却，效果一致。
+        player.getCooldowns().addCooldown(stack.getItem(), COOLDOWN_TICKS);
         // consume 自带创造模式豁免（内部判 hasInfiniteMaterials），不需要自己写 isCreative
         stack.consume(1, player);
 
-        return InteractionResult.CONSUME;
+        return InteractionResultHolder.consume(stack);
     }
 
     /**

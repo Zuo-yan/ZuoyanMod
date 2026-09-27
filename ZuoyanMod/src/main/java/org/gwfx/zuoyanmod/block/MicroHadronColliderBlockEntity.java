@@ -2,6 +2,7 @@ package org.gwfx.zuoyanmod.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -17,8 +18,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.gwfx.zuoyanmod.menu.MicroHadronColliderMenu;
 import org.gwfx.zuoyanmod.recipe.MicroCollisionRecipe;
 import org.gwfx.zuoyanmod.recipe.RecipeRegistry;
@@ -74,7 +73,7 @@ public class MicroHadronColliderBlockEntity extends BlockEntity implements net.m
         }
 
         Optional<MicroCollisionRecipe> recipe = be.findRecipe(level);
-        if (recipe.isEmpty() || !be.canOutput(recipe.get())) {
+        if (recipe.isEmpty() || !be.canOutput(recipe.get(), level)) {
             // 没配方 / 出不去：进度清零重来（材料不消耗）
             if (be.progress > 0 || be.working) {
                 be.progress = 0;
@@ -121,13 +120,13 @@ public class MicroHadronColliderBlockEntity extends BlockEntity implements net.m
             return Optional.empty();
         }
         MicroCollisionRecipe.CollisionInput input = new MicroCollisionRecipe.CollisionInput(a, b);
-        return level.recipeAccess()
+        return level.getRecipeManager()
                 .getRecipeFor(RecipeRegistry.MICRO_COLLISION_TYPE.get(), input, level)
                 .map(holder -> holder.value());
     }
 
-    private boolean canOutput(MicroCollisionRecipe recipe) {
-        ItemStack result = recipe.assemble(null);
+    private boolean canOutput(MicroCollisionRecipe recipe, ServerLevel level) {
+        ItemStack result = recipe.assemble(null, level.registryAccess());
         ItemStack existing = inventory.getItem(SLOT_OUTPUT);
         if (existing.isEmpty()) {
             return true;
@@ -137,7 +136,7 @@ public class MicroHadronColliderBlockEntity extends BlockEntity implements net.m
     }
 
     private void finishCollision(ServerLevel level, BlockPos pos, MicroCollisionRecipe recipe) {
-        ItemStack result = recipe.assemble(null);
+        ItemStack result = recipe.assemble(null, level.registryAccess());
         ItemStack existing = inventory.getItem(SLOT_OUTPUT);
         if (existing.isEmpty()) {
             inventory.setItem(SLOT_OUTPUT, result);
@@ -209,27 +208,27 @@ public class MicroHadronColliderBlockEntity extends BlockEntity implements net.m
         return data;
     }
 
-    // ===== 存档 =====
+    // ===== 存档（1.21.1：CompoundTag + HolderLookup.Provider） =====
 
     @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        output.putInt("Progress", progress);
-        output.putInt("Duration", duration);
-        output.putBoolean("Powered", powered);
-        output.putBoolean("Working", working);
-        ContainerHelper.saveAllItems(output, inventory.getItems());
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.putInt("Progress", progress);
+        tag.putInt("Duration", duration);
+        tag.putBoolean("Powered", powered);
+        tag.putBoolean("Working", working);
+        ContainerHelper.saveAllItems(tag, inventory.getItems(), registries);
     }
 
     @Override
-    protected void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        progress = input.getInt("Progress").orElse(0);
-        duration = input.getInt("Duration").orElse(0);
-        powered = input.getBooleanOr("Powered", false);
-        working = input.getBooleanOr("Working", false);
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        progress = tag.getInt("Progress");
+        duration = tag.getInt("Duration");
+        powered = tag.getBoolean("Powered");
+        working = tag.getBoolean("Working");
         inventory.clearContent();
-        ContainerHelper.loadAllItems(input, inventory.getItems());
+        ContainerHelper.loadAllItems(tag, inventory.getItems(), registries);
     }
 
     // ===== MenuProvider =====

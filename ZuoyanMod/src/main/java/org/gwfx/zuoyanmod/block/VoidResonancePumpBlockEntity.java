@@ -2,10 +2,9 @@ package org.gwfx.zuoyanmod.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.SimpleContainer;
@@ -194,25 +193,25 @@ public class VoidResonancePumpBlockEntity extends BlockEntity implements net.min
         return data;
     }
 
-    // ===== 存档 =====
+    // ===== 存档（1.21.1：CompoundTag + HolderLookup.Provider） =====
 
     @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        output.putInt("Resonance", resonance);
-        output.putFloat("Progress", progress);
-        output.putInt("FeedCooldown", feedCooldown);
-        ContainerHelper.saveAllItems(output, inventory.getItems());
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.putInt("Resonance", resonance);
+        tag.putFloat("Progress", progress);
+        tag.putInt("FeedCooldown", feedCooldown);
+        ContainerHelper.saveAllItems(tag, inventory.getItems(), registries);
     }
 
     @Override
-    protected void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        resonance = input.getInt("Resonance").orElse(0);
-        progress = input.getFloatOr("Progress", 0F);
-        feedCooldown = input.getInt("FeedCooldown").orElse(0);
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        resonance = tag.getInt("Resonance");
+        progress = tag.getFloat("Progress");
+        feedCooldown = tag.getInt("FeedCooldown");
         inventory.clearContent();
-        ContainerHelper.loadAllItems(input, inventory.getItems());
+        ContainerHelper.loadAllItems(tag, inventory.getItems(), registries);
     }
 
     // ===== MenuProvider =====

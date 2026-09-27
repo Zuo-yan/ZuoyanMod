@@ -70,23 +70,23 @@ public class HerculesBowItem extends BowItem {
     }
 
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         // 光灵箭由神圣光灵凝聚而成，无需背包中备有箭矢即可拉弓
         ItemStack stack = player.getItemInHand(hand);
         InteractionResultHolder<ItemStack> ret = EventHooks.onArrowNock(stack, level, player, hand, true);
-        if (ret != null) return ret.getResult();
+        if (ret != null) return ret;
 
         player.startUsingItem(hand);
-        return InteractionResult.CONSUME;
+        return InteractionResultHolder.consume(stack);
     }
 
     @Override
-    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
+    public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
         if (entity instanceof Player player) {
             int drawDuration = getUseDuration(stack, entity) - timeLeft;
             drawDuration = EventHooks.onArrowLoose(stack, level, player, drawDuration, true);
             if (drawDuration < 0) {
-                return false;
+                return;
             }
 
             float charge = calculatePowerForTime(drawDuration, stack);
@@ -116,10 +116,8 @@ public class HerculesBowItem extends BowItem {
                         1.0F / (level.getRandom().nextFloat() * 0.4F + 1.2F) + charge * 0.5F);
                 player.awardStat(Stats.ITEM_USED.get(this));
                 stack.hurtAndBreak(1, player, player.getEquipmentSlotForItem(stack));
-                return true;
             }
         }
-        return false;
     }
 
     private static float calculatePowerForTime(int time, ItemStack stack) {

@@ -13,12 +13,12 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
@@ -27,9 +27,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.gwfx.zuoyanmod.world.GrassPortalShape;
 import org.gwfx.zuoyanmod.world.RealmTransitionManager;
@@ -51,7 +49,9 @@ import org.gwfx.zuoyanmod.world.RealmTransitionManager;
  */
 public class GrassPortalBlock extends Block {
     public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.HORIZONTAL_AXIS;
-    private static final Map<Direction.Axis, VoxelShape> SHAPES = Shapes.rotateHorizontalAxis(Block.column(4.0, 16.0, 0.0, 16.0));
+
+    /** 门体形状：居中的 4×16×4 细柱（1.21.1 用 Block.box 直接描述，两轴同款居中形状）。 */
+    private static final VoxelShape SHAPE = Block.box(6.0, 0.0, 6.0, 10.0, 16.0, 10.0);
 
     /** 传送成功后的冷却（游戏刻）：比默认站立阈值长，足够玩家走出回程门。 */
     private static final long COOLDOWN_TICKS = 300;
@@ -68,7 +68,7 @@ public class GrassPortalBlock extends Block {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPES.get(state.getValue(AXIS));
+        return SHAPE;
     }
 
     /**
@@ -78,24 +78,22 @@ public class GrassPortalBlock extends Block {
     @Override
     protected BlockState updateShape(
         BlockState state,
-        LevelReader level,
-        ScheduledTickAccess ticks,
-        BlockPos pos,
         Direction directionToNeighbour,
-        BlockPos neighbourPos,
         BlockState neighbourState,
-        RandomSource random
+        LevelAccessor level,
+        BlockPos pos,
+        BlockPos neighbourPos
     ) {
         Direction.Axis updateAxis = directionToNeighbour.getAxis();
         Direction.Axis axis = state.getValue(AXIS);
         boolean wrongAxis = axis != updateAxis && updateAxis.isHorizontal();
         return !wrongAxis && !neighbourState.is(this) && !GrassPortalShape.findAnyShape(level, pos, axis).isComplete()
             ? Blocks.AIR.defaultBlockState()
-            : super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random);
+            : super.updateShape(state, directionToNeighbour, neighbourState, level, pos, neighbourPos);
     }
 
     @Override
-    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         if (!(entity instanceof ServerPlayer player) || !(level instanceof ServerLevel serverLevel)) {
             return;
         }
@@ -121,8 +119,8 @@ public class GrassPortalBlock extends Block {
 
     /** 站立阈值与原版下界门同款游戏规则：创造/生存分别读对应键，默认 0 / 80 tick。 */
     private static int portalTransitionTime(ServerLevel level, ServerPlayer player) {
-        return Math.max(0, level.getGameRules().get(
-            player.getAbilities().invulnerable ? GameRules.PLAYERS_NETHER_PORTAL_CREATIVE_DELAY : GameRules.PLAYERS_NETHER_PORTAL_DEFAULT_DELAY));
+        return Math.max(0, level.getGameRules().getInt(
+            player.getAbilities().invulnerable ? GameRules.RULE_PLAYERS_NETHER_PORTAL_CREATIVE_DELAY : GameRules.RULE_PLAYERS_NETHER_PORTAL_DEFAULT_DELAY));
     }
 
     @Override
@@ -162,7 +160,7 @@ public class GrassPortalBlock extends Block {
     }
 
     @Override
-    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
         return ItemStack.EMPTY;
     }
 

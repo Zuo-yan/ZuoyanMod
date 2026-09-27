@@ -27,7 +27,7 @@ public class WanHuiRingEventHandler {
 
     private static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect>[] NEGATIVE_EFFECTS = new net.minecraft.core.Holder[]{
             MobEffects.BLINDNESS,
-            MobEffects.NAUSEA,
+            MobEffects.CONFUSION,
             MobEffects.POISON,
             MobEffects.HUNGER,
             MobEffects.WEAKNESS,

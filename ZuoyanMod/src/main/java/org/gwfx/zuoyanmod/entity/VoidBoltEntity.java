@@ -25,7 +25,7 @@ import net.minecraft.world.phys.HitResult;
  */
 public class VoidBoltEntity extends ThrowableProjectile {
 
-    /** 每发螺栓的伤害（值随 26.3 语义：从君主视角 mobProjectile 结算） */
+    /** 每发螺栓的伤害（从君主视角 mobProjectile 结算） */
     public static final float DAMAGE = 40.0F;
 
     public VoidBoltEntity(EntityType<? extends VoidBoltEntity> type, Level level) {
@@ -44,11 +44,6 @@ public class VoidBoltEntity extends ThrowableProjectile {
     }
 
     @Override
-    protected float getAirDrag() {
-        return 1.0F;
-    }
-
-    @Override
     protected double getDefaultGravity() {
         // 带一点下坠，远距离弹幕有弧线感
         return 0.03D;
@@ -64,6 +59,9 @@ public class VoidBoltEntity extends ThrowableProjectile {
                 this.discard();
             }
         }
+        // 1.21.1 没有可覆写的空气阻力钩子（ThrowableProjectile#tick 硬编码 0.99）：
+        // 每 tick 把被乘掉的 0.99 补回来，等效 26.x 的 getAirDrag() = 1.0（无空气阻力）。
+        this.setDeltaMovement(this.getDeltaMovement().scale(1.0D / 0.99D));
     }
 
     @Override

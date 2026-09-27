@@ -29,7 +29,7 @@ public final class BlockRegistry {
     public static final DeferredBlock<Block> VIOLET_GOLD_ORE = BLOCKS.registerBlock(
             "violet_gold_ore",
             props -> new DropExperienceBlock(UniformInt.of(3, 7), props),
-            () -> BlockBehaviour.Properties.of()
+            BlockBehaviour.Properties.of()
                     .mapColor(MapColor.STONE)
                     .requiresCorrectToolForDrops()
                     .strength(3.0F, 3.0F)
@@ -38,7 +38,7 @@ public final class BlockRegistry {
     public static final DeferredBlock<Block> DEEPSLATE_VIOLET_GOLD_ORE = BLOCKS.registerBlock(
             "deepslate_violet_gold_ore",
             props -> new DropExperienceBlock(UniformInt.of(3, 7), props),
-            () -> BlockBehaviour.Properties.of()
+            BlockBehaviour.Properties.of()
                     .mapColor(MapColor.DEEPSLATE)
                     .requiresCorrectToolForDrops()
                     .strength(4.5F, 3.0F)
@@ -49,7 +49,7 @@ public final class BlockRegistry {
     public static final DeferredBlock<Block> VIOLET_GOLD_BLOCK = BLOCKS.registerBlock(
             "violet_gold_block",
             Block::new,
-            () -> BlockBehaviour.Properties.of()
+            BlockBehaviour.Properties.of()
                     .mapColor(MapColor.GOLD)
                     .requiresCorrectToolForDrops()
                     .strength(3.0F, 6.0F)
@@ -60,12 +60,12 @@ public final class BlockRegistry {
     public static final DeferredBlock<DarkMatterLiquidBlock> DARK_MATTER_BLOCK = BLOCKS.registerBlock(
             "dark_matter",
             props -> new DarkMatterLiquidBlock(FluidRegistry.DARK_MATTER.get(), props),
-            () -> BlockBehaviour.Properties.of()
+            BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_BLACK)
                     .replaceable()
-                    .noCollision()
+                    .noCollission()
                     .strength(100.0F)
-                    .pushReaction(PushReaction.POPPED)
+                    .pushReaction(PushReaction.DESTROY)
                     .noLootTable()
                     .liquid()
                     .sound(SoundType.EMPTY)
@@ -75,7 +75,7 @@ public final class BlockRegistry {
     public static final DeferredBlock<VoidResonancePumpBlock> VOID_RESONANCE_PUMP = BLOCKS.registerBlock(
             "void_resonance_pump",
             VoidResonancePumpBlock::new,
-            () -> BlockBehaviour.Properties.of()
+            BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_PURPLE)
                     .requiresCorrectToolForDrops()
                     .strength(3.5F, 6.0F)
@@ -84,13 +84,14 @@ public final class BlockRegistry {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VoidResonancePumpBlockEntity>> VOID_RESONANCE_PUMP_BE =
             BLOCK_ENTITY_TYPES.register("void_resonance_pump",
-                    () -> new BlockEntityType<>(VoidResonancePumpBlockEntity::new, Set.of(VOID_RESONANCE_PUMP.get())));
+                    // 1.21.1 构造器第三参是 DFU 数据修复类型，模组自定义方块实体不参与原版 datafix，传 null 即可
+                    () -> new BlockEntityType<>(VoidResonancePumpBlockEntity::new, Set.of(VOID_RESONANCE_PUMP.get()), null));
 
     // ===== 微型强子对撞机（红石充能，双粒子束对撞产出高能产物） =====
     public static final DeferredBlock<MicroHadronColliderBlock> MICRO_HADRON_COLLIDER = BLOCKS.registerBlock(
             "micro_hadron_collider",
             MicroHadronColliderBlock::new,
-            () -> BlockBehaviour.Properties.of()
+            BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .requiresCorrectToolForDrops()
                     .strength(3.5F, 6.0F)
@@ -99,13 +100,13 @@ public final class BlockRegistry {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MicroHadronColliderBlockEntity>> MICRO_HADRON_COLLIDER_BE =
             BLOCK_ENTITY_TYPES.register("micro_hadron_collider",
-                    () -> new BlockEntityType<>(MicroHadronColliderBlockEntity::new, Set.of(MICRO_HADRON_COLLIDER.get())));
+                    () -> new BlockEntityType<>(MicroHadronColliderBlockEntity::new, Set.of(MICRO_HADRON_COLLIDER.get()), null));
 
     // ===== 草原传送门（门框用专属方块避免与原版黑曜石下界门冲突；点燃入口见 GrassPortalEventHandler） =====
     public static final DeferredBlock<Block> GRASS_PORTAL_FRAME = BLOCKS.registerBlock(
             "grass_portal_frame",
             Block::new,
-            () -> BlockBehaviour.Properties.of()
+            BlockBehaviour.Properties.of()
                     .mapColor(MapColor.PLANT)
                     .strength(3.0F, 1200.0F)
                     .sound(SoundType.GRASS)
@@ -114,13 +115,13 @@ public final class BlockRegistry {
     public static final DeferredBlock<GrassPortalBlock> GRASS_PORTAL = BLOCKS.registerBlock(
             "grass_portal",
             GrassPortalBlock::new,
-            () -> BlockBehaviour.Properties.of()
+            BlockBehaviour.Properties.of()
                     .mapColor(MapColor.PLANT)
-                    .noCollision()
+                    .noCollission()
                     .strength(-1.0F)
                     .sound(SoundType.GLASS)
                     .lightLevel(state -> 11)
-                    .pushReaction(PushReaction.IMMOVEABLE)
+                    .pushReaction(PushReaction.BLOCK)
                     .noLootTable()
     );
 

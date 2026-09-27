@@ -238,9 +238,9 @@ public class VoidMonarchEntity extends Monster {
         this.playSound(SoundEvents.RAVAGER_ROAR, 3.0F, 1.2F);
         // 永久修饰符会随 NBT 存档，enraged 标记保证只在进入狂暴时加一次
         this.getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(
-                new AttributeModifier(ENRAGE_DAMAGE_ID, 20.0D, AttributeModifier.Operation.ADDITION));
+                new AttributeModifier(ENRAGE_DAMAGE_ID, 20.0D, AttributeModifier.Operation.ADD_VALUE));
         this.getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(
-                new AttributeModifier(ENRAGE_SPEED_ID, 0.20D, AttributeModifier.Operation.MULTIPLY_TOTAL));
+                new AttributeModifier(ENRAGE_SPEED_ID, 0.20D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
         if (this.level() instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE,
                     this.getX(), this.getY() + this.getBbHeight() * 0.5D, this.getZ(),
@@ -290,7 +290,7 @@ public class VoidMonarchEntity extends Monster {
     // ------------------------------------------------------------------
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
+    public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putBoolean("Awakened", this.awakened);
         tag.putBoolean("SummonedGuards", this.summonedGuards);
@@ -298,7 +298,7 @@ public class VoidMonarchEntity extends Monster {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
+    public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         this.awakened = tag.getBoolean("Awakened");
         this.summonedGuards = tag.getBoolean("SummonedGuards");

@@ -1,6 +1,5 @@
 package org.gwfx.zuoyanmod.effect;
 
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
@@ -38,13 +37,13 @@ public class MolecularDissolutionEffect extends MobEffect {
     }
 
     @Override
-    public boolean applyEffectTick(ServerLevel serverLevel, LivingEntity entity, int amplification) {
+    public boolean applyEffectTick(LivingEntity entity, int amplification) {
         // 全套圣辉套装：免疫侵蚀伤害（不解除效果本身）
         if (HallowedSet.isWearingFull(entity)) {
             return true;
         }
         // 幅度过高时不叠伤（每跳固定 4 点，放大器留给未来扩展）
-        entity.hurt(DarkMatterDamageSource.create(serverLevel), DISSOLUTION_DAMAGE);
+        entity.hurt(DarkMatterDamageSource.create(entity.level()), DISSOLUTION_DAMAGE);
         return true;
     }
 }

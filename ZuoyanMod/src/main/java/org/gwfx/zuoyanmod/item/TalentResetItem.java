@@ -3,7 +3,7 @@ package org.gwfx.zuoyanmod.item;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -23,20 +23,20 @@ public class TalentResetItem extends DescribedItem {
     }
 
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         // 客户端只做挥手预测，真正的重置由服务端完成
         if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
+            return InteractionResultHolder.success(player.getItemInHand(hand));
         }
         if (!(level instanceof ServerLevel)) {
-            return InteractionResult.PASS;
+            return InteractionResultHolder.pass(player.getItemInHand(hand));
         }
         boolean reset = UpgradeManager.resetTalent((net.minecraft.server.level.ServerPlayer) player);
         if (!reset) {
-            return InteractionResult.FAIL;
+            return InteractionResultHolder.fail(player.getItemInHand(hand));
         }
         // consume 自带创造模式豁免（内部判 hasInfiniteMaterials）
         player.getItemInHand(hand).consume(1, player);
-        return InteractionResult.CONSUME;
+        return InteractionResultHolder.consume(player.getItemInHand(hand));
     }
 }

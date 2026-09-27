@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementNode;
 import net.minecraft.advancements.AdvancementTree;
 import net.minecraft.network.protocol.game.ClientboundUpdateAdvancementsPacket;
@@ -20,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * 修复 26.3 原版"全新世界里进度界面全空"的疏漏。
+ * 修复 1.21.1 原版"全新世界里进度界面全空"的疏漏。
  *
  * <h2>现象</h2>
  * 全新世界（玩家进度存档里没有任何记录）第一次打开进度界面，
@@ -34,16 +35,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  *
  * <p>全新玩家进入时：存档零记录 → {@code applyFrom} 不填；一个成就没拿 → 没有 {@code award}。
  * ⇒ {@code rootsToUpdate} 与 {@code progressChanged} 双空 ⇒ {@code added} 空 ⇒
- * <b>发包点那个 {@code if (!progress.isEmpty() || !added.isEmpty() || !removed.isEmpty())} 判断为假，
+ * <b>发包点那个 {@code if (!map.isEmpty() || !set.isEmpty() || !set1.isEmpty())} 判断为假，
  * 包根本不构造</b>；可 {@code isFirstPacket} 依然被置 false（赋值在 if 外面），
  * <b>首次全量同步的机会被永久消耗</b>。
- *
- * <h2>为什么不能只"把所有根塞进 rootsToUpdate"</h2>
- * 这是本修复的第一个版本，**被离线模拟器当场否掉**，值得记下来：
- * {@code updateTreeVisibility} 会调 {@code AdvancementVisibilityEvaluator}，
- * 而它有一条 {@code VISIBILITY_DEPTH = 2} 的规则 —— 未完成的节点只有在
- * **祖先（3 层内）已有已完成节点（SHOW）**时才可见；全新玩家什么都没完成，
- * 于是连**根节点自己都返回 false**，{@code added} 依然是空的。
  *
  * <p>所以修法必须是**绕开可见性评估**：首包直接发送树里的全部节点。
  *
@@ -91,14 +85,15 @@ public abstract class PlayerAdvancementsMixin {
      * 就在启动期直接失败 —— 静默失效正是这个 bug 当初能潜伏下来的原因。
      */
     @Inject(method = "flushDirty", at = @At("HEAD"), cancellable = true)
-    private void zuoyanmod$sendFullTreeOnFirstPacket(ServerPlayer player, boolean showAdvancements, CallbackInfo ci) {
+    private void zuoyanmod$sendFullTreeOnFirstPacket(ServerPlayer player, CallbackInfo ci) {
         if (!this.isFirstPacket || this.tree == null) {
             return;
         }
 
-        List<ClientboundUpdateAdvancementsPacket.PositionedAdvancement> all = new ArrayList<>();
+        // 1.21.1 的全量包收 List<AdvancementHolder>（没有 26.x 的 PositionedAdvancement 包装）
+        List<AdvancementHolder> all = new ArrayList<>();
         for (AdvancementNode node : this.tree.nodes()) {
-            all.add(ClientboundUpdateAdvancementsPacket.PositionedAdvancement.fromNode(node));
+            all.add(node.holder());
         }
 
         // shouldReset = true：让客户端先清空自己的树，避免与残留状态拼出脏结构。
@@ -107,8 +102,7 @@ public abstract class PlayerAdvancementsMixin {
                 true,
                 all,
                 Set.of(),
-                Map.of(),
-                showAdvancements
+                Map.of()
         ));
 
         // 与原版收敛：这些集合在本轮已被我们"消费"，且首包已发出。

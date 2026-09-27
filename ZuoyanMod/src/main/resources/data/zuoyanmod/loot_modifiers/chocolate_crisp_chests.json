@@ -1,4 +1,4 @@
-﻿{
+{
   "type": "neoforge:add_table",
   "condition": {
     "type": "minecraft:any_of",

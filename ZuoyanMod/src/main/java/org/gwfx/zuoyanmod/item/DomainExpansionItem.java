@@ -5,7 +5,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -31,40 +31,40 @@ public class DomainExpansionItem extends Item {
     }
 
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
-        if (player.getCooldowns().isOnCooldown(stack)) {
-            return InteractionResult.FAIL;
+        if (player.getCooldowns().isOnCooldown(stack.getItem())) {
+            return InteractionResultHolder.fail(stack);
         }
 
         if (level.isClientSide()) {
-            return InteractionResult.CONSUME;
+            return InteractionResultHolder.consume(stack);
         }
 
         if (player instanceof ServerPlayer serverPlayer) {
             ServerLevel domainLevel = DomainExpansionDimensionBootstrap.getOrCreateDomain(serverPlayer.level().getServer());
-            LOGGER.info("Domain expansion item used on server. domainLevel={}, player={}", domainLevel, serverPlayer.getGameProfile().name());
+            LOGGER.info("Domain expansion item used on server. domainLevel={}, player={}", domainLevel, serverPlayer.getGameProfile().getName());
             if (domainLevel == null) {
                 LOGGER.warn("Domain dimension is not loaded. Check datapack registration.");
-                return InteractionResult.FAIL;
+                return InteractionResultHolder.fail(stack);
             }
 
             LivingEntity target = findLookTarget(player, 32.0D);
             if (target == null) {
                 ModToastPacket.send(player, Component.translatable("message.zuoyanmod.domain_expansion.must_target"));
-                return InteractionResult.FAIL;
+                return InteractionResultHolder.fail(stack);
             }
             LOGGER.info("Domain expansion target acquired: {}", target);
             if (!DomainExpansionDuelManager.startDuel(serverPlayer.level().getServer(), serverPlayer, target, domainLevel)) {
-                return InteractionResult.FAIL;
+                return InteractionResultHolder.fail(stack);
             }
-            player.getCooldowns().addCooldown(stack, COOLDOWN_TICKS);
+            player.getCooldowns().addCooldown(stack.getItem(), COOLDOWN_TICKS);
             stack.shrink(1);
-            return InteractionResult.CONSUME;
+            return InteractionResultHolder.consume(stack);
         }
 
-        return InteractionResult.FAIL;
+        return InteractionResultHolder.fail(stack);
     }
 
     private LivingEntity findLookTarget(Player player, double range) {

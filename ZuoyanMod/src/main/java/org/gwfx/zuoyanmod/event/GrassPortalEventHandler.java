@@ -54,7 +54,10 @@ public final class GrassPortalEventHandler {
         if (level instanceof ServerLevel serverLevel) {
             shape.get().createPortalBlocks(serverLevel);
             if (event.getEntity() instanceof ServerPlayer player) {
-                stack.hurtAndBreak(1, player, event.getHand());
+                stack.hurtAndBreak(1, player,
+                        event.getHand() == net.minecraft.world.InteractionHand.MAIN_HAND
+                                ? net.minecraft.world.entity.EquipmentSlot.MAINHAND
+                                : net.minecraft.world.entity.EquipmentSlot.OFFHAND);
                 serverLevel.playSound(
                     player,
                     firePos,

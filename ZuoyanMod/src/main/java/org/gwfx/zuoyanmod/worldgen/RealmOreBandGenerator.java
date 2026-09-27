@@ -23,6 +23,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BiomeTags;
@@ -285,7 +286,11 @@ public final class RealmOreBandGenerator {
      */
     private static float countOf(PlacedFeature placed) {
         for (PlacementModifier modifier : placed.placement()) {
-            DataResult<Tag> encoded = modifier.type().codec().encodeStart(NbtOps.INSTANCE, modifier);
+            // 原始类型转换：type() 返回 PlacementModifierType<?>，codec() 的类型参数
+            // 对编译器是未捕获的通配符，塞不进 encodeStart —— 这里只需序列化，
+            // 擦除后走同一条 NBT 路即可。
+            @SuppressWarnings({"rawtypes", "unchecked"})
+            DataResult<Tag> encoded = ((PlacementModifierType) modifier.type()).codec().codec().encodeStart(NbtOps.INSTANCE, modifier);
             Tag tag = encoded.result().orElse(null);
             if (!(tag instanceof CompoundTag compound)) {
                 continue;
@@ -297,7 +302,7 @@ public final class RealmOreBandGenerator {
                     return 1.0f;
                 }
                 try {
-                    return (provider.minInclusive() + provider.maxInclusive()) / 2.0f;
+                    return (provider.getMinValue() + provider.getMaxValue()) / 2.0f;
                 } catch (Throwable ignored) {
                     return 1.0f;
                 }

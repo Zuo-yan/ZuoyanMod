@@ -23,14 +23,14 @@ public final class KleinBottleKeyHandler {
 
     @SubscribeEvent
     public static void onRegisterKeys(RegisterKeyMappingsEvent event) {
-        // 分类由 RealmKeybindHandler 登记，这里只登记按键，避免同一个分类被 registerCategory 两次。
+        // 分类由 RealmKeybindHandler 的 KeyMapping 构造器自动登记，这里只登记按键。
         event.register(OPEN_KLEIN_BOTTLE);
     }
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null || minecraft.gui.screen() != null) {
+        if (minecraft.player == null || minecraft.screen != null) {
             return;
         }
         if (OPEN_KLEIN_BOTTLE.consumeClick()) {

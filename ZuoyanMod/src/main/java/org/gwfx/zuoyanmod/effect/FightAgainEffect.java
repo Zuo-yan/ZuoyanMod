@@ -21,13 +21,13 @@ public class FightAgainEffect extends MobEffect {
                 Attributes.ATTACK_DAMAGE,
                 ATTACK_DAMAGE_MODIFIER_ID,
                 0.50,
-                AttributeModifier.Operation.MULTIPLY_TOTAL
+                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
         );
         this.addAttributeModifier(
                 Attributes.MOVEMENT_SPEED,
                 MOVEMENT_SPEED_MODIFIER_ID,
                 0.30,
-                AttributeModifier.Operation.MULTIPLY_TOTAL
+                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
         );
     }
 }

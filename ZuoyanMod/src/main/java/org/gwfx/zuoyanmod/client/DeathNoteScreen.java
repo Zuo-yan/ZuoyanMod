@@ -57,8 +57,8 @@ public class DeathNoteScreen extends Screen {
             return;
         }
         PacketHandler.sendDeathNote(target, seconds);
-        if (this.minecraft != null && this.minecraft.gui != null) {
-            this.minecraft.gui.setScreen(null);
+        if (this.minecraft != null) {
+            this.minecraft.setScreen(null);
         }
     }
 

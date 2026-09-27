@@ -1,4 +1,4 @@
-﻿{
+{
   "parent": "minecraft:item/handheld",
   "textures": {
     "layer0": "zuoyanmod:item/jack_the_ripper_scalpel"

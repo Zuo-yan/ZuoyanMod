@@ -346,7 +346,7 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
             return true;
         }
         if (isOverGrid(mouseX, mouseY)) {
-            int step = minecraft != null && minecraft.hasControlDown() ? VISIBLE_ROWS : 1;
+            int step = minecraft != null && hasControlDown() ? VISIBLE_ROWS : 1;
             scrollbar.scroll(scrollY > 0 ? -1 : 1, step);
             return true;
         }
@@ -537,7 +537,7 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
                 KleinTerminalLayout.FURNACE_ARROW_W, KleinTerminalLayout.FURNACE_ARROW_H,
                 menu.cookProgress(), time);
 
-        // 铁砧：改名框的框 + 「+」「→」连接符（代价文字在 extractLabels 里，随颜色变）
+        // 铁砧：改名框的框 + 「+」「→」连接符（代价文字在 renderLabels 里，随颜色变）
         KleinTheme.nameFrame(graphics,
                 x + KleinTerminalLayout.ANVIL_NAME_X, y + KleinTerminalLayout.ANVIL_NAME_Y,
                 KleinTerminalLayout.ANVIL_NAME_W, KleinTerminalLayout.ANVIL_NAME_H,
@@ -570,31 +570,57 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
                 affordable ? KleinTheme.TEXT_DIM : KleinTheme.TEXT_WARN, false);
     }
 
-    // ===== 绘制：槽位与滚动条 =====
+    // ===== 绘制：槽位与提示 =====
 
+    /**
+     * 1.21.1 容器界面的提示阶段：super.render 已画完背景（renderBg）、控件、槽位与标签，
+     * 自定义提示画在所有内容之上，最后走原版 hoveredSlot 提示兜底
+     * （对应 26.x 的 extractTooltip 阶段；原版兜底见 {@code ContainerScreen.render} 的做法）。
+     */
     @Override
-    public void extractContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.extractContents(graphics, mouseX, mouseY, partialTick);
-        float time = KleinTheme.now();
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        super.render(graphics, mouseX, mouseY, partialTick);
 
-        // 斜向扫光：铺在网格带上，alpha 极低，只为让整片槽位"活"起来
-        KleinTheme.sweep(graphics,
-                leftPos + KleinTerminalLayout.GRID_X, topPos + KleinTerminalLayout.GRID_Y,
-                KleinTerminalLayout.GRID_W, KleinTerminalLayout.GRID_H,
-                time, KleinTheme.CYAN);
-
-        if (scrollbar != null) {
-            scrollbar.render(graphics, time, scrollbar.isOver(mouseX, mouseY));
+        // 侧边按钮的提示：排序方式/方向会随状态变，所以每帧重读快照
+        if (sideButtons != null) {
+            for (int i = 0; i < sideButtons.length; i++) {
+                if (sideButtons[i] != null && sideButtons[i].isHovered()) {
+                    graphics.renderTooltip(font, buttonTooltip(i), mouseX, mouseY);
+                    return;
+                }
+            }
         }
+        if (scrollbar != null && scrollbar.isOver(mouseX, mouseY)) {
+            int max = Math.max(0, snapshotRows(ClientKleinBottleView.latest()) - VISIBLE_ROWS);
+            int row = ClientKleinBottleView.latest() == null ? 0 : ClientKleinBottleView.latest().scrollRow();
+            graphics.renderTooltip(font,
+                    Component.translatable("gui.zuoyanmod.klein.scrollbar_hint", row, max), mouseX, mouseY);
+            return;
+        }
+        if (hoveredSlot != null && hoveredSlot.index < STORAGE_COUNT && hoveredSlot.hasItem()) {
+            // 包一层 ArrayList：原版在 HIDE_TOOLTIP 时会返回不可变 List.of()
+            List<Component> lines = new java.util.ArrayList<>(getTooltipFromContainerItem(hoveredSlot.getItem()));
+            long total = ClientKleinBottleView.windowTotal(hoveredSlot.index);
+            if (total <= 0) {
+                total = hoveredSlot.getItem().getCount();
+            }
+            lines.add(Component.translatable("gui.zuoyanmod.klein.tooltip_total",
+                    AmountFormat.grouped(total)).withColor(KleinTheme.GOLD & 0xFFFFFF));
+            ItemStack stack = hoveredSlot.getItem();
+            graphics.renderTooltip(font, lines, stack.getTooltipImage(), stack, mouseX, mouseY);
+            return;
+        }
+        // 原版兜底：普通槽位的物品提示
+        this.renderTooltip(graphics, mouseX, mouseY);
     }
 
     @Override
-    protected void extractSlot(GuiGraphics graphics, Slot slot, int mouseX, int mouseY) {
+    protected void renderSlot(GuiGraphics graphics, Slot slot) {
         if (slot.index < STORAGE_COUNT) {
             drawStorageSlot(graphics, slot);
             return;
         }
-        super.extractSlot(graphics, slot, mouseX, mouseY);
+        super.renderSlot(graphics, slot);
     }
 
     /**
@@ -637,7 +663,7 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
     // ===== 绘制：文字 =====
 
     @Override
-    protected void extractLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         // 不调 super：原版标签色 0xFF404040 在深紫底上根本看不见
         KleinBottleSyncPacket snapshot = ClientKleinBottleView.latest();
 
@@ -691,40 +717,6 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
     }
 
     // ===== 提示 =====
-
-    @Override
-    protected void extractTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
-        // 侧边按钮的提示：排序方式/方向会随状态变，所以每帧重读快照
-        if (sideButtons != null) {
-            for (int i = 0; i < sideButtons.length; i++) {
-                if (sideButtons[i] != null && sideButtons[i].isHovered()) {
-                    graphics.setTooltipForNextFrame(font, buttonTooltip(i), mouseX, mouseY);
-                    return;
-                }
-            }
-        }
-        if (scrollbar != null && scrollbar.isOver(mouseX, mouseY)) {
-            int max = Math.max(0, snapshotRows(ClientKleinBottleView.latest()) - VISIBLE_ROWS);
-            int row = ClientKleinBottleView.latest() == null ? 0 : ClientKleinBottleView.latest().scrollRow();
-            graphics.setTooltipForNextFrame(font,
-                    Component.translatable("gui.zuoyanmod.klein.scrollbar_hint", row, max), mouseX, mouseY);
-            return;
-        }
-        if (hoveredSlot != null && hoveredSlot.index < STORAGE_COUNT && hoveredSlot.hasItem()) {
-            List<Component> lines = getTooltipFromContainerItem(hoveredSlot.getItem());
-            long total = ClientKleinBottleView.windowTotal(hoveredSlot.index);
-            if (total <= 0) {
-                total = hoveredSlot.getItem().getCount();
-            }
-            lines.add(Component.translatable("gui.zuoyanmod.klein.tooltip_total",
-                    AmountFormat.grouped(total)).withColor(KleinTheme.GOLD & 0xFFFFFF));
-            ItemStack stack = hoveredSlot.getItem();
-            graphics.setTooltipForNextFrame(font, lines, stack.getTooltipImage(), stack, mouseX, mouseY,
-                    stack.get(net.minecraft.core.component.DataComponents.TOOLTIP_STYLE), true);
-            return;
-        }
-        super.extractTooltip(graphics, mouseX, mouseY);
-    }
 
     private Component buttonTooltip(int index) {
         KleinBottleSyncPacket snapshot = ClientKleinBottleView.latest();

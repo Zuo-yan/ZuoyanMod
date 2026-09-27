@@ -27,9 +27,9 @@ public final class SpriteDrinkEventHandler {
         if (player.level().isClientSide()) return;
 
         CompoundTag data = player.getPersistentData();
-        if (!data.getBoolean("zuoyan_sprite_active").orElse(false)) return;
+        if (!data.getBoolean("zuoyan_sprite_active")) return;
 
-        long endTick = data.getLong("zuoyan_sprite_end_tick").orElse(0L);
+        long endTick = data.getLong("zuoyan_sprite_end_tick");
         if (endTick > 0L && player.level().getGameTime() >= endTick) {
             clear(player);
             ModToastPacket.send(player, Component.translatable("message.zuoyanmod.sprite_drink.ended"));
@@ -46,27 +46,27 @@ public final class SpriteDrinkEventHandler {
     }
 
     private static void applyModifiers(Player player, CompoundTag data) {
-        double healthLoss = data.getFloat("zuoyan_sprite_bonus").orElse(0.0F);
+        double healthLoss = data.getFloat("zuoyan_sprite_bonus");
         double speedBonus = 0.5D;
         double attackBonus = healthLoss;
 
         var speedAttr = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (speedAttr != null) {
             speedAttr.removeModifier(SPEED_MODIFIER);
-            speedAttr.addTransientModifier(new AttributeModifier(SPEED_MODIFIER, speedBonus, AttributeModifier.Operation.MULTIPLY_TOTAL));
+            speedAttr.addTransientModifier(new AttributeModifier(SPEED_MODIFIER, speedBonus, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
         }
 
         var attackAttr = player.getAttribute(Attributes.ATTACK_DAMAGE);
         if (attackAttr != null) {
             attackAttr.removeModifier(ATTACK_MODIFIER);
-            attackAttr.addTransientModifier(new AttributeModifier(ATTACK_MODIFIER, attackBonus, AttributeModifier.Operation.ADDITION));
+            attackAttr.addTransientModifier(new AttributeModifier(ATTACK_MODIFIER, attackBonus, AttributeModifier.Operation.ADD_VALUE));
         }
     }
 
     private static void trackMovement(Player player, CompoundTag data) {
-        double lastX = data.getDouble("zuoyan_sprite_last_x").orElse(player.getX());
-        double lastY = data.getDouble("zuoyan_sprite_last_y").orElse(player.getY());
-        double lastZ = data.getDouble("zuoyan_sprite_last_z").orElse(player.getZ());
+        double lastX = data.getDouble("zuoyan_sprite_last_x");
+        double lastY = data.getDouble("zuoyan_sprite_last_y");
+        double lastZ = data.getDouble("zuoyan_sprite_last_z");
 
         double dx = player.getX() - lastX;
         double dy = player.getY() - lastY;
@@ -77,7 +77,7 @@ public final class SpriteDrinkEventHandler {
         data.putDouble("zuoyan_sprite_last_y", player.getY());
         data.putDouble("zuoyan_sprite_last_z", player.getZ());
 
-        float accumulated = data.getFloat("zuoyan_sprite_walk_acc").orElse(0.0F);
+        float accumulated = data.getFloat("zuoyan_sprite_walk_acc");
         accumulated += (float) distance;
 
         if (accumulated >= 1.0F) {
@@ -85,7 +85,7 @@ public final class SpriteDrinkEventHandler {
             accumulated -= steps;
 
             float damagePerStep = 1.0F;
-            float currentBonus = data.getFloat("zuoyan_sprite_bonus").orElse(0.0F);
+            float currentBonus = data.getFloat("zuoyan_sprite_bonus");
 
             if (player.level() instanceof ServerLevel serverLevel) {
                 for (int i = 0; i < steps && player.isAlive(); i++) {

@@ -316,7 +316,7 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
             DifficultyInstance difficulty,
             MobSpawnType spawnType,
             SpawnGroupData groupData) {
-        SpawnGroupData result = super.finalizeSpawn(level, difficulty, spawnReason, groupData);
+        SpawnGroupData result = super.finalizeSpawn(level, difficulty, spawnType, groupData);
         this.canRebirth = true;
         // 无论哪条生成路径，瑞克出场都该是完整的 20 点血
         this.setHealth(this.getMaxHealth());
@@ -438,7 +438,7 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
      * 真正开界面：<b>先登记交易对象，再开界面</b>。顺序不能反。
      *
      * <p>原版 {@link Merchant#openTradingScreen} 只管开菜单，<b>不会</b>帮你调
-     * {@code setTradingPlayer}。而 {@link #stillValid} 与
+     * {@code setTradingPlayer}。而 {@code MerchantMenu#stillValid} 与
      * {@code MerchantContainer#stillValid} 都要求
      * {@code getTradingPlayer() == player}，容器每 tick 都会查一次 ——
      * 少了这一句的话，界面会在开出后的第一个 tick 就被判为失效并自动关掉，
@@ -563,16 +563,10 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
     }
 
     /**
-     * 界面是否还该开着：必须是同一个玩家、瑞克还活着、且人没走远。
-     * <p>三个条件都会被容器每 tick 检查，任一不成立原版就自动关界面并把价格槽里的
-     * 材料退回背包（见 {@code MerchantMenu#removed}）。
+     * 1.21.1 的 {@code Merchant} 接口没有 26.3 的 {@code stillValid} 钩子——
+     * 原版 {@code MerchantMenu#stillValid} 只判「交易玩家是否还是自己」，
+     * 距离/存活校验由原版菜单自身的通用逻辑兜底。
      */
-    @Override
-    public boolean stillValid(Player player) {
-        return this.getTradingPlayer() == player
-                && this.isAlive()
-                && player.canInteractWithEntity(this, TRADE_DISTANCE);
-    }
 
     // ===================== 音效 / 杂项 =====================
     //

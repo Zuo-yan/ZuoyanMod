@@ -6,12 +6,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Relative;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.gwfx.zuoyanmod.network.ModToastPacket;
@@ -108,11 +106,8 @@ public final class FatalProtection {
             }
             // 骑乘状态下传送会丢载具，先解除
             serverPlayer.stopRiding();
-            // 跨维度分支内部是"创建新实体 + 移除旧实体"，可能失败，必须检查返回值
-            boolean success = serverPlayer.teleportTo(target, x, y, z, Set.<Relative>of(), yRot, xRot, false);
-            if (!success) {
-                return false;
-            }
+            // 1.21.1 的跨维度传送写法：void，内部自行完成维度切换
+            serverPlayer.teleportTo(target, x, y, z, yRot, xRot);
             serverPlayer.playSound(net.minecraft.sounds.SoundEvents.CHORUS_FRUIT_TELEPORT, 1.0F, 1.0F);
             return true;
         }

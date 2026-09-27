@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.mojang.serialization.MapCodec;
 import javax.annotation.Nullable;
 import org.gwfx.zuoyanmod.network.ModToastPacket;
 
@@ -34,10 +35,16 @@ public class VoidResonancePumpBlock extends BaseEntityBlock {
 
     /** 水平朝向，与熔炉同源（BaseEntityBlock 不能再继承 HorizontalDirectionalBlock，故手动取属性） */
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
+    public static final MapCodec<VoidResonancePumpBlock> CODEC = simpleCodec(VoidResonancePumpBlock::new);
 
     public VoidResonancePumpBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     @Override
@@ -97,12 +104,12 @@ public class VoidResonancePumpBlock extends BaseEntityBlock {
                 : null;
     }
 
-    /** 破坏时掉落内含物 */
+    /** 破坏时掉落内含物（1.21.1 用 onRemove；活塞推动 movedByPiston=true 不掉落） */
     @Override
-    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
-        if (!movedByPiston && level.getBlockEntity(pos) instanceof VoidResonancePumpBlockEntity pump) {
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!movedByPiston && !state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof VoidResonancePumpBlockEntity pump) {
             Containers.dropContents(level, pos, pump.getInventory());
         }
-        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 }

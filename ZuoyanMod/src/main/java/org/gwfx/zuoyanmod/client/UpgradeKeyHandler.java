@@ -39,12 +39,12 @@ public final class UpgradeKeyHandler {
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null || minecraft.gui.screen() != null) {
+        if (minecraft.player == null || minecraft.screen != null) {
             return;
         }
         if (OPEN_UPGRADE.consumeClick()) {
             PacketHandler.sendRequestUpgradeSync();
-            minecraft.gui.setScreen(new UpgradeScreen());
+            minecraft.setScreen(new UpgradeScreen());
         }
         if (TRIGGER_ULTIMATE.consumeClick()) {
             PacketHandler.sendTriggerUltimate();

@@ -126,49 +126,10 @@ public final class ItemRegistry {
             props -> new BeimingBlade(swordComponents(props.stacksTo(1).attributes(swordAttributes(32.0F, -1.0F))))
     );
 
-    // ===== 万能工具（镐·斧·铲·锄·剑 五合一，数值取自对应 Tier，攻击取同材质斧） =====
-    public static final DeferredItem<UniversalToolItem> WOODEN_UNIVERSAL_TOOL = ITEMS.registerItem(
-            "wooden_universal_tool",
-            props -> new UniversalToolItem(Tiers.WOOD, UniversalToolItem.properties(Tiers.WOOD, 6.0F, -3.2F))
-    );
-
-    public static final DeferredItem<UniversalToolItem> STONE_UNIVERSAL_TOOL = ITEMS.registerItem(
-            "stone_universal_tool",
-            props -> new UniversalToolItem(Tiers.STONE, UniversalToolItem.properties(Tiers.STONE, 7.0F, -3.2F))
-    );
-
-    public static final DeferredItem<UniversalToolItem> COPPER_UNIVERSAL_TOOL = ITEMS.registerItem(
-            "copper_universal_tool",
-            // 原版铜斧基线：伤害 7.0、攻速 -3.2（1.21.1 没有铜质工具档，这里用自定义铜 Tier，
-            // 数值介于石与铁之间，采集门槛取石头一档）
-            props -> new UniversalToolItem(COPPER_TIER, UniversalToolItem.properties(COPPER_TIER, 7.0F, -3.2F))
-    );
-
-    public static final DeferredItem<UniversalToolItem> GOLDEN_UNIVERSAL_TOOL = ITEMS.registerItem(
-            "golden_universal_tool",
-            props -> new UniversalToolItem(Tiers.GOLD, UniversalToolItem.properties(Tiers.GOLD, 6.0F, -3.0F))
-    );
-
-    public static final DeferredItem<UniversalToolItem> IRON_UNIVERSAL_TOOL = ITEMS.registerItem(
-            "iron_universal_tool",
-            props -> new UniversalToolItem(Tiers.IRON, UniversalToolItem.properties(Tiers.IRON, 6.0F, -3.1F))
-    );
-
-    public static final DeferredItem<UniversalToolItem> DIAMOND_UNIVERSAL_TOOL = ITEMS.registerItem(
-            "diamond_universal_tool",
-            props -> new UniversalToolItem(Tiers.DIAMOND, UniversalToolItem.properties(Tiers.DIAMOND, 5.0F, -3.0F))
-    );
-
-    public static final DeferredItem<UniversalToolItem> NETHERITE_UNIVERSAL_TOOL = ITEMS.registerItem(
-            "netherite_universal_tool",
-            // 下界合金同原版：防火不掉落（岩浆里烧不坏）
-            props -> new UniversalToolItem(Tiers.NETHERITE,
-                    UniversalToolItem.properties(Tiers.NETHERITE, 5.0F, -3.0F).fireResistant())
-    );
-
     /**
      * 自定义铜质 Tier（1.21.1 原版 Tiers 没有铜档）：耐久/速度/伤害加成取石与铁的中间值，
      * 附魔能力 13、修复材料铜锭，采集门槛沿用 {@code #incorrect_for_stone_tool}。
+     * 声明在万能工具之前，避免静态初始化的非法前向引用。
      */
     public static final Tier COPPER_TIER = new Tier() {
         @Override
@@ -201,6 +162,44 @@ public final class ItemRegistry {
             return Ingredient.of(Items.COPPER_INGOT);
         }
     };
+
+    // ===== 万能工具（镐·斧·铲·锄·剑 五合一，数值取自对应 Tier，攻击取同材质斧） =====
+    public static final DeferredItem<UniversalToolItem> WOODEN_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "wooden_universal_tool",
+            props -> new UniversalToolItem(Tiers.WOOD, UniversalToolItem.properties(Tiers.WOOD, 6.0F, -3.2F))
+    );
+
+    public static final DeferredItem<UniversalToolItem> STONE_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "stone_universal_tool",
+            props -> new UniversalToolItem(Tiers.STONE, UniversalToolItem.properties(Tiers.STONE, 7.0F, -3.2F))
+    );
+
+    public static final DeferredItem<UniversalToolItem> COPPER_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "copper_universal_tool",
+            // 原版铜斧基线：伤害 7.0、攻速 -3.2（1.21.1 没有铜质工具档，这里用自定义铜 Tier，
+            // 数值介于石与铁之间，采集门槛取石头一档）
+            props -> new UniversalToolItem(COPPER_TIER, UniversalToolItem.properties(COPPER_TIER, 7.0F, -3.2F))
+    );    public static final DeferredItem<UniversalToolItem> GOLDEN_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "golden_universal_tool",
+            props -> new UniversalToolItem(Tiers.GOLD, UniversalToolItem.properties(Tiers.GOLD, 6.0F, -3.0F))
+    );
+
+    public static final DeferredItem<UniversalToolItem> IRON_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "iron_universal_tool",
+            props -> new UniversalToolItem(Tiers.IRON, UniversalToolItem.properties(Tiers.IRON, 6.0F, -3.1F))
+    );
+
+    public static final DeferredItem<UniversalToolItem> DIAMOND_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "diamond_universal_tool",
+            props -> new UniversalToolItem(Tiers.DIAMOND, UniversalToolItem.properties(Tiers.DIAMOND, 5.0F, -3.0F))
+    );
+
+    public static final DeferredItem<UniversalToolItem> NETHERITE_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "netherite_universal_tool",
+            // 下界合金同原版：防火不掉落（岩浆里烧不坏）
+            props -> new UniversalToolItem(Tiers.NETHERITE,
+                    UniversalToolItem.properties(Tiers.NETHERITE, 5.0F, -3.0F).fireResistant())
+    );
 
     // ===== 阶段三新武器 =====
     public static final DeferredItem<HerculesBowItem> HERCULES_BOW = ITEMS.registerItem(

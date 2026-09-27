@@ -22,6 +22,6 @@ public class YemengadeVenomFangItem extends Item {
         tooltip.add(Component.translatable("item.zuoyanmod.yemengade_venom_fang.desc2"));
         tooltip.add(Component.translatable("item.zuoyanmod.yemengade_venom_fang.desc3"));
         tooltip.add(Component.translatable("item.zuoyanmod.yemengade_venom_fang.desc4"));
-        AccessoryChecks.appendEquipHint(tooltip);
+        AccessoryChecks.appendEquipHint(tooltip::add);
     }
 }

@@ -52,8 +52,9 @@ public class DarkMatterEventHandler {
         var motion = living.getDeltaMovement();
 
         // 1. 极端引力抓取：压制跳跃/上浮/鞘翅，水平拖拽
-        if (living.isFallFlying()) {
-            living.stopFallFlying();
+        //    1.21.1 的 stopFallFlying 在 Player 上（不在 LivingEntity）
+        if (living.isFallFlying() && living instanceof net.minecraft.world.entity.player.Player gliding) {
+            gliding.stopFallFlying();
         }
         living.setDeltaMovement(
                 motion.x * 0.3D,

@@ -22,20 +22,27 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.mojang.serialization.MapCodec;
 import javax.annotation.Nullable;
 
 /**
  * 微型强子对撞机：桌面级粒子对撞机，两束材料粒子对撞产出高能产物（奇点核心）。
  * 充能 = 红石信号（hasNeighborSignal），断电时进度冻结（不回退，回来接着撞）。
- * 结构沿用虚空共振泵：BaseEntityBlock + 手动 FACING（26.3 不能多继承）。
+ * 结构沿用虚空共振泵：BaseEntityBlock + 手动 FACING（1.21.1 不能多继承）。
  */
 public class MicroHadronColliderBlock extends BaseEntityBlock {
 
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
+    public static final MapCodec<MicroHadronColliderBlock> CODEC = simpleCodec(MicroHadronColliderBlock::new);
 
     public MicroHadronColliderBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     @Override
@@ -89,12 +96,12 @@ public class MicroHadronColliderBlock extends BaseEntityBlock {
                 : null;
     }
 
-    /** 破坏时掉落内含物 */
+    /** 破坏时掉落内含物（1.21.1 用 onRemove；活塞推动 movedByPiston=true 不掉落） */
     @Override
-    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
-        if (!movedByPiston && level.getBlockEntity(pos) instanceof MicroHadronColliderBlockEntity collider) {
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!movedByPiston && !state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof MicroHadronColliderBlockEntity collider) {
             Containers.dropContents(level, pos, collider.getInventory());
         }
-        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 }

@@ -129,10 +129,10 @@ public class ShadowArmorEventHandler {
         var moveAttr = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (hasLeggings) {
             if (healthAttr != null && !healthAttr.hasModifier(WIND_HEALTH_ID)) {
-                healthAttr.addTransientModifier(new AttributeModifier(WIND_HEALTH_ID, 20.0, AttributeModifier.Operation.ADDITION));
+                healthAttr.addTransientModifier(new AttributeModifier(WIND_HEALTH_ID, 20.0, AttributeModifier.Operation.ADD_VALUE));
             }
             if (moveAttr != null && !moveAttr.hasModifier(WIND_SPEED_ID)) {
-                moveAttr.addTransientModifier(new AttributeModifier(WIND_SPEED_ID, 0.25, AttributeModifier.Operation.MULTIPLY_BASE));
+                moveAttr.addTransientModifier(new AttributeModifier(WIND_SPEED_ID, 0.25, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
             }
         } else {
             if (healthAttr != null) healthAttr.removeModifier(WIND_HEALTH_ID);

@@ -3,7 +3,6 @@ package org.gwfx.zuoyanmod.client.klein;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -40,12 +39,12 @@ public final class KleinSideButton extends AbstractButton {
     }
 
     @Override
-    public void onPress(InputWithModifiers input) {
+    public void onPress() {
         action.run();
     }
 
     @Override
-    protected void extractContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         boolean hovered = isHovered();
         // **无边框、无底板**（v8，玩家点名要 RS2 那种"四个浮空控件"）：
         // 平时只有图标本身；hover 时也**只画一条青色下划线**，连淡底都不给——

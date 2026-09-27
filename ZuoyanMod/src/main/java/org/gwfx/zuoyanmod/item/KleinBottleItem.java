@@ -4,7 +4,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -25,15 +25,15 @@ public class KleinBottleItem extends Item {
     }
 
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
+            return InteractionResultHolder.success(player.getItemInHand(hand));
         }
         if (player instanceof ServerPlayer serverPlayer) {
             KleinBottleItem.openFor(serverPlayer);
-            return InteractionResult.CONSUME;
+            return InteractionResultHolder.consume(player.getItemInHand(hand));
         }
-        return InteractionResult.PASS;
+        return InteractionResultHolder.pass(player.getItemInHand(hand));
     }
 
     public static boolean openFor(ServerPlayer player) {

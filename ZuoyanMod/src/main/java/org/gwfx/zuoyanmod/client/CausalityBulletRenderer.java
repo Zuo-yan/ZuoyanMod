@@ -3,18 +3,14 @@ package org.gwfx.zuoyanmod.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.entity.CausalityBulletEntity;
 
@@ -25,12 +21,11 @@ import org.gwfx.zuoyanmod.entity.CausalityBulletEntity;
  * 子弹头部是一个 billboard 绿色能量球，身后拖着一条随速度拉长的发光能量束，
  * 形成"平行宇宙射线"的视觉冲击。
  *
- * <p>26.3 渲染管线说明：
- * 泛型为 {@code EntityRenderer<CausalityBulletEntity, BulletRenderState>}，
- * 自定义 {@link BulletRenderState} 携带速度与旋转（{@code EntityRenderState} 本身不含这些字段），
- * 通过 {@link #extractRenderState} 从实体拷贝，再在 {@link #submit} 中绘制。
+ * <p>1.21.1 渲染管线说明：经典 {@code EntityRenderer<CausalityBulletEntity>} 单泛型，
+ * 无 RenderState 中转——直接在 {@link #render} 里读实体字段插值绘制；
+ * billboard 朝向用 {@code entityRenderDispatcher.cameraOrientation()} 转到相机坐标系。
  */
-public class CausalityBulletRenderer extends EntityRenderer<CausalityBulletEntity, CausalityBulletRenderer.BulletRenderState> {
+public class CausalityBulletRenderer extends EntityRenderer<CausalityBulletEntity> {
 
     /** 能量球（弹头）贴图 */
     private static final ResourceLocation BALL_TEXTURE =
@@ -41,10 +36,10 @@ public class CausalityBulletRenderer extends EntityRenderer<CausalityBulletEntit
             ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/causality_trail.png");
 
     /** 能量球用 cutout（硬边缘透明） */
-    private static final RenderType BALL_TYPE = RenderTypes.entityCutout(BALL_TEXTURE);
+    private static final RenderType BALL_TYPE = RenderType.entityCutout(BALL_TEXTURE);
 
     /** 尾迹用 emissive translucent（发光 + 半透明） */
-    private static final RenderType TRAIL_TYPE = RenderTypes.entityTranslucentEmissive(TRAIL_TEXTURE);
+    private static final RenderType TRAIL_TYPE = RenderType.entityTranslucentEmissive(TRAIL_TEXTURE);
 
     /** 曳光尾迹基础宽度 */
     private static final float TRAIL_WIDTH = 0.12F;
@@ -66,33 +61,20 @@ public class CausalityBulletRenderer extends EntityRenderer<CausalityBulletEntit
     }
 
     @Override
-    public BulletRenderState createRenderState() {
-        return new BulletRenderState();
-    }
-
-    /** 从实体拷贝速度与旋转到 render state */
-    @Override
-    public void extractRenderState(CausalityBulletEntity entity, BulletRenderState state, float partialTicks) {
-        super.extractRenderState(entity, state, partialTicks);
-        state.velocity = entity.getDeltaMovement();
-        state.yRot = Mth.lerp(partialTicks, entity.yRotO, entity.getYRot());
-        state.xRot = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
-    }
-
-    @Override
-    public void submit(BulletRenderState state, PoseStack poseStack,
-                       SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+    public void render(CausalityBulletEntity entity, float entityYaw, float partialTicks,
+                       PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         // —— 曳光尾迹 ——
-        renderTrail(state, poseStack, submitNodeCollector);
+        renderTrail(entity, partialTicks, poseStack, bufferSource, packedLight);
 
         // —— 能量球弹头（billboard，始终正对摄像机） ——
         poseStack.pushPose();
         poseStack.scale(0.5F, 0.5F, 0.5F);
-        poseStack.rotate(camera.orientation);
-        submitNodeCollector.submitCustomGeometry(poseStack, BALL_TYPE, (pose, buffer) -> buildBallQuad(state, pose, buffer));
+        poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
+        VertexConsumer buffer = bufferSource.getBuffer(BALL_TYPE);
+        buildBallQuad(packedLight, poseStack.last(), buffer);
         poseStack.popPose();
 
-        super.submit(state, poseStack, submitNodeCollector, camera);
+        super.render(entity, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
     }
 
     /**
@@ -104,32 +86,37 @@ public class CausalityBulletRenderer extends EntityRenderer<CausalityBulletEntit
      * 3. 长度 = min(速度 × {@value TRAIL_LENGTH_FACTOR}, {@value TRAIL_MAX_LENGTH})
      * 4. 使用 emissive 贴图产生发光感
      */
-    private void renderTrail(BulletRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
-        float speed = (float) state.velocity.length();
+    private void renderTrail(CausalityBulletEntity entity, float partialTicks,
+                             PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        float speed = (float) entity.getDeltaMovement().length();
         if (speed < 0.01F) return;
 
         float trailLength = Math.min(speed * TRAIL_LENGTH_FACTOR, TRAIL_MAX_LENGTH);
+        // 旋转角在插值帧间平滑过渡
+        float yRot = Mth.lerp(partialTicks, entity.yRotO, entity.getYRot());
+        float xRot = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
 
         poseStack.pushPose();
         // 旋转到飞行方向
-        poseStack.rotateDegrees(Axis.YP, state.yRot);
-        poseStack.rotateDegrees(Axis.XP, state.xRot);
+        poseStack.mulPose(Axis.YP.rotationDegrees(yRot));
+        poseStack.mulPose(Axis.XP.rotationDegrees(xRot));
         // 尾迹中心在子弹身后 trailLength/2 处
         poseStack.translate(0.0F, 0.0F, -trailLength / 2.0F);
         // 拉伸：宽 = TRAIL_WIDTH，长 = trailLength
         poseStack.scale(TRAIL_WIDTH, TRAIL_WIDTH, trailLength);
         // 画一个沿 Z 轴的长条 quad（XZ 平面，Y=0），UV：V=1 在头部、V=0 在尾部
-        collector.submitCustomGeometry(poseStack, TRAIL_TYPE, (pose, buffer) -> buildTrailQuad(state, pose, buffer));
+        VertexConsumer buffer = bufferSource.getBuffer(TRAIL_TYPE);
+        buildTrailQuad(packedLight, poseStack.last(), buffer);
         poseStack.popPose();
     }
 
     /** 能量球 billboard quad：宽 1.0 高 1.0，锚点中心 */
-    private static void buildBallQuad(BulletRenderState state, PoseStack.Pose pose, VertexConsumer buffer) {
+    private static void buildBallQuad(int light, PoseStack.Pose pose, VertexConsumer buffer) {
         float h = 0.5F;
-        vertex(buffer, pose, state.lightCoords, -h, -h, 0.0F, 0, 0);
-        vertex(buffer, pose, state.lightCoords,  h, -h, 0.0F, 1, 0);
-        vertex(buffer, pose, state.lightCoords,  h,  h, 0.0F, 1, 1);
-        vertex(buffer, pose, state.lightCoords, -h,  h, 0.0F, 0, 1);
+        vertex(buffer, pose, light, -h, -h, 0.0F, 0, 0);
+        vertex(buffer, pose, light,  h, -h, 0.0F, 1, 0);
+        vertex(buffer, pose, light,  h,  h, 0.0F, 1, 1);
+        vertex(buffer, pose, light, -h,  h, 0.0F, 0, 1);
     }
 
     /**
@@ -137,19 +124,19 @@ public class CausalityBulletRenderer extends EntityRenderer<CausalityBulletEntit
      * Z 方向长度 [-0.5, 0.5]（拉伸后 = trailLength）。
      * V=0 对应尾部（Z=-0.5），V=1 对应头部（Z=+0.5）。
      */
-    private static void buildTrailQuad(BulletRenderState state, PoseStack.Pose pose, VertexConsumer buffer) {
+    private static void buildTrailQuad(int light, PoseStack.Pose pose, VertexConsumer buffer) {
         float w = 0.5F;
         float l = 0.5F;
         // 前侧面（Y=+0.5）
-        vertex(buffer, pose, state.lightCoords, -w, 0.0F, -l, 0, 0);
-        vertex(buffer, pose, state.lightCoords,  w, 0.0F, -l, 1, 0);
-        vertex(buffer, pose, state.lightCoords,  w, 0.0F,  l, 1, 1);
-        vertex(buffer, pose, state.lightCoords, -w, 0.0F,  l, 0, 1);
+        vertex(buffer, pose, light, -w, 0.0F, -l, 0, 0);
+        vertex(buffer, pose, light,  w, 0.0F, -l, 1, 0);
+        vertex(buffer, pose, light,  w, 0.0F,  l, 1, 1);
+        vertex(buffer, pose, light, -w, 0.0F,  l, 0, 1);
         // 背侧面（Y=-0.5），保证从下方也能看到
-        vertex(buffer, pose, state.lightCoords,  w, 0.0F, -l, 1, 0);
-        vertex(buffer, pose, state.lightCoords, -w, 0.0F, -l, 0, 0);
-        vertex(buffer, pose, state.lightCoords, -w, 0.0F,  l, 0, 1);
-        vertex(buffer, pose, state.lightCoords,  w, 0.0F,  l, 1, 1);
+        vertex(buffer, pose, light,  w, 0.0F, -l, 1, 0);
+        vertex(buffer, pose, light, -w, 0.0F, -l, 0, 0);
+        vertex(buffer, pose, light, -w, 0.0F,  l, 0, 1);
+        vertex(buffer, pose, light,  w, 0.0F,  l, 1, 1);
     }
 
     private static void vertex(VertexConsumer buffer, PoseStack.Pose pose,
@@ -162,12 +149,8 @@ public class CausalityBulletRenderer extends EntityRenderer<CausalityBulletEntit
                 .setNormal(pose, 0.0F, 1.0F, 0.0F);
     }
 
-    /**
-     * 自定义 render state：额外携带速度与旋转，供尾迹计算方向与长度。
-     */
-    public static class BulletRenderState extends EntityRenderState {
-        public Vec3 velocity = Vec3.ZERO;
-        public float yRot;
-        public float xRot;
+    @Override
+    public ResourceLocation getTextureLocation(CausalityBulletEntity entity) {
+        return BALL_TEXTURE;
     }
 }

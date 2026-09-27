@@ -12,7 +12,7 @@ import org.gwfx.zuoyanmod.menu.MicroHadronColliderMenu;
  * 布局：标题行（含充能状态）→ 粒子束 A | B — 对撞进度束 — 产物槽 → 玩家背包。
  * 坐标常量与 tools/gen_collider_textures.py 的 GUI 部分严格对应，改一处必改另一处。
  *
- * extractBackground 是屏幕绝对坐标；extractLabels 是 GUI 局部坐标且默认深灰字（深底看不清，不调 super）。
+ * renderBg 是屏幕绝对坐标；renderLabels 是 GUI 局部坐标且默认深灰字（深底看不清，不调 super）。
  */
 public class MicroHadronColliderScreen extends AbstractContainerScreen<MicroHadronColliderMenu> {
 
@@ -29,7 +29,9 @@ public class MicroHadronColliderScreen extends AbstractContainerScreen<MicroHadr
     private static final int PROG_H = 10;
 
     public MicroHadronColliderScreen(MicroHadronColliderMenu menu, Inventory inventory, Component title) {
-        super(menu, inventory, title, TEX_W, TEX_H);
+        super(menu, inventory, title);
+        this.imageWidth = TEX_W;
+        this.imageHeight = TEX_H;
         this.titleLabelX = 8;
         this.titleLabelY = 6;
         this.inventoryLabelX = 8;
@@ -37,8 +39,7 @@ public class MicroHadronColliderScreen extends AbstractContainerScreen<MicroHadr
     }
 
     @Override
-    public void extractBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         int x = leftPos;
         int y = topPos;
         graphics.blit(TEXTURE, x, y, 0.0F, 0.0F, TEX_W, TEX_H, TEX_W, TEX_H);
@@ -56,7 +57,7 @@ public class MicroHadronColliderScreen extends AbstractContainerScreen<MicroHadr
     }
 
     @Override
-    protected void extractLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         // 深底上用浅色文字（原版默认 0xFF404040 会看不清），故不调用 super
         graphics.drawString(font, title, titleLabelX, titleLabelY, 0xFFE8F4F6, false);
         graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFF8FA3BE, false);

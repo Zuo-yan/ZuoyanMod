@@ -1,10 +1,6 @@
 package org.gwfx.zuoyanmod.menu;
 
-import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -14,7 +10,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.AnvilMenu;
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.SimpleContainerData;
@@ -22,9 +18,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.ShapedRecipe;
@@ -308,7 +304,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
      * 也就不会出现"涂着涂着把东西复制进终端"这种事。
      */
     @Override
-    public void clicked(int slotIndex, int buttonNum, ContainerInput input, Player clicker) {
+    public void clicked(int slotIndex, int buttonNum, ClickType input, Player clicker) {
         if (space != null && slotIndex >= 0 && slotIndex < STORAGE_COUNT) {
             switch (input) {
                 case PICKUP -> {
@@ -467,8 +463,8 @@ public class KleinBottleMenu extends AbstractContainerMenu {
         if (moved <= 0) {
             return;
         }
-        // 26.3 的 Player#drop 多了第三个参数 Prediction（老版本只有两个参数）
-        player.drop(template.copyWithCount((int) moved), false, net.minecraft.util.Prediction.SERVER_ONLY);
+        // 1.21.1 的 Player#drop 只有 (ItemStack, boolean) 两个参数
+        player.drop(template.copyWithCount((int) moved), false);
         markMutated();
     }
 
@@ -794,10 +790,10 @@ public class KleinBottleMenu extends AbstractContainerMenu {
         CraftingInput input = craftSlots.asCraftInput();
         ItemStack result = ItemStack.EMPTY;
         Optional<RecipeHolder<CraftingRecipe>> recipe =
-                level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, level);
+                level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level);
         if (recipe.isPresent()) {
             resultSlots.setRecipeUsed(recipe.get());
-            result = recipe.get().value().assemble(input);
+            result = recipe.get().value().assemble(input, level.registryAccess());
         }
         resultSlots.setItem(0, result);
     }
@@ -951,11 +947,11 @@ public class KleinBottleMenu extends AbstractContainerMenu {
     /**
      * 按配方 id 从四维空间里抓材料填内嵌的 3×3 网格。
      *
-     * <p>配料清单与"哪个格子放第几项"来自 26.3 的 {@link PlacementInfo}。⚠️ 但它的
-     * {@code slotsToIngredientIndex()} 用的是<b>配方自身网格</b>的坐标——2×2 配方长度是 4、
-     * 1×3 配方长度是 3，都不是 9。所以有形配方必须再拿 {@code ShapedRecipe#getWidth()}
-     * 换算一次 {@code cell = (s / w) * 3 + (s % w)} 才能落到 3×3 网格上。
-     * 无形配方没有宽度，直接按顺序占 0..n-1（本来就不关心位置）。
+     * <p>配料清单来自 1.21.1 的 {@code recipe.getIngredients()}（配方自身网格顺序，
+     * 有形配方的空格是 {@link Ingredient#EMPTY}）。⚠️ 它用的是<b>配方自身网格</b>的坐标——
+     * 2×2 配方长度是 4、1×3 配方长度是 3，都不是 9。所以有形配方必须再拿
+     * {@code ShapedRecipe#getWidth()} 换算一次 {@code cell = (s / w) * 3 + (s % w)}
+     * 才能落到 3×3 网格上；无形配方没有宽度，直接按顺序占 0..n-1（本来就不关心位置）。
      * 填完再用 {@code recipe.matches(...)} 自检，不匹配就整单撤销、原样退回四维空间。
      */
     public static void transfer(ServerPlayer player, ResourceLocation recipeId, boolean maxTransfer) {
@@ -963,18 +959,12 @@ public class KleinBottleMenu extends AbstractContainerMenu {
             return;
         }
         ServerLevel level = (ServerLevel) player.level();
-        Optional<RecipeHolder<?>> found =
-                level.recipeAccess().byKey(ResourceKey.create(Registries.RECIPE, recipeId));
+        Optional<RecipeHolder<?>> found = level.getRecipeManager().byKey(recipeId);
         if (found.isEmpty() || !(found.get().value() instanceof CraftingRecipe recipe)) {
             return;
         }
 
-        PlacementInfo placement = recipe.placementInfo();
-        if (placement.isImpossibleToPlace()) {
-            return;
-        }
-        List<Ingredient> ingredients = placement.ingredients();
-        IntList slotsToIngredient = placement.slotsToIngredientIndex();
+        List<Ingredient> ingredients = recipe.getIngredients();
 
         FourDimensionalSpace space = menu.space;
 
@@ -1008,15 +998,14 @@ public class KleinBottleMenu extends AbstractContainerMenu {
 
         NonNullList<ItemStack> placed = NonNullList.withSize(CRAFT_COUNT, ItemStack.EMPTY);
         boolean ok = true;
-        for (int s = 0; s < slotsToIngredient.size() && ok; s++) {
-            int ingIndex = slotsToIngredient.getInt(s);
-            if (ingIndex == PlacementInfo.EMPTY_SLOT || ingIndex < 0 || ingIndex >= ingredients.size()) {
-                continue;
+        for (int s = 0; s < ingredients.size() && ok; s++) {
+            Ingredient ing = ingredients.get(s);
+            if (ing.isEmpty()) {
+                continue; // 有形配方的空格
             }
-            Ingredient ing = ingredients.get(ingIndex);
             // 配方自身网格 → 3×3 网格
             int cell = recipeWidth > 0 ? (s / recipeWidth) * 3 + (s % recipeWidth) : s;
-            if (ing.isEmpty() || cell >= CRAFT_COUNT) {
+            if (cell >= CRAFT_COUNT) {
                 continue;
             }
             ItemStack got = space.take(ing::test, sets);
@@ -1081,9 +1070,8 @@ public class KleinBottleMenu extends AbstractContainerMenu {
     /**
      * 熔炉燃料格：只收真燃料。
      *
-     * <p>26.3 判定燃料就是 {@code stack.has(DataComponents.COOKING_FUEL)}
-     * （原版 {@code AbstractFurnaceMenu#isFuel} 就是这么写的，熔岩桶之所以能烧
-     * 也是因为它带这个组件）。
+     * <p>1.21.1 判定燃料是 {@code stack.getBurnTime(...)} &gt; 0
+     * （走 NeoForge {@code IForgeItem#getBurnTime}，原版熔岩桶等燃料都能过）。
      */
     private static final class FurnaceFuelSlot extends Slot {
 
@@ -1119,7 +1107,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
 
         @Override
         public void onTake(Player takenBy, ItemStack stack) {
-            stack.onCraftedBy(player, stack.getCount());
+            stack.onCraftedBy(player.level(), player, stack.getCount());
             furnace.grantExperience(player);
             super.onTake(takenBy, stack);
         }

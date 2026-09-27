@@ -26,6 +26,6 @@ public class WanHuiRingItem extends Item {
         tooltip.add(Component.translatable("item.zuoyanmod.wan_hui_ring.desc6"));
         tooltip.add(Component.translatable("item.zuoyanmod.wan_hui_ring.desc7"));
         tooltip.add(Component.translatable("item.zuoyanmod.wan_hui_ring.desc8"));
-        AccessoryChecks.appendEquipHint(tooltip);
+        AccessoryChecks.appendEquipHint(tooltip::add);
     }
 }

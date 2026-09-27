@@ -51,7 +51,8 @@ public final class DomainExpansionDuelTickHandler {
     private static void sendCountdown(MinecraftServer server, UUID participant, int seconds) {
         var player = server.getPlayerList().getPlayer(participant);
         if (player != null) {
-            player.sendOverlayMessage(Component.translatable("message.zuoyanmod.domain_expansion.return_countdown", seconds).withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            // 1.21.1：action bar 走 displayClientMessage(msg, true)
+            player.displayClientMessage(Component.translatable("message.zuoyanmod.domain_expansion.return_countdown", seconds).withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)), true);
         }
     }
 

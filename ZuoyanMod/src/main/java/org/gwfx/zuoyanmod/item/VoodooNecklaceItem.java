@@ -22,6 +22,6 @@ public class VoodooNecklaceItem extends Item {
         tooltip.add(Component.translatable("item.zuoyanmod.voodoo_necklace.desc2"));
         tooltip.add(Component.translatable("item.zuoyanmod.voodoo_necklace.desc3"));
         tooltip.add(Component.translatable("item.zuoyanmod.voodoo_necklace.desc4"));
-        AccessoryChecks.appendEquipHint(tooltip);
+        AccessoryChecks.appendEquipHint(tooltip::add);
     }
 }

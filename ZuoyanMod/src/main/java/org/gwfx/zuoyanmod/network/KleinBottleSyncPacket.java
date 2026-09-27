@@ -46,16 +46,33 @@ public record KleinBottleSyncPacket(
     public static final Type<KleinBottleSyncPacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "klein_bottle_sync"));
 
-    public static final StreamCodec<ByteBuf, KleinBottleSyncPacket> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT, KleinBottleSyncPacket::scrollRow,
-            ByteBufCodecs.VAR_INT, KleinBottleSyncPacket::visibleRows,
-            ByteBufCodecs.VAR_INT, KleinBottleSyncPacket::viewSize,
-            ByteBufCodecs.VAR_LONG, KleinBottleSyncPacket::totalItems,
-            ByteBufCodecs.stringUtf8(KleinBottleViewPacket.MAX_SEARCH_LENGTH), KleinBottleSyncPacket::search,
-            ByteBufCodecs.VAR_INT, KleinBottleSyncPacket::sortOrdinal,
-            ByteBufCodecs.BOOL, KleinBottleSyncPacket::descending,
-            ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list(256)), KleinBottleSyncPacket::windowTotals,
-            KleinBottleSyncPacket::new);
+    // 字段数 8 > 1.21.1 composite 支持的上限（6），改用手写 StreamCodec.of
+    public static final StreamCodec<ByteBuf, KleinBottleSyncPacket> STREAM_CODEC = StreamCodec.of(
+            KleinBottleSyncPacket::write,
+            KleinBottleSyncPacket::read);
+
+    private static void write(ByteBuf buf, KleinBottleSyncPacket packet) {
+        ByteBufCodecs.VAR_INT.encode(buf, packet.scrollRow);
+        ByteBufCodecs.VAR_INT.encode(buf, packet.visibleRows);
+        ByteBufCodecs.VAR_INT.encode(buf, packet.viewSize);
+        ByteBufCodecs.VAR_LONG.encode(buf, packet.totalItems);
+        ByteBufCodecs.stringUtf8(KleinBottleViewPacket.MAX_SEARCH_LENGTH).encode(buf, packet.search);
+        ByteBufCodecs.VAR_INT.encode(buf, packet.sortOrdinal);
+        ByteBufCodecs.BOOL.encode(buf, packet.descending);
+        ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list(256)).encode(buf, packet.windowTotals);
+    }
+
+    private static KleinBottleSyncPacket read(ByteBuf buf) {
+        return new KleinBottleSyncPacket(
+                ByteBufCodecs.VAR_INT.decode(buf),
+                ByteBufCodecs.VAR_INT.decode(buf),
+                ByteBufCodecs.VAR_INT.decode(buf),
+                ByteBufCodecs.VAR_LONG.decode(buf),
+                ByteBufCodecs.stringUtf8(KleinBottleViewPacket.MAX_SEARCH_LENGTH).decode(buf),
+                ByteBufCodecs.VAR_INT.decode(buf),
+                ByteBufCodecs.BOOL.decode(buf),
+                ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list(256)).decode(buf));
+    }
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

@@ -6,12 +6,11 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
+import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.block.BlockRegistry;
@@ -21,7 +20,7 @@ import org.gwfx.zuoyanmod.block.BlockRegistry;
  *
  * <p>泵的转化逻辑硬编码在 {@link org.gwfx.zuoyanmod.block.VoidResonancePumpBlockEntity} 里
  * （燃料价值表），不是数据驱动的原版 Recipe，所以 JEI 侧用纯展示对象
- * {@link VoidPumpDisplay} + {@code IRecipeType.create(uid, class)} 注册——
+ * {@link VoidPumpDisplay} + {@code RecipeType.create(uid, class)} 注册——
  * 不进配方同步管线，注册期直接喂给 JEI 即可。
  *
  * <p>布局：输入槽 — 共振线+箭头 — 产物（下标注燃料共振值与运行条件）。
@@ -31,10 +30,10 @@ public class VoidPumpCategory implements IRecipeCategory<VoidPumpCategory.VoidPu
 
     /**
      * JEI-only 配方类型：uid 用独立 id "void_pump"，与原版 RecipeType 体系解耦
-     * （create(uid, class) 不触碰注册表，静态初始化安全）。
+     * （create(namespace, path, class) 不触碰注册表，静态初始化安全）。
      */
-    public static final IRecipeType<VoidPumpDisplay> TYPE =
-            IRecipeType.create(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "void_pump"), VoidPumpDisplay.class);
+    public static final RecipeType<VoidPumpDisplay> TYPE =
+            RecipeType.create(Zuoyanmod.MODID, "void_pump", VoidPumpDisplay.class);
 
     private static final int WIDTH = 124;
     private static final int HEIGHT = 40;
@@ -53,7 +52,7 @@ public class VoidPumpCategory implements IRecipeCategory<VoidPumpCategory.VoidPu
     }
 
     @Override
-    public IRecipeType<VoidPumpDisplay> getRecipeType() {
+    public RecipeType<VoidPumpDisplay> getRecipeType() {
         return TYPE;
     }
 
@@ -80,10 +79,10 @@ public class VoidPumpCategory implements IRecipeCategory<VoidPumpCategory.VoidPu
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, VoidPumpDisplay recipe, IFocusGroup focuses) {
         builder.addSlot(RecipeIngredientRole.INPUT, SLOT_IN_X, SLOT_Y)
-                .add(recipe.input())
+                .addItemStack(recipe.input())
                 .setStandardSlotBackground();
         builder.addSlot(RecipeIngredientRole.OUTPUT, OUT_X, SLOT_Y)
-                .add(recipe.output())
+                .addItemStack(recipe.output())
                 .setOutputSlotBackground();
     }
 

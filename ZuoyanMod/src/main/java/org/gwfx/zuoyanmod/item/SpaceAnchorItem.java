@@ -11,9 +11,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Relative;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -21,7 +20,6 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 
-import java.util.Set;
 import java.util.List;
 import org.gwfx.zuoyanmod.network.ModToastPacket;
 
@@ -58,15 +56,15 @@ public class SpaceAnchorItem extends Item {
     // ===== 交互：潜行短按 = 保存/传送，潜行长按 = 覆盖保存 =====
 
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         if (!player.isShiftKeyDown()) {
-            return InteractionResult.PASS;
+            return InteractionResultHolder.pass(player.getItemInHand(hand));
         }
         if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
+            return InteractionResultHolder.success(player.getItemInHand(hand));
         }
         player.startUsingItem(hand);
-        return InteractionResult.CONSUME;
+        return InteractionResultHolder.consume(player.getItemInHand(hand));
     }
 
     @Override
@@ -91,27 +89,26 @@ public class SpaceAnchorItem extends Item {
     }
 
     @Override
-    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
+    public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
         if (level.isClientSide() || !(entity instanceof Player player)) {
-            return false;
+            return;
         }
         // 长按已经由 onUseTick 处理，这里只处理短按
         if (USE_DURATION - timeLeft >= OVERRIDE_TICKS) {
-            return false;
+            return;
         }
         ItemStack anchor = findHeldAnchor(player);
         if (anchor.isEmpty()) {
-            return false;
+            return;
         }
         if (!hasAnchor(anchor)) {
             saveAnchor(player, anchor);
             ModToastPacket.send(player, Component.translatable("message.zuoyanmod.space_anchor.saved"));
-            return true;
+            return;
         }
         if (teleportToAnchor(player, anchor)) {
             ModToastPacket.send(player, Component.translatable("message.zuoyanmod.space_anchor.recalled"));
         }
-        return true;
     }
 
     // ===== 锚点数据读写（CUSTOM_DATA） =====
@@ -125,7 +122,7 @@ public class SpaceAnchorItem extends Item {
     }
 
     public static boolean hasAnchor(ItemStack stack) {
-        return readTag(stack).getBoolean(KEY_SET).orElse(false);
+        return readTag(stack).getBoolean(KEY_SET);
     }
 
     public static void saveAnchor(Player player, ItemStack stack) {
@@ -145,16 +142,16 @@ public class SpaceAnchorItem extends Item {
 
     public static AnchorPos readAnchorPos(ItemStack stack) {
         CompoundTag tag = readTag(stack);
-        if (!tag.getBoolean(KEY_SET).orElse(false)) {
+        if (!tag.getBoolean(KEY_SET)) {
             return null;
         }
         return new AnchorPos(
-                tag.getString(KEY_DIM).orElse(""),
-                tag.getDouble(KEY_X).orElse(0D),
-                tag.getDouble(KEY_Y).orElse(0D),
-                tag.getDouble(KEY_Z).orElse(0D),
-                tag.getFloat(KEY_Y_ROT).orElse(0F),
-                tag.getFloat(KEY_X_ROT).orElse(0F)
+                tag.getString(KEY_DIM),
+                tag.getDouble(KEY_X),
+                tag.getDouble(KEY_Y),
+                tag.getDouble(KEY_Z),
+                tag.getFloat(KEY_Y_ROT),
+                tag.getFloat(KEY_X_ROT)
         );
     }
 
@@ -187,12 +184,8 @@ public class SpaceAnchorItem extends Item {
             return false;
         }
 
-        // 与 RealmTransitionManager 一致的跨维度传送写法。
-        // 注意：跨维度分支内部是"创建新实体 + 移除旧实体"，可能返回 false，必须检查返回值
-        boolean success = serverPlayer.teleportTo(target, pos.x(), pos.y(), pos.z(), Set.<Relative>of(), pos.yRot(), pos.xRot(), false);
-        if (!success) {
-            return false;
-        }
+        // 与 RealmTransitionManager 一致的跨维度传送写法（1.21.1：ServerLevel + 坐标 + 姿态角）。
+        serverPlayer.teleportTo(target, pos.x(), pos.y(), pos.z(), pos.yRot(), pos.xRot());
         serverPlayer.playSound(SoundEvents.CHORUS_FRUIT_TELEPORT, 1.0F, 1.0F);
         return true;
     }
@@ -200,7 +193,7 @@ public class SpaceAnchorItem extends Item {
     // ===== 冷却 =====
 
     public static boolean isOnCooldown(Player player, ItemStack stack) {
-        long until = readTag(stack).getLong(KEY_COOLDOWN_UNTIL).orElse(0L);
+        long until = readTag(stack).getLong(KEY_COOLDOWN_UNTIL);
         return until > player.level().getGameTime();
     }
 
@@ -232,13 +225,13 @@ public class SpaceAnchorItem extends Item {
         tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc6"));
 
         CompoundTag tag = readTag(stack);
-        if (tag.getBoolean(KEY_SET).orElse(false)) {
-            String dimensionId = tag.getString(KEY_DIM).orElse("");
+        if (tag.getBoolean(KEY_SET)) {
+            String dimensionId = tag.getString(KEY_DIM);
             tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc9", dimensionId,
                     String.format("%.0f, %.0f, %.0f",
-                            tag.getDouble(KEY_X).orElse(0D),
-                            tag.getDouble(KEY_Y).orElse(0D),
-                            tag.getDouble(KEY_Z).orElse(0D))));
+                            tag.getDouble(KEY_X),
+                            tag.getDouble(KEY_Y),
+                            tag.getDouble(KEY_Z))));
         } else {
             tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc7"));
         }

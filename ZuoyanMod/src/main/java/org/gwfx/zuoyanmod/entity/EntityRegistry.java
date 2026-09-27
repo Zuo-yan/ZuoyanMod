@@ -14,7 +14,7 @@ import org.gwfx.zuoyanmod.Zuoyanmod;
 /**
  * 生物（实体类型）注册表。
  *
- * <p>26.3 里注册一个生物需要三处配合，缺一不可：
+ * <p>1.21.1 里注册一个生物需要三处配合，缺一不可：
  * <ol>
  *   <li>这里注册 {@link EntityType}（决定尺寸、追踪范围、生成分类）；</li>
  *   <li>{@link #onEntityAttributeCreation} 里绑定属性（生命/攻击/移速…），
@@ -26,8 +26,9 @@ import org.gwfx.zuoyanmod.Zuoyanmod;
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
 public final class EntityRegistry {
 
-    public static final DeferredRegister.Entities ENTITY_TYPES =
-            DeferredRegister.createEntities(Zuoyanmod.MODID);
+    // 1.21.1 的 DeferredRegister 没有 Entities 子类，用普通 create + EntityType.Builder#build 注册
+    public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
+            DeferredRegister.create(Registries.ENTITY_TYPE, Zuoyanmod.MODID);
 
     /**
      * 瑞克：与玩家同尺寸的人形中立生物。
@@ -36,15 +37,12 @@ public final class EntityRegistry {
      * 保证玩家在较远处也能看到它的模型。
      */
     public static final DeferredHolder<EntityType<?>, EntityType<RickEntity>> RICK =
-            ENTITY_TYPES.registerEntityType(
-                    "rick",
-                    RickEntity::new,
-                    MobCategory.CREATURE,
-                    builder -> builder
+            ENTITY_TYPES.register("rick",
+                    () -> EntityType.Builder.of(RickEntity::new, MobCategory.CREATURE)
                             .sized(0.6F, 1.8F)
                             .eyeHeight(1.62F)
                             .clientTrackingRange(10)
-            );
+                            .build("rick"));
 
     /**
      * 原始黑洞的子弹：纯能量体（MobCategory.MISC，与原版箭/雪球同类，
@@ -52,16 +50,13 @@ public final class EntityRegistry {
      * <p>{@code updateInterval(1)}：高速射线需要每 tick 同步位置，防跳变。
      */
     public static final DeferredHolder<EntityType<?>, EntityType<CausalityBulletEntity>> CAUSALITY_BULLET =
-            ENTITY_TYPES.registerEntityType(
-                    "causality_bullet",
-                    CausalityBulletEntity::new,
-                    MobCategory.MISC,
-                    builder -> builder
+            ENTITY_TYPES.register("causality_bullet",
+                    () -> EntityType.Builder.<CausalityBulletEntity>of(CausalityBulletEntity::new, MobCategory.MISC)
                             .sized(0.3F, 0.3F)
                             .eyeHeight(0.15F)
                             .clientTrackingRange(10)
                             .updateInterval(1)
-            );
+                            .build("causality_bullet"));
 
     /**
      * 原始黑洞：右键道具释放的奇点场。
@@ -81,16 +76,13 @@ public final class EntityRegistry {
      * </ul>
      */
     public static final DeferredHolder<EntityType<?>, EntityType<PrimordialBlackHoleEntity>> PRIMORDIAL_BLACK_HOLE =
-            ENTITY_TYPES.registerEntityType(
-                    "primordial_black_hole",
-                    PrimordialBlackHoleEntity::new,
-                    MobCategory.MISC,
-                    builder -> builder
+            ENTITY_TYPES.register("primordial_black_hole",
+                    () -> EntityType.Builder.<PrimordialBlackHoleEntity>of(PrimordialBlackHoleEntity::new, MobCategory.MISC)
                             .sized(2.0F, 2.0F)
                             .clientTrackingRange(8)
                             .updateInterval(3)
                             .noSave()
-            );
+                            .build("primordial_black_hole"));
 
     /**
      * 湮灭君主：湮灭王座遗迹的守关 Boss（MobCategory.MONSTER）。
@@ -100,41 +92,32 @@ public final class EntityRegistry {
      * 的火把把 Boss 烧得乱跳。属性绑定见 {@link #onEntityAttributeCreation}。
      */
     public static final DeferredHolder<EntityType<?>, EntityType<VoidMonarchEntity>> VOID_MONARCH =
-            ENTITY_TYPES.registerEntityType(
-                    "void_monarch",
-                    VoidMonarchEntity::new,
-                    MobCategory.MONSTER,
-                    builder -> builder
+            ENTITY_TYPES.register("void_monarch",
+                    () -> EntityType.Builder.of(VoidMonarchEntity::new, MobCategory.MONSTER)
                             .sized(1.6F, 3.6F)
                             .eyeHeight(3.2F)
                             .clientTrackingRange(10)
                             .fireImmune()
-            );
+                            .build("void_monarch"));
 
     /** 湮灭侍卫：君主麾下的人形精英小怪，遗迹驻军 + 召唤物。 */
     public static final DeferredHolder<EntityType<?>, EntityType<VoidGuardEntity>> VOID_GUARD =
-            ENTITY_TYPES.registerEntityType(
-                    "void_guard",
-                    VoidGuardEntity::new,
-                    MobCategory.MONSTER,
-                    builder -> builder
+            ENTITY_TYPES.register("void_guard",
+                    () -> EntityType.Builder.of(VoidGuardEntity::new, MobCategory.MONSTER)
                             .sized(0.7F, 2.0F)
                             .eyeHeight(1.75F)
                             .clientTrackingRange(10)
-            );
+                            .build("void_guard"));
 
     /** 暗物质螺栓：君主的弹幕投射物（MISC，与原版箭/雪球同类，不占刷怪上限）。 */
     public static final DeferredHolder<EntityType<?>, EntityType<VoidBoltEntity>> VOID_BOLT =
-            ENTITY_TYPES.registerEntityType(
-                    "void_bolt",
-                    VoidBoltEntity::new,
-                    MobCategory.MISC,
-                    builder -> builder
+            ENTITY_TYPES.register("void_bolt",
+                    () -> EntityType.Builder.<VoidBoltEntity>of(VoidBoltEntity::new, MobCategory.MISC)
                             .sized(0.4F, 0.4F)
                             .eyeHeight(0.2F)
                             .clientTrackingRange(8)
                             .updateInterval(2)
-            );
+                            .build("void_bolt"));
 
     private EntityRegistry() {}
 

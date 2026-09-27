@@ -33,7 +33,7 @@ public final class ModToastHud {
     @SubscribeEvent
     public static void onRenderHud(RenderGuiEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null || minecraft.gui.hud.isHidden()) {
+        if (minecraft.player == null || minecraft.options.hideGui) {
             return;
         }
         List<ClientModToasts.Toast> toasts = ClientModToasts.active();
@@ -54,7 +54,7 @@ public final class ModToastHud {
             int x = right - width;
 
             g.fill(x, y, x + width, y + height, KleinTheme.withAlpha(KleinTheme.PANEL_DEEP, 0.85F * alpha));
-            g.outline(x, y, width, height, KleinTheme.withAlpha(KleinTheme.BORDER, alpha));
+            g.renderOutline(x, y, width, height, KleinTheme.withAlpha(KleinTheme.BORDER, alpha));
             g.drawString(font, toast.text(), x + PAD_X, y + PAD_Y, KleinTheme.withAlpha(KleinTheme.TEXT, alpha), true);
 
             y += height + GAP;

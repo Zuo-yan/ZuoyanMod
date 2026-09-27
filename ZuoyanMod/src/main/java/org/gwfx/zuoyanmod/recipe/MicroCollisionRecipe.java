@@ -3,16 +3,15 @@ package org.gwfx.zuoyanmod.recipe;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeBookCategories;
-import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -40,33 +39,32 @@ public class MicroCollisionRecipe implements Recipe<MicroCollisionRecipe.Collisi
     /** 数据层：DataPack JSON → 配方对象。duration 默认 100 ticks（5 秒）。 */
     public static final MapCodec<MicroCollisionRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(
             i -> i.group(
-                    Recipe.CommonInfo.MAP_CODEC.forGetter(r -> r.commonInfo),
+                    Codec.STRING.optionalFieldOf("group", "").forGetter(MicroCollisionRecipe::getGroup),
                     Ingredient.CODEC.fieldOf("ingredient_a").forGetter(MicroCollisionRecipe::inputA),
                     Ingredient.CODEC.fieldOf("ingredient_b").forGetter(MicroCollisionRecipe::inputB),
-                    ItemStackTemplate.CODEC.fieldOf("result").forGetter(r -> r.result),
+                    ItemStack.STRICT_CODEC.fieldOf("result").forGetter(r -> r.result),
                     Codec.INT.optionalFieldOf("duration", 100).forGetter(MicroCollisionRecipe::duration)
             ).apply(i, MicroCollisionRecipe::new)
     );
 
     /** 网络层：服务端 → 客户端同步（配方书/JEI 等客户端消费方）。 */
     public static final StreamCodec<RegistryFriendlyByteBuf, MicroCollisionRecipe> STREAM_CODEC = StreamCodec.composite(
-            Recipe.CommonInfo.STREAM_CODEC, r -> r.commonInfo,
+            ByteBufCodecs.STRING_UTF8, MicroCollisionRecipe::getGroup,
             Ingredient.CONTENTS_STREAM_CODEC, MicroCollisionRecipe::inputA,
             Ingredient.CONTENTS_STREAM_CODEC, r -> r.inputB,
-            ItemStackTemplate.STREAM_CODEC, r -> r.result,
-            ByteBufCodecs.INT, MicroCollisionRecipe::duration,
+            ItemStack.STREAM_CODEC, r -> r.result,
+            ByteBufCodecs.VAR_INT, MicroCollisionRecipe::duration,
             MicroCollisionRecipe::new
     );
 
-    private final Recipe.CommonInfo commonInfo;
+    private final String group;
     private final Ingredient inputA;
     private final Ingredient inputB;
-    private final ItemStackTemplate result;
+    private final ItemStack result;
     private final int duration;
-    private PlacementInfo cachedPlacementInfo;
 
-    public MicroCollisionRecipe(Recipe.CommonInfo commonInfo, Ingredient inputA, Ingredient inputB, ItemStackTemplate result, int duration) {
-        this.commonInfo = commonInfo;
+    public MicroCollisionRecipe(String group, Ingredient inputA, Ingredient inputB, ItemStack result, int duration) {
+        this.group = group;
         this.inputA = inputA;
         this.inputB = inputB;
         this.result = result;
@@ -91,21 +89,28 @@ public class MicroCollisionRecipe implements Recipe<MicroCollisionRecipe.Collisi
     }
 
     @Override
-    public ItemStack assemble(CollisionInput input) {
-        return this.result.create();
+    public ItemStack assemble(CollisionInput input, HolderLookup.Provider registries) {
+        return this.result.copy();
     }
 
     /** 仅展示用（JEI 类别等）：不关心输入，直接产出展示栈。 */
     public ItemStack resultDisplay() {
-        return this.result.create();
+        return this.result.copy();
     }
 
     @Override
-    public PlacementInfo placementInfo() {
-        if (this.cachedPlacementInfo == null) {
-            this.cachedPlacementInfo = PlacementInfo.create(java.util.List.of(this.inputA, this.inputB));
-        }
-        return this.cachedPlacementInfo;
+    public ItemStack getResultItem(HolderLookup.Provider registries) {
+        return this.result;
+    }
+
+    @Override
+    public NonNullList<Ingredient> getIngredients() {
+        return NonNullList.of(Ingredient.EMPTY, this.inputA, this.inputB);
+    }
+
+    @Override
+    public boolean canCraftInDimensions(int width, int height) {
+        return width * height >= 2;
     }
 
     public Ingredient inputA() {
@@ -124,8 +129,8 @@ public class MicroCollisionRecipe implements Recipe<MicroCollisionRecipe.Collisi
     }
 
     @Override
-    public String group() {
-        return "";
+    public String getGroup() {
+        return this.group;
     }
 
     @Override
@@ -136,11 +141,6 @@ public class MicroCollisionRecipe implements Recipe<MicroCollisionRecipe.Collisi
     @Override
     public RecipeType<? extends Recipe<CollisionInput>> getType() {
         return RecipeRegistry.MICRO_COLLISION_TYPE.get();
-    }
-
-    @Override
-    public RecipeBookCategory recipeBookCategory() {
-        return RecipeBookCategories.CRAFTING_MISC;
     }
 
     // ===== 输入视图：对撞机的两格材料 =====
@@ -159,6 +159,19 @@ public class MicroCollisionRecipe implements Recipe<MicroCollisionRecipe.Collisi
         @Override
         public int size() {
             return 2;
+        }
+    }
+
+    /** 1.21.1 的 RecipeSerializer 是「codec() + streamCodec()」接口，需要自己实现（对照 ShapelessRecipe.Serializer）。 */
+    public static class Serializer implements RecipeSerializer<MicroCollisionRecipe> {
+        @Override
+        public MapCodec<MicroCollisionRecipe> codec() {
+            return MAP_CODEC;
+        }
+
+        @Override
+        public StreamCodec<RegistryFriendlyByteBuf, MicroCollisionRecipe> streamCodec() {
+            return STREAM_CODEC;
         }
     }
 }

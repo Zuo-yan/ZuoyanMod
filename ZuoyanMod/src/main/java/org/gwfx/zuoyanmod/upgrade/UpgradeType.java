@@ -19,16 +19,16 @@ import java.util.Locale;
 public enum UpgradeType {
 
     /** 每级 +2 生命上限，满级 +20（10 颗心） */
-    MAX_HEALTH(Attributes.MAX_HEALTH, AttributeModifier.Operation.ADDITION, 2.0D),
+    MAX_HEALTH(Attributes.MAX_HEALTH, AttributeModifier.Operation.ADD_VALUE, 2.0D),
 
     /** 每级 +0.5 攻击伤害，满级 +5 */
-    ATTACK_DAMAGE(Attributes.ATTACK_DAMAGE, AttributeModifier.Operation.ADDITION, 0.5D),
+    ATTACK_DAMAGE(Attributes.ATTACK_DAMAGE, AttributeModifier.Operation.ADD_VALUE, 0.5D),
 
     /** 每级 +4% 移动速度（乘法），满级 +40% */
-    MOVEMENT_SPEED(Attributes.MOVEMENT_SPEED, AttributeModifier.Operation.MULTIPLY_TOTAL, 0.04D),
+    MOVEMENT_SPEED(Attributes.MOVEMENT_SPEED, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, 0.04D),
 
     /** 每级 +2 护甲值，满级 +20 */
-    ARMOR(Attributes.ARMOR, AttributeModifier.Operation.ADDITION, 2.0D),
+    ARMOR(Attributes.ARMOR, AttributeModifier.Operation.ADD_VALUE, 2.0D),
 
     /** 每级 -2% 受到伤害（护甲结算后的乘法减免），满级 -20%。不是属性，见类注释。 */
     DAMAGE_REDUCTION(null, null, 0.02D);

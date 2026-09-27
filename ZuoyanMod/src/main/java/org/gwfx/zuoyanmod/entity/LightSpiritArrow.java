@@ -38,7 +38,7 @@ public class LightSpiritArrow extends Arrow {
     public void tick() {
         super.tick();
         if (this.level() instanceof ServerLevel serverLevel) {
-            if (this.isInGround()) {
+            if (this.inGround) {
                 // 落地：化作光尘消散，不留任何残骸
                 serverLevel.sendParticles(ParticleTypes.END_ROD,
                         this.getX(), this.getY(0.5), this.getZ(),

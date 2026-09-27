@@ -13,9 +13,9 @@ import org.gwfx.zuoyanmod.menu.VoidResonancePumpMenu;
  * 布局：顶部标题 + 状态；中部「输入槽 — 产出进度条 — 输出槽」一行；下方一条共振储备条（5 段等级刻度）；
  * 下半是玩家背包。所有坐标常量与 tools/gen_void_pump_textures.py 的 GUI 部分严格对应，改一处必改另一处。
  *
- * 26.3 的 GUI 走 GuiGraphics + RenderPipelines 架构：
- *   - extractBackground 里的坐标是屏幕绝对坐标（需加 leftPos/topPos）
- *   - extractLabels 由父类在 translate(leftPos, topPos) 之后调用，坐标为 GUI 局部坐标
+ * 1.21.1 的容器界面走经典 AbstractContainerScreen 钩子：
+ *   - renderBg 里的坐标是屏幕绝对坐标（从 leftPos/topPos 起笔）
+ *   - renderLabels 由父类在 translate(leftPos, topPos) 之后调用，坐标为 GUI 局部坐标
  */
 public class VoidResonancePumpScreen extends AbstractContainerScreen<VoidResonancePumpMenu> {
 
@@ -40,7 +40,9 @@ public class VoidResonancePumpScreen extends AbstractContainerScreen<VoidResonan
     private static final int RES_MAX = VoidResonancePumpBlockEntity.MAX_RESONANCE;
 
     public VoidResonancePumpScreen(VoidResonancePumpMenu menu, Inventory inventory, Component title) {
-        super(menu, inventory, title, TEX_W, TEX_H);
+        super(menu, inventory, title);
+        this.imageWidth = TEX_W;
+        this.imageHeight = TEX_H;
         this.titleLabelX = 8;
         this.titleLabelY = 6;
         this.inventoryLabelX = 8;
@@ -48,8 +50,7 @@ public class VoidResonancePumpScreen extends AbstractContainerScreen<VoidResonan
     }
 
     @Override
-    public void extractBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         int x = leftPos;
         int y = topPos;
         graphics.blit(TEXTURE, x, y, 0.0F, 0.0F, TEX_W, TEX_H, TEX_W, TEX_H);
@@ -76,7 +77,7 @@ public class VoidResonancePumpScreen extends AbstractContainerScreen<VoidResonan
     }
 
     @Override
-    protected void extractLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         // 深紫底上用浅色文字（原版默认 0xFF404040 会看不清），故不调用 super
         graphics.drawString(font, title, titleLabelX, titleLabelY, 0xFFEDE7F6, false);
         graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFF9C8FBE, false);

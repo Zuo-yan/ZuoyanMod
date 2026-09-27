@@ -4,8 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
-import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
-import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.resources.ResourceLocation;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.entity.VoidMonarchEntity;
@@ -19,12 +17,12 @@ import org.gwfx.zuoyanmod.entity.VoidMonarchEntity;
  *
  * <p><b>两阶段皮肤</b>：常态 {@code void_monarch.png}；血量低于 30% 进入狂暴
  * （{@code applyEnrage}）后切 {@code void_monarch_phase2.png}（白红发光脸 +
- * 红纹制服）。狂暴标记经渲染状态 {@link VoidMonarchRenderState} 从实体同步。
+ * 红纹制服）。1.21.1 无 RenderState，直接在 {@link #getTextureLocation} 里问实体要狂暴标记。
  *
  * <p>帽层方块（vanilla hat）在此隐藏：皮肤上帽区只画金冠的 UV，帽方块若渲染
  * 会把冠的金色 UV 带渗到额头上（冠块与帽块共用 texOffs(32,0) 区域）。
  */
-public class VoidMonarchRenderer extends HumanoidMobRenderer<VoidMonarchEntity, VoidMonarchRenderer.VoidMonarchRenderState, HumanoidModel<VoidMonarchRenderer.VoidMonarchRenderState>> {
+public class VoidMonarchRenderer extends HumanoidMobRenderer<VoidMonarchEntity, HumanoidModel<VoidMonarchEntity>> {
 
     /** 整体渲染缩放（碰撞箱不变，仅视觉放大） */
     public static final float SCALE = 1.8F;
@@ -39,34 +37,17 @@ public class VoidMonarchRenderer extends HumanoidMobRenderer<VoidMonarchEntity, 
 
     public VoidMonarchRenderer(EntityRendererProvider.Context context) {
         super(context, new HumanoidModel<>(context.bakeLayer(BossModelLayers.VOID_MONARCH_BODY)), 1.2F);
-        this.addLayer(new ItemInHandLayer<>(this));
         this.model.hat.visible = false;
     }
 
     @Override
-    public VoidMonarchRenderState createRenderState() {
-        return new VoidMonarchRenderState();
-    }
-
-    @Override
-    public void extractRenderState(VoidMonarchEntity entity, VoidMonarchRenderState state, float partialTick) {
-        super.extractRenderState(entity, state, partialTick);
-        state.enraged = entity.isEnraged();
-    }
-
-    @Override
-    protected void scale(VoidMonarchRenderState state, PoseStack poseStack) {
-        super.scale(state, poseStack);
+    protected void scale(VoidMonarchEntity entity, PoseStack poseStack, float partialTickTime) {
+        super.scale(entity, poseStack, partialTickTime);
         poseStack.scale(SCALE, SCALE, SCALE);
     }
 
     @Override
-    public ResourceLocation getTextureLocation(VoidMonarchRenderState state) {
-        return state.enraged ? TEXTURE_ENRAGED : TEXTURE;
-    }
-
-    /** 渲染状态：只带渲染需要的标记（狂暴与否）。 */
-    public static class VoidMonarchRenderState extends HumanoidRenderState {
-        public boolean enraged;
+    public ResourceLocation getTextureLocation(VoidMonarchEntity entity) {
+        return entity.isEnraged() ? TEXTURE_ENRAGED : TEXTURE;
     }
 }

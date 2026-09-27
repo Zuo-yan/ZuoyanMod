@@ -23,6 +23,6 @@ public final class DeathNoteClient {
 
     /** 打开死亡笔记界面。只在客户端调用。 */
     public static void openScreen(ItemStack stack) {
-        net.minecraft.client.Minecraft.getInstance().gui.setScreen(new DeathNoteScreen(stack));
+        net.minecraft.client.Minecraft.getInstance().setScreen(new DeathNoteScreen(stack));
     }
 }

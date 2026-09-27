@@ -27,8 +27,9 @@ public final class KleinAmountRenderer {
     /**
      * 画数量叠字。
      *
-     * <p>⚠️ <b>本方法不管绘制批次</b>：调用方要先自己调一次 {@code graphics.nextStratum()}，
-     * 否则叠字可能被物品图标的批次盖住（AE2 的 {@code StackSizeRenderer} 也是在调用点切批次的）。
+     * <p>⚠️ <b>本方法不管绘制顺序</b>：1.21.1 的 GuiGraphics 按调用先后绘制，
+     * 调用方要先画物品图标、再画叠字，否则叠字会被后画的图标盖住
+     * （AE2 的 {@code StackSizeRenderer} 也是在调用点保证顺序的）。
      */
     public static void draw(GuiGraphics graphics, Font font, int slotX, int slotY, String text, int color) {
         int width = font.width(text);

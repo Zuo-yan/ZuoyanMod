@@ -3,7 +3,6 @@ package org.gwfx.zuoyanmod.client.klein;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -60,13 +59,13 @@ public final class KleinSearchBox extends EditBox {
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (isMouseOver(event.x(), event.y())) {
-            if (event.button() == 1) {
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (isMouseOver(mouseX, mouseY)) {
+            if (button == 1) {
                 setValue("");
             }
             // super 会按"点到第几个字符"移动光标（它用的是文字带坐标，越界会夹到两端，无副作用）
-            super.mouseClicked(event, doubleClick);
+            super.mouseClicked(mouseX, mouseY, button);
             setFocused(true);
             return true;
         }

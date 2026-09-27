@@ -1,11 +1,10 @@
 package org.gwfx.zuoyanmod.client;
 
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 import com.mojang.logging.LogUtils;
 import net.minecraft.world.entity.player.Player;
@@ -16,7 +15,6 @@ import org.gwfx.zuoyanmod.upgrade.UpgradeType;
 import org.slf4j.Logger;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -154,12 +152,10 @@ public class UpgradeScreen extends Screen {
         }
 
         @Override
-        public void onPress(InputWithModifiers input) {
+        public void onPress() {
             // Shift+左键 = 退还，普通左键 = 升级。
-            // ⚠️ 别在这里用裸数字判断鼠标左右键：26.3 的键值换了体系
-            // （InputConstants.MOUSE_BUTTON_LEFT=1 / RIGHT=3，不是 GLFW 的 0/1），
-            // 上一版就是拿 1 当"右键"结果把左键拦成了退还。
-            if (this.shiftAction != null && input.hasShiftDown()) {
+            // 1.21.1 的 onPress 不带按键信息，修饰键用 Screen.hasShiftDown() 静态查询。
+            if (this.shiftAction != null && Screen.hasShiftDown()) {
                 this.shiftAction.run();
             } else {
                 this.action.run();
@@ -167,12 +163,12 @@ public class UpgradeScreen extends Screen {
         }
 
         @Override
-        protected void extractContents(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
             this.painter.draw(g, getX(), getY(), getWidth(), getHeight(), isHovered());
             if (isHovered() && this.tooltip != null) {
                 List<Component> lines = this.tooltip.get();
                 if (lines != null && !lines.isEmpty()) {
-                    g.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
+                    g.renderComponentTooltip(font, lines, mouseX, mouseY);
                 }
             }
         }
@@ -186,7 +182,7 @@ public class UpgradeScreen extends Screen {
     // ===== 绘制 =====
 
     @Override
-    public void extractRenderState(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         // 同步快照等级上涨 → 界面内闪一条"升级成功"（哪条升的、升到几级都点名）
         int[] levels = new int[UpgradeType.VALUES.length];
         for (int i = 0; i < levels.length; i++) {
@@ -208,7 +204,7 @@ public class UpgradeScreen extends Screen {
 
         drawPanel(g, px, py);
         // 行与卡是真控件，走 Screen 的标准控件渲染（面板之上、状态行之下）
-        super.extractRenderState(g, mouseX, mouseY, partialTick);
+        super.render(g, mouseX, mouseY, partialTick);
         drawHeader(g, px, py);
         drawStatusLine(g, px, py);
     }
@@ -216,8 +212,8 @@ public class UpgradeScreen extends Screen {
     /** 面板底 + 双层描边 + 顶部青色亮线（klein 面板的三件套） */
     private void drawPanel(GuiGraphics g, int px, int py) {
         g.fill(px, py, px + PANEL_W, py + PANEL_H, withAlpha(KleinTheme.PANEL, 0.94F));
-        g.outline(px - 1, py - 1, PANEL_W + 2, PANEL_H + 2, KleinTheme.BORDER_OUTER);
-        g.outline(px, py, PANEL_W, PANEL_H, KleinTheme.BORDER);
+        g.renderOutline(px - 1, py - 1, PANEL_W + 2, PANEL_H + 2, KleinTheme.BORDER_OUTER);
+        g.renderOutline(px, py, PANEL_W, PANEL_H, KleinTheme.BORDER);
         g.fill(px + 1, py + 1, px + PANEL_W - 1, py + 2, withAlpha(KleinTheme.CYAN, 0.55F));
     }
 
@@ -315,7 +311,7 @@ public class UpgradeScreen extends Screen {
             nameColor = KleinTheme.TEXT;
         }
         g.fill(x, y, x + w, y + h, withAlpha(KleinTheme.PANEL_DEEP, !unlocked ? 0.55F : 0.92F));
-        g.outline(x, y, w, h, border);
+        g.renderOutline(x, y, w, h, border);
 
         drawTalentGlyph(g, talent, x + 5, y + h / 2 - 4,
                 nameColor == KleinTheme.TEXT_FAINT ? KleinTheme.TEXT_FAINT : KleinTheme.CYAN);
@@ -350,13 +346,13 @@ public class UpgradeScreen extends Screen {
      */
     private void drawExtraSkillSlot(GuiGraphics g, int x, int y, int w, int h, boolean hovered) {
         g.fill(x, y, x + w, y + h, withAlpha(KleinTheme.PANEL_DEEP, 0.92F));
-        g.outline(x, y, w, h, hovered ? KleinTheme.BORDER_BRIGHT : KleinTheme.BORDER);
+        g.renderOutline(x, y, w, h, hovered ? KleinTheme.BORDER_BRIGHT : KleinTheme.BORDER);
         g.fill(x + 1, y + 1, x + w - 1, y + 2,
                 withAlpha(KleinTheme.CYAN, hovered ? 0.45F : 0.18F));
 
         // 左侧图标格：小井 + 四芒星
         g.fill(x + 3, y + 2, x + 13, y + h - 2, withAlpha(KleinTheme.WELL, 0.9F));
-        g.outline(x + 3, y + 2, 10, h - 4, withAlpha(KleinTheme.WELL_EDGE, 0.9F));
+        g.renderOutline(x + 3, y + 2, 10, h - 4, withAlpha(KleinTheme.WELL_EDGE, 0.9F));
         int cx = x + 8;
         int cy = y + h / 2;
         g.fill(cx, y + 3, cx + 1, y + h - 3, hovered ? KleinTheme.GOLD : KleinTheme.CYAN_DEEP);
@@ -400,7 +396,7 @@ public class UpgradeScreen extends Screen {
                 // 黑洞：暗核 + 亮吸积环
                 g.fill(x + 2, y + 2, x + 6, y + 6, KleinTheme.PANEL_DEEP);
                 g.fill(x + 3, y + 3, x + 5, y + 5, 0xFF000000);
-                g.outline(x + 2, y + 2, 4, 4, color);
+                g.renderOutline(x + 2, y + 2, 4, 4, color);
             }
         }
     }

@@ -22,6 +22,6 @@ public class CounterBeltItem extends Item {
         tooltip.add(Component.translatable("item.zuoyanmod.counter_belt.desc2"));
         tooltip.add(Component.translatable("item.zuoyanmod.counter_belt.desc3"));
         tooltip.add(Component.translatable("item.zuoyanmod.counter_belt.desc4"));
-        AccessoryChecks.appendEquipHint(tooltip);
+        AccessoryChecks.appendEquipHint(tooltip::add);
     }
 }

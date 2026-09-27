@@ -35,7 +35,7 @@ public class MonarchBladeItem extends Item {
     }
 
     @Override
-    public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+    public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         super.hurtEnemy(stack, target, attacker);
         if (target.level() instanceof net.minecraft.server.level.ServerLevel serverLevel
                 && target.isAlive()
@@ -44,6 +44,7 @@ public class MonarchBladeItem extends Item {
                     * BOSS_BONUS_FRACTION);
             target.hurt(attacker.damageSources().magic(), bonus);
         }
+        return true;
     }
 
     @Override

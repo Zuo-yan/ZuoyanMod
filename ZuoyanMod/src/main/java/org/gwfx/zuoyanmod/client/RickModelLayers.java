@@ -15,12 +15,13 @@ import org.gwfx.zuoyanmod.Zuoyanmod;
  *   <li>{@code ModelLayers.ZOMBIE} 那层是 {@code HumanoidModel.createMesh(...)}，
  *       只有"帽子"一层薄壳，<b>没有</b>外套/双层袖子/裤腿；</li>
  *   <li>{@code ModelLayers.PLAYER} 那层尺寸对得上，但原版的 {@code PlayerModel}
- *       被硬绑死在 {@code AvatarRenderState} 上，无法配我们自己的渲染状态。</li>
+ *       泛型绑死在玩家实体上（{@code PlayerModel<T extends Player>}），
+ *       不能拿来渲染 {@code RickEntity}。</li>
  * </ul>
  * 所以这里用 {@code HumanoidModel.createMesh(CubeDeformation.NONE, 0.0F)}
  * 自己烘一层 64x64 的人形模型——它的盒子尺寸/贴图偏移与玩家皮肤布局完全一致，
  * 因此任意标准 64x64 皮肤都能正确贴上去；又因为泛型是 {@link HumanoidModel}
- * 而不是 PlayerModel，可以自由配 {@code HumanoidRenderState}。
+ * 而不是 PlayerModel，可以自由配我们的实体类型。
  */
 public final class RickModelLayers {
 

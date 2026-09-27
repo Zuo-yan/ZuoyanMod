@@ -3,7 +3,8 @@ package org.gwfx.zuoyanmod.item;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -37,24 +38,24 @@ public class AbsoluteZeroItem extends Item {
     }
 
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
+            return InteractionResultHolder.success(player.getItemInHand(hand));
         }
         if (!(level instanceof ServerLevel serverLevel)) {
-            return InteractionResult.PASS;
+            return InteractionResultHolder.pass(player.getItemInHand(hand));
         }
         // 场上已有未消散的凝聚场：拒绝，避免连点白白烧掉一次耐久
         if (TimeFreezeManager.hasActiveField(player)) {
             ModToastPacket.send(player, Component.translatable("message.zuoyanmod.absolute_zero.field_active"));
-            return InteractionResult.FAIL;
+            return InteractionResultHolder.fail(player.getItemInHand(hand));
         }
 
         TimeFreezeManager.cast(serverLevel, player);
 
         ItemStack stack = player.getItemInHand(hand);
-        stack.hurtAndBreak(1, player, hand);
-        return InteractionResult.CONSUME;
+        stack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+        return InteractionResultHolder.consume(player.getItemInHand(hand));
     }
 
     @Override

@@ -4,7 +4,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -40,7 +40,7 @@ public class CausalityPistolItem extends Item {
     }
 
     /**
-     * 物品描述（26.3 五参签名，同 {@link DescribedItem} 先例）：
+     * 物品描述（1.21.1 四参签名）：
      * 前三行讲机制，第四行单独高亮弹药消耗。
      */
     @Override
@@ -62,12 +62,12 @@ public class CausalityPistolItem extends Item {
      * {@link CausalityBulletEntity#onHitEntity} 的同位体/湮灭射线规则。
      */
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
         // 冷却中：连点无效
-        if (player.getCooldowns().isOnCooldown(stack)) {
-            return InteractionResult.PASS;
+        if (player.getCooldowns().isOnCooldown(stack.getItem())) {
+            return InteractionResultHolder.pass(stack);
         }
 
         // 生存模式：先检查再消耗 1 枚反物质子弹（创造免费）
@@ -76,7 +76,7 @@ public class CausalityPistolItem extends Item {
                     .findSlotMatchingItem(new ItemStack(ItemRegistry.ANTIMATTER_BULLET.get()));
             if (ammoSlot == -1) {
                 // 没有弹药：发射失败（无音效无动画，与原版弓无箭一致）
-                return InteractionResult.FAIL;
+                return InteractionResultHolder.fail(stack);
             }
             player.getInventory().removeItem(ammoSlot, 1);
         }
@@ -92,7 +92,7 @@ public class CausalityPistolItem extends Item {
                     SoundRegistry.CAUSALITY_PISTOL_SHOOT.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
         }
 
-        player.getCooldowns().addCooldown(stack, COOLDOWN_TICKS);
-        return InteractionResult.SUCCESS;
+        player.getCooldowns().addCooldown(stack.getItem(), COOLDOWN_TICKS);
+        return InteractionResultHolder.success(stack);
     }
 }

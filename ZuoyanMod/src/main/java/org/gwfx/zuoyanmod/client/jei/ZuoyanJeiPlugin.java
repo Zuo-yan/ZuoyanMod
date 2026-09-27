@@ -4,9 +4,9 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
+import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
-import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -88,12 +88,10 @@ public class ZuoyanJeiPlugin implements IModPlugin {
         registration.addRecipes(VoidPumpCategory.TYPE, List.of(pump));
 
         // 微型强子对撞：数据包配方，与虚空泵同一套「注册期 addRecipes」机制。
-        // 之所以能在这里（而不是等 runtime）直接读到配方：服务端已通过 ServerRecipeSync
-        // 的 OnDatapackSyncEvent#sendRecipes 请求同步 micro_collision 类型；而 JEI 的启动
-        // 观察者用 LOWEST 优先级监听 RecipesReceivedEvent，晚于我们的 HIGHEST 缓存，
-        // 故本方法执行时 ClientRecipeCache 里已有配方。
+        // 1.21.1 的服务端把全部配方自动同步到客户端 RecipeManager（登录/datapack 重载），
+        // JEI 的注册又发生在进世界之后，所以这里直接读客户端配方表即可。
         List<RecipeHolder<MicroCollisionRecipe>> collisionRecipes =
-                List.copyOf(ClientRecipeCache.getRecipes().byType(RecipeRegistry.MICRO_COLLISION_TYPE.get()));
+                List.copyOf(ClientRecipeCache.byType(RecipeRegistry.MICRO_COLLISION_TYPE.get()));
         if (!collisionRecipes.isEmpty()) {
             registration.addRecipes(MicroCollisionCategory.TYPE, collisionRecipes);
         }
@@ -102,11 +100,11 @@ public class ZuoyanJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipeCatalysts(mezz.jei.api.registration.IRecipeCatalystRegistration registration) {
         // 对撞机方块 = 微型强子对撞配方的催化剂（JEI 里点方块看它能做什么）
-        registration.addCraftingStation(MicroCollisionCategory.TYPE,
-                new ItemStack(ItemRegistry.MICRO_HADRON_COLLIDER_ITEM.get()));
+        registration.addRecipeCatalyst(new ItemStack(ItemRegistry.MICRO_HADRON_COLLIDER_ITEM.get()),
+                MicroCollisionCategory.TYPE);
         // 虚空共振泵 = 共振转化的催化剂（点泵方块看它能换什么）
-        registration.addCraftingStation(VoidPumpCategory.TYPE,
-                new ItemStack(ItemRegistry.VOID_RESONANCE_PUMP_ITEM.get()));
+        registration.addRecipeCatalyst(new ItemStack(ItemRegistry.VOID_RESONANCE_PUMP_ITEM.get()),
+                VoidPumpCategory.TYPE);
     }
 
     @Override
@@ -145,12 +143,10 @@ public class ZuoyanJeiPlugin implements IModPlugin {
         }
 
         @Override
-        public IRecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
+        public RecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
             return RecipeTypes.CRAFTING;
         }
 
-        // 六参版是接口里唯一能覆盖的抽象方法（context 版是 default，会转调到这里）
-        @SuppressWarnings("removal")
         @Override
         public IRecipeTransferError transferRecipe(KleinBottleMenu container,
                                                   RecipeHolder<CraftingRecipe> recipe,
@@ -162,7 +158,7 @@ public class ZuoyanJeiPlugin implements IModPlugin {
                 // 试算：客户端拿不到四维空间的内容，无法判断够不够，一律放行让按钮显示
                 return null;
             }
-            PacketHandler.sendCraftingTransfer(recipe.id().location(), maxTransfer);
+            PacketHandler.sendCraftingTransfer(recipe.id(), maxTransfer);
             return null;
         }
     }

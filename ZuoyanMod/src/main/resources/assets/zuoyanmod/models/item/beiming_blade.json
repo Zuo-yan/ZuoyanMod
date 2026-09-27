@@ -1,4 +1,4 @@
-﻿{
+{
   "parent": "minecraft:item/handheld",
   "textures": {
     "layer0": "zuoyanmod:item/beiming_blade"

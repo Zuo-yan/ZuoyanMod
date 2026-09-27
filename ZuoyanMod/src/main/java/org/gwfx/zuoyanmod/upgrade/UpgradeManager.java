@@ -287,7 +287,7 @@ public final class UpgradeManager {
             }
             Vec3 scatter = horizontal.normalize().scale(0.35D);
             applyVelocity(target, new Vec3(scatter.x, LAUNCH_UPWARD, scatter.z));
-            target.fallDistance = 0.0D; // 摔落伤害从最高点重新累计
+            target.fallDistance = 0.0F; // 摔落伤害从最高点重新累计
             target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 2 * 60 * 20, 2, false, true));
         }
         level.sendParticles(ParticleTypes.EXPLOSION,
@@ -489,6 +489,6 @@ public final class UpgradeManager {
 
     /** actionbar 反馈：不打断正在做的事，也不刷聊天栏。 */
     private static void feedback(ServerPlayer player, Component message) {
-        player.sendOverlayMessage(message);
+        player.displayClientMessage(message, true);
     }
 }

@@ -20,7 +20,7 @@ public final class RealmKeyInputHandler {
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null || minecraft.gui.screen() != null) {
+        if (minecraft.player == null || minecraft.screen != null) {
             return;
         }
         if (RealmKeybindHandler.TOGGLE_REALM.consumeClick()) {
