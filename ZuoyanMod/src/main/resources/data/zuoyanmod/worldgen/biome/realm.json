@@ -1,5 +1,7 @@
 {
-  "carvers": [],
+  "carvers": {
+    "air": []
+  },
   "downfall": 0.4,
   "effects": {
     "fog_color": 12638463,
