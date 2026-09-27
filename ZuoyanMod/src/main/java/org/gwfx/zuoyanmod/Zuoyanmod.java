@@ -44,7 +44,11 @@ public class Zuoyanmod {
         MenuRegistry.register(modEventBus);
         org.gwfx.zuoyanmod.recipe.RecipeRegistry.register(modEventBus);
         org.gwfx.zuoyanmod.worldgen.WorldgenRegistry.register(modEventBus);
+        // "多此一举"成就的自定义触发器（草原传送门点燃时调用，见 GrassPortalEventHandler）
+        org.gwfx.zuoyanmod.advancement.GrassPortalTrigger.TRIGGERS.register(modEventBus);
         org.gwfx.zuoyanmod.item.FourDimensionalSpace.ATTACHMENTS.register(modEventBus);
+        // 经验升级档案（基础能力等级 / 终极天赋 / 冷却）
+        org.gwfx.zuoyanmod.upgrade.UpgradeData.ATTACHMENTS.register(modEventBus);
         CreativeTabRegistry.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
@@ -94,12 +98,25 @@ public class Zuoyanmod {
             // 原始黑洞：billboard 黑盘 + energySwirl 涡流，无模型，纯几何自绘
             event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.PRIMORDIAL_BLACK_HOLE.get(),
                     org.gwfx.zuoyanmod.client.PrimordialBlackHoleRenderer::new);
+            // 湮灭君主：人形放大 1.8 倍 + 金冠模型层
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.VOID_MONARCH.get(),
+                    org.gwfx.zuoyanmod.client.VoidMonarchRenderer::new);
+            // 湮灭侍卫：普通人形，暗甲皮肤
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.VOID_GUARD.get(),
+                    org.gwfx.zuoyanmod.client.VoidGuardRenderer::new);
+            // 暗物质螺栓：暗紫能量球 billboard
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.VOID_BOLT.get(),
+                    org.gwfx.zuoyanmod.client.VoidBoltRenderer::new);
         }
 
         @SubscribeEvent
         public static void onRegisterLayerDefinitions(net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterLayerDefinitions event) {
             event.registerLayerDefinition(org.gwfx.zuoyanmod.client.RickModelLayers.RICK_BODY,
                     org.gwfx.zuoyanmod.client.RickModelLayers::createBodyLayer);
+            event.registerLayerDefinition(org.gwfx.zuoyanmod.client.BossModelLayers.VOID_MONARCH_BODY,
+                    org.gwfx.zuoyanmod.client.BossModelLayers::createMonarchBodyLayer);
+            event.registerLayerDefinition(org.gwfx.zuoyanmod.client.BossModelLayers.VOID_GUARD_BODY,
+                    org.gwfx.zuoyanmod.client.BossModelLayers::createGuardBodyLayer);
         }
     }
 }

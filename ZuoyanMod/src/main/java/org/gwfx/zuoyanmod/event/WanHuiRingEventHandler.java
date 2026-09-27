@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
 public class WanHuiRingEventHandler {
@@ -108,9 +109,7 @@ public class WanHuiRingEventHandler {
         }
 
         try {
-            player.sendSystemMessage(
-                    Component.translatable("message.zuoyanmod.wan_hui_ring.triggered")
-            );
+            ModToastPacket.send(player, Component.translatable("message.zuoyanmod.wan_hui_ring.triggered"));
         } catch (Exception e) {
             LOGGER.warn("Error sending system message", e);
         }

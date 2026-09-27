@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 import org.gwfx.zuoyanmod.event.TimeFreezeManager;
 
 import java.util.function.Consumer;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 /**
  * 绝对零度：右键释放「玻色-爱因斯坦凝聚」。
@@ -46,7 +47,7 @@ public class AbsoluteZeroItem extends Item {
         }
         // 场上已有未消散的凝聚场：拒绝，避免连点白白烧掉一次耐久
         if (TimeFreezeManager.hasActiveField(player)) {
-            player.sendSystemMessage(Component.translatable("message.zuoyanmod.absolute_zero.field_active"));
+            ModToastPacket.send(player, Component.translatable("message.zuoyanmod.absolute_zero.field_active"));
             return InteractionResult.FAIL;
         }
 

@@ -13,6 +13,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
 import org.gwfx.zuoyanmod.util.AccessoryChecks;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
 public final class YemengadeVenomFangEventHandler {
@@ -33,7 +34,7 @@ public final class YemengadeVenomFangEventHandler {
         if (player.getHealth() < player.getMaxHealth()) {
             if (player.getRandom().nextFloat() < 0.60f) {
                 attacker.addEffect(new MobEffectInstance(MobEffects.POISON, 20 * 4, 0));
-                player.sendSystemMessage(Component.translatable("message.zuoyanmod.venom_fang.poisoned_attacker"));
+                ModToastPacket.send(player, Component.translatable("message.zuoyanmod.venom_fang.poisoned_attacker"));
             }
         }
 
@@ -42,7 +43,7 @@ public final class YemengadeVenomFangEventHandler {
             float armorDamage = (float) player.getArmorValue();
             if (armorDamage > 0.0f && attacker.level() instanceof ServerLevel serverLevel) {
                 attacker.hurtServer(serverLevel, player.damageSources().thorns(player), armorDamage);
-                player.sendSystemMessage(Component.translatable("message.zuoyanmod.venom_fang.reflect", armorDamage));
+                ModToastPacket.send(player, Component.translatable("message.zuoyanmod.venom_fang.reflect", armorDamage));
             }
         }
     }

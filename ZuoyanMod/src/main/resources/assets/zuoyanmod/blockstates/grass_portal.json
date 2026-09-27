@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "zuoyanmod:block/grass_portal_ns"
+    },
+    "axis=z": {
+      "model": "zuoyanmod:block/grass_portal_ew"
+    }
+  }
+}

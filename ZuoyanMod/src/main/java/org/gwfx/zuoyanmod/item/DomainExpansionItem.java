@@ -20,6 +20,7 @@ import org.gwfx.zuoyanmod.world.DomainExpansionDuelManager;
 import org.slf4j.Logger;
 
 import java.util.function.Consumer;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 public class DomainExpansionItem extends Item {
 
@@ -52,7 +53,7 @@ public class DomainExpansionItem extends Item {
 
             LivingEntity target = findLookTarget(player, 32.0D);
             if (target == null) {
-                player.sendSystemMessage(Component.translatable("message.zuoyanmod.domain_expansion.must_target"));
+                ModToastPacket.send(player, Component.translatable("message.zuoyanmod.domain_expansion.must_target"));
                 return InteractionResult.FAIL;
             }
             LOGGER.info("Domain expansion target acquired: {}", target);

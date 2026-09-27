@@ -11,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.gwfx.zuoyanmod.entity.PrimordialBlackHoleEntity;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 /**
  * 「原始黑洞」—— 一次性奇点装置：右键在准心落点展开一个 10 秒的黑洞。
@@ -73,13 +74,13 @@ public class PrimordialBlackHoleItem extends DescribedItem {
         // 注意：60 秒冷却远长于 10 秒寿命，正常途径下第二次右键根本进不到这里 ——
         // 这条是兜底（防其它模组清冷却、防 /clear 指令、防跨维度快速重放）。
         if (PrimordialBlackHoleEntity.hasActiveBlackHole(server, player.getUUID())) {
-            player.sendSystemMessage(Component.translatable("message.zuoyanmod.primordial_black_hole.already_active"));
+            ModToastPacket.send(player, Component.translatable("message.zuoyanmod.primordial_black_hole.already_active"));
             return InteractionResult.FAIL;
         }
 
         // 全局上限：每个黑洞每 2 tick 都要扫一遍 10 格内的实体，数量必须封顶
         if (PrimordialBlackHoleEntity.countActive(server) >= PrimordialBlackHoleEntity.MAX_ACTIVE_HOLES) {
-            player.sendSystemMessage(Component.translatable("message.zuoyanmod.primordial_black_hole.limit_reached"));
+            ModToastPacket.send(player, Component.translatable("message.zuoyanmod.primordial_black_hole.limit_reached"));
             return InteractionResult.FAIL;
         }
 

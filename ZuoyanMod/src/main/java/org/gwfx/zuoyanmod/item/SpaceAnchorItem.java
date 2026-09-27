@@ -24,6 +24,7 @@ import net.minecraft.world.level.Level;
 
 import java.util.Set;
 import java.util.function.Consumer;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 /**
  * 空间锚点：潜行右键记录坐标，再次潜行右键传送回锚点；
@@ -85,7 +86,7 @@ public class SpaceAnchorItem extends Item {
         ItemStack anchor = findHeldAnchor(player);
         if (!anchor.isEmpty()) {
             saveAnchor(player, anchor);
-            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.recalibrated"));
+            ModToastPacket.send(player, Component.translatable("message.zuoyanmod.space_anchor.recalibrated"));
         }
         player.releaseUsingItem();
     }
@@ -105,11 +106,11 @@ public class SpaceAnchorItem extends Item {
         }
         if (!hasAnchor(anchor)) {
             saveAnchor(player, anchor);
-            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.saved"));
+            ModToastPacket.send(player, Component.translatable("message.zuoyanmod.space_anchor.saved"));
             return true;
         }
         if (teleportToAnchor(player, anchor)) {
-            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.recalled"));
+            ModToastPacket.send(player, Component.translatable("message.zuoyanmod.space_anchor.recalled"));
         }
         return true;
     }
@@ -162,7 +163,7 @@ public class SpaceAnchorItem extends Item {
     public static boolean teleportToAnchor(Player player, ItemStack stack) {
         AnchorPos pos = readAnchorPos(stack);
         if (pos == null) {
-            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.not_set"));
+            ModToastPacket.send(player, Component.translatable("message.zuoyanmod.space_anchor.not_set"));
             return false;
         }
         return teleportNow(player, pos);
@@ -183,7 +184,7 @@ public class SpaceAnchorItem extends Item {
         ResourceKey<Level> dimensionKey = ResourceKey.create(Registries.DIMENSION, Identifier.parse(pos.dimension()));
         ServerLevel target = server.getLevel(dimensionKey);
         if (target == null) {
-            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.dimension_unavailable"));
+            ModToastPacket.send(player, Component.translatable("message.zuoyanmod.space_anchor.dimension_unavailable"));
             return false;
         }
 

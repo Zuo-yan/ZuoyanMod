@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * 「万能工具」——镐 · 斧 · 铲 · 锄 · 剑 五合一的前期工具，分木质 / 石质 / 金 / 铁 / 钻石 / 下界合金六档。
+ * 「万能工具」——镐 · 斧 · 铲 · 锄 · 剑 五合一的前期工具，分木质 / 石质 / 铜 / 金 / 铁 / 钻石 / 下界合金七档。
  * <p>
  * <b>数值设计</b>（全部取自对应材质的 {@link ToolMaterial}）：
  * <ul>
@@ -58,7 +58,7 @@ import java.util.function.Consumer;
  * 进不进对挖掘与附魔都没有影响。真正决定附魔可上性的是 {@code #minecraft:enchantable/} 下的标签，
  * 本工具注册进了其中的 mining / mining_loot / weapon / melee_weapon / sharp_weapon / sweeping /
  * fire_aspect / durability 八张，于是效率 / 时运 / 精准采集 / 锋利 / 抢夺 / 火焰附加 / 横扫之刃 /
- * 击退 / 耐久 / 经验修补等通用附魔全部可上，附魔能力用材质本身的值（木 15 / 石 5 / 金 22 / 铁 14 / 钻 10 / 合金 15）。
+ * 击退 / 耐久 / 经验修补等通用附魔全部可上，附魔能力用材质本身的值（木 15 / 石 5 / 铜 13 / 金 22 / 铁 14 / 钻 10 / 合金 15）。
  */
 public class UniversalToolItem extends Item {
 

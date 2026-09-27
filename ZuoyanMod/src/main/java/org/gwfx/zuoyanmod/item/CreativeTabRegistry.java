@@ -23,6 +23,7 @@ public final class CreativeTabRegistry {
                         // 万能工具（前期工具：镐·斧·铲·锄·剑 五合一）
                         output.accept(ItemRegistry.WOODEN_UNIVERSAL_TOOL.get());
                         output.accept(ItemRegistry.STONE_UNIVERSAL_TOOL.get());
+                        output.accept(ItemRegistry.COPPER_UNIVERSAL_TOOL.get());
                         output.accept(ItemRegistry.GOLDEN_UNIVERSAL_TOOL.get());
                         output.accept(ItemRegistry.IRON_UNIVERSAL_TOOL.get());
                         output.accept(ItemRegistry.DIAMOND_UNIVERSAL_TOOL.get());
@@ -30,6 +31,7 @@ public final class CreativeTabRegistry {
 
                         // 武器与法宝
                         output.accept(ItemRegistry.BEIMING_BLADE.get());
+                        output.accept(ItemRegistry.MONARCH_BLADE.get());
                         output.accept(ItemRegistry.HERCULES_BOW.get());
                         output.accept(ItemRegistry.CAUSALITY_PISTOL.get());
                         output.accept(ItemRegistry.ANTIMATTER_BULLET.get());
@@ -84,6 +86,9 @@ public final class CreativeTabRegistry {
                         // 原始黑洞（对撞机终局产物，沉重核心 + 暗物质）
                         output.accept(ItemRegistry.PRIMORDIAL_BLACK_HOLE.get());
 
+                        // 天赋重置卷轴（清空已选终极天赋，可重新选择）
+                        output.accept(ItemRegistry.TALENT_RESET_SCROLL.get());
+
                         // 真空衰变（万能挖掘锤：负熵灌注 / 分子离解 / 对称破缺）
                         output.accept(ItemRegistry.VACUUM_DECAY.get());
 
@@ -95,8 +100,14 @@ public final class CreativeTabRegistry {
                         output.accept(ItemRegistry.MUSIC_DISC_NIGHT_DANCER.get());
                         output.accept(ItemRegistry.MUSIC_DISC_CASTLE.get());
 
+                        // 草原传送门（门框搭 4×5 门框，打火石点燃后进入超平坦世界）
+                        output.accept(ItemRegistry.GRASS_PORTAL_FRAME_ITEM.get());
+                        output.accept(ItemRegistry.GRASS_PORTAL_ITEM.get());
+
                         // 生物刷怪蛋
                         output.accept(ItemRegistry.RICK_SPAWN_EGG.get());
+                        output.accept(ItemRegistry.VOID_MONARCH_SPAWN_EGG.get());
+                        output.accept(ItemRegistry.VOID_GUARD_SPAWN_EGG.get());
                     }).build());
 
     private CreativeTabRegistry() {}

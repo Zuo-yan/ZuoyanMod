@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.Nullable;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 /**
  * 虚空共振泵：末地悬空处把过剩物（末影珍珠 / 龙息 / 紫颂果）转化为暗物质粒子。
@@ -74,9 +75,7 @@ public class VoidResonancePumpBlock extends BaseEntityBlock {
             return InteractionResult.PASS;
         }
         if (!VoidResonancePumpBlockEntity.canRun(level, pos)) {
-            player.sendSystemMessage(level.dimension() != Level.END
-                    ? Component.translatable("gui.zuoyanmod.void_pump.error.end_only")
-                    : Component.translatable("gui.zuoyanmod.void_pump.error.must_be_void"));
+            ModToastPacket.send(player, level.dimension() != Level.END ? Component.translatable("gui.zuoyanmod.void_pump.error.end_only") : Component.translatable("gui.zuoyanmod.void_pump.error.must_be_void"));
             return InteractionResult.SUCCESS;
         }
         player.openMenu(pump);

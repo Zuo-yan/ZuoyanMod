@@ -70,6 +70,33 @@ public class Config {
                     "minecraft:ore_emerald"
             ), Config::validateIdentifier);
 
+    // ===== 经验升级系统（基础能力 + 终极天赋）=====
+    // 数值定义在 upgrade/UpgradeType 与 upgrade/UltimateTalent 里，这里只放全局旋钮。
+
+    private static final ModConfigSpec.BooleanValue UPGRADE_ENABLED = BUILDER
+            .comment("经验升级系统总开关（关闭后升级界面/按键/属性加成全部失效）")
+            .define("upgrade.enabled", true);
+
+    private static final ModConfigSpec.IntValue UPGRADE_XP_COST_BASE = BUILDER
+            .comment("升到第 1 级的经验花费；之后每级再加 step（默认 1,2,3…10，每条满级 55 级）")
+            .defineInRange("upgrade.xpCostBase", 1, 0, 100);
+
+    private static final ModConfigSpec.IntValue UPGRADE_XP_COST_STEP = BUILDER
+            .comment("每一级的经验花费增量")
+            .defineInRange("upgrade.xpCostStep", 1, 0, 100);
+
+    private static final ModConfigSpec.DoubleValue UPGRADE_ULTIMATE_COOLDOWN_MULTIPLIER = BUILDER
+            .comment("终极天赋冷却倍率（各天赋基础冷却见 UltimateTalent，1.0 = 不变）")
+            .defineInRange("upgrade.ultimateCooldownMultiplier", 1.0D, 0.1D, 10.0D);
+
+    private static final ModConfigSpec.IntValue UPGRADE_GRAPPLE_RANGE = BUILDER
+            .comment("「绝对零度·抓取」的射线最远距离（格）")
+            .defineInRange("upgrade.grappleRange", 24, 4, 64);
+
+    private static final ModConfigSpec.IntValue UPGRADE_LAUNCH_RADIUS = BUILDER
+            .comment("「天罚·击飞」的作用半径（格）")
+            .defineInRange("upgrade.launchRadius", 10, 2, 32);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     public static boolean logDirtBlock;
@@ -85,6 +112,13 @@ public class Config {
     public static Set<String> realmOreExcluded = Set.of(
             "minecraft:ore_infested", "minecraft:ore_dirt", "minecraft:ore_gravel",
             "minecraft:ore_clay", "minecraft:ore_emerald");
+
+    public static boolean upgradeEnabled = true;
+    public static int upgradeXpCostBase = 1;
+    public static int upgradeXpCostStep = 1;
+    public static double upgradeUltimateCooldownMultiplier = 1.0D;
+    public static int upgradeGrappleRange = 24;
+    public static int upgradeLaunchRadius = 10;
 
     private static boolean validateIdentifier(final Object obj) {
         return obj instanceof String name && Identifier.tryParse(name) != null;
@@ -110,6 +144,13 @@ public class Config {
         realmOreExcluded = REALM_ORE_EXCLUDED.get().stream()
                 .map(String::valueOf)
                 .collect(Collectors.toUnmodifiableSet());
+
+        upgradeEnabled = UPGRADE_ENABLED.get();
+        upgradeXpCostBase = UPGRADE_XP_COST_BASE.get();
+        upgradeXpCostStep = UPGRADE_XP_COST_STEP.get();
+        upgradeUltimateCooldownMultiplier = UPGRADE_ULTIMATE_COOLDOWN_MULTIPLIER.get();
+        upgradeGrappleRange = UPGRADE_GRAPPLE_RANGE.get();
+        upgradeLaunchRadius = UPGRADE_LAUNCH_RADIUS.get();
 
         // 注册表按 ID 查询的返回类型随版本变化（26.3 是 Optional<Holder.Reference>），
         // 解包细节统一封装在 platform 适配层的 RegistryLookup 里

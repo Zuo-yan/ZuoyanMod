@@ -39,6 +39,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 /**
  * 瑞克 —— 中立人形生物。
@@ -414,7 +415,7 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
 
         if (this.isAngry()) {
             if (!this.level().isClientSide()) {
-                player.sendSystemMessage(Component.translatable("message.zuoyanmod.rick.not_in_mood"));
+                ModToastPacket.send(player, Component.translatable("message.zuoyanmod.rick.not_in_mood"));
             }
             return InteractionResult.SUCCESS;
         }

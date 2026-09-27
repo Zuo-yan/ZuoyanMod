@@ -56,6 +56,44 @@ public final class PacketHandler {
                 KleinBottleSyncPacket.STREAM_CODEC,
                 KleinBottleSyncPacket::handle
         );
+        // 模组效果通知（Toast）：右上角堆叠显示，替代聊天栏刷屏
+        registrar.playToClient(
+                ModToastPacket.TYPE,
+                ModToastPacket.STREAM_CODEC,
+                ModToastPacket::handle
+        );
+        // 经验升级系统：升级/选天赋/触发技能三个动作 + 一对同步握手
+        registrar.playToServer(
+                UpgradeStatPacket.TYPE,
+                UpgradeStatPacket.STREAM_CODEC,
+                UpgradeStatPacket::handle
+        );
+        // 右键退还加点
+        registrar.playToServer(
+                RefundStatPacket.TYPE,
+                RefundStatPacket.STREAM_CODEC,
+                RefundStatPacket::handle
+        );
+        registrar.playToServer(
+                ChooseTalentPacket.TYPE,
+                ChooseTalentPacket.STREAM_CODEC,
+                ChooseTalentPacket::handle
+        );
+        registrar.playToServer(
+                TriggerUltimatePacket.TYPE,
+                TriggerUltimatePacket.STREAM_CODEC,
+                TriggerUltimatePacket::handle
+        );
+        registrar.playToServer(
+                RequestUpgradeSyncPacket.TYPE,
+                RequestUpgradeSyncPacket.STREAM_CODEC,
+                RequestUpgradeSyncPacket::handle
+        );
+        registrar.playToClient(
+                UpgradeSyncPacket.TYPE,
+                UpgradeSyncPacket.STREAM_CODEC,
+                UpgradeSyncPacket::handle
+        );
         LOGGER.info("[Network] Successfully registered payload handlers");
     }
 
@@ -93,6 +131,31 @@ public final class PacketHandler {
             text = text.substring(0, KleinAnvilNamePacket.MAX_NAME_LENGTH);
         }
         sendToServer(new KleinAnvilNamePacket(text));
+    }
+
+    /** 升级界面：升级某条基础能力（下标对齐 UpgradeType#VALUES） */
+    public static void sendUpgradeStat(int statIndex) {
+        sendToServer(new UpgradeStatPacket(statIndex));
+    }
+
+    /** 升级界面：右键退还某条基础能力的最后一级（下标对齐 UpgradeType#VALUES） */
+    public static void sendRefundStat(int statIndex) {
+        sendToServer(new RefundStatPacket(statIndex));
+    }
+
+    /** 升级界面：选定终极天赋（下标对齐 UltimateTalent#VALUES） */
+    public static void sendChooseTalent(int talentIndex) {
+        sendToServer(new ChooseTalentPacket(talentIndex));
+    }
+
+    /** Y 键：触发终极天赋 */
+    public static void sendTriggerUltimate() {
+        sendToServer(new TriggerUltimatePacket());
+    }
+
+    /** 打开升级界面时：请求一份档案快照 */
+    public static void sendRequestUpgradeSync() {
+        sendToServer(new RequestUpgradeSyncPacket());
     }
 
     private static void sendToServer(CustomPacketPayload payload) {

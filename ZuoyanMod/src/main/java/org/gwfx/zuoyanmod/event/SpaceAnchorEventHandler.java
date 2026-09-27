@@ -10,6 +10,7 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.item.SpaceAnchorItem;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 /**
  * 空间锚点的被动：手持时受到致命伤害会抵挡并回溯到锚点。
@@ -62,7 +63,7 @@ public final class SpaceAnchorEventHandler {
 
         // 传送排队到本 tick 末尾，避免在伤害事件内做维度切换
         FatalProtection.queueTeleport(player, pos.dimension(), pos.x(), pos.y(), pos.z(), pos.yRot(), pos.xRot());
-        player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.saving_fatal"));
+        ModToastPacket.send(player, Component.translatable("message.zuoyanmod.space_anchor.saving_fatal"));
     }
 
     @SubscribeEvent
@@ -72,9 +73,9 @@ public final class SpaceAnchorEventHandler {
             return;
         }
         if (FatalProtection.flushTeleport(player)) {
-            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.recalled"));
+            ModToastPacket.send(player, Component.translatable("message.zuoyanmod.space_anchor.recalled"));
         } else if (FatalProtection.consumeFailedTeleport(player)) {
-            player.sendSystemMessage(Component.translatable("message.zuoyanmod.space_anchor.recall_failed"));
+            ModToastPacket.send(player, Component.translatable("message.zuoyanmod.space_anchor.recall_failed"));
         }
     }
 }

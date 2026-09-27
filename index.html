@@ -3,38 +3,115 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#100d18">
-  <meta name="description" content="过往浮现 · ZuoyanMod，为 Minecraft 带来紫金装备、暗物质科技、四维储物与领域决斗。">
-  <title>过往浮现 — ZuoyanMod</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap');
-    :root{--bg:#100d18;--panel:#171321;--paper:#eee9df;--muted:#9d96a8;--line:#ffffff19;--gold:#e2b75c;--violet:#b29aff;--mint:#9be0c1;--sans:'Noto Sans SC',system-ui,sans-serif;--mono:'DM Mono',monospace}
-    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--paper);font-family:var(--sans);line-height:1.7;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}img{display:block;max-width:100%}.wrap{width:min(1180px,calc(100% - 48px));margin:auto}.mono{font:11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
-    header{height:74px;display:flex;align-items:center;border-bottom:1px solid var(--line);position:absolute;inset:0 0 auto;z-index:5}.nav{display:flex;align-items:center;justify-content:space-between}.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.08em}.brand img{width:34px;height:34px;image-rendering:pixelated;border-radius:8px}.navlinks{display:flex;gap:32px;align-items:center;color:#c2bbc9;font-size:13px}.navlinks a:hover{color:var(--gold)}.navver{padding:8px 13px;border:1px solid #ffffff32;border-radius:3px;color:var(--gold);font:11px var(--mono)}
-    .hero{min-height:780px;padding:165px 0 90px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 75% 42%,#372257 0,transparent 38%),radial-gradient(ellipse at 67% 90%,#2d193e 0,transparent 36%),linear-gradient(120deg,#100d18,#151020 62%,#100d18)}.hero:before{content:"";position:absolute;inset:0;background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px);background-size:64px 64px;mask-image:linear-gradient(to bottom,black,transparent 88%);opacity:.45}.hero-grid{position:relative;display:grid;grid-template-columns:1.03fr .97fr;align-items:center;gap:52px}.eyebrow{color:var(--gold);display:flex;align-items:center;gap:12px}.eyebrow:before{content:"";height:1px;width:32px;background:var(--gold)}h1{font-size:clamp(48px,7.4vw,88px);letter-spacing:-.075em;line-height:1.08;margin:23px 0 20px;font-weight:900}h1 span{display:block;color:var(--gold);font-size:.48em;letter-spacing:.08em;margin-top:18px}.intro{max-width:520px;color:#bbb4c4;font-size:16px;line-height:2}.cta-row{display:flex;gap:12px;margin-top:32px;align-items:center}.button{display:inline-flex;align-items:center;gap:12px;padding:13px 19px;background:var(--gold);color:#20180a;font-size:13px;font-weight:800;border-radius:3px}.button:after{content:"↗";font-size:15px}.button.ghost{background:transparent;color:var(--paper);border:1px solid #ffffff35}.facts{display:flex;gap:26px;margin-top:45px}.fact{border-left:1px solid #ffffff3a;padding-left:13px;color:var(--muted);font-size:11px}.fact b{display:block;font:13px var(--mono);color:var(--paper);margin-bottom:2px}
-    .artifact{height:490px;position:relative;display:grid;place-items:center}.orbit{position:absolute;width:410px;height:410px;border:1px solid #d6bbff28;border-radius:50%;box-shadow:0 0 100px #a271e71b,inset 0 0 80px #a271e70a}.orbit:before,.orbit:after{content:"";position:absolute;inset:34px;border:1px dashed #d6bbff20;border-radius:50%}.orbit:after{inset:82px;border-style:solid;border-color:#d6bbff19}.core-art{z-index:1;width:205px;height:205px;image-rendering:pixelated;filter:drop-shadow(0 15px 40px #a06cff73);animation:float 5s ease-in-out infinite}.artifact-item{position:absolute;z-index:2;width:76px;height:76px;padding:15px;background:#1c1727;border:1px solid #ffffff22;border-radius:12px;box-shadow:0 12px 35px #0008;image-rendering:pixelated}.a1{top:28px;left:calc(50% - 22px)}.a2{right:14px;top:150px}.a3{bottom:38px;right:65px}.a4{bottom:66px;left:42px}.a5{left:4px;top:145px}.artifact-note{position:absolute;bottom:0;left:50%;transform:translateX(-50%);white-space:nowrap;color:#c9c0d6;font:10px var(--mono);letter-spacing:.1em}.artifact-note span{color:var(--mint)}@keyframes float{50%{transform:translateY(-12px)}}
-    .ticker{border-block:1px solid var(--line);padding:15px 0;overflow:hidden;color:#aaa1b4;font:10px var(--mono);letter-spacing:.16em}.ticker-in{display:flex;justify-content:space-around;gap:30px;white-space:nowrap}.ticker i{color:var(--gold);font-style:normal}
-    section{padding:112px 0}.section-head{display:grid;grid-template-columns:.75fr 1.25fr;gap:40px;align-items:end;margin-bottom:50px}.section-head h2{margin:10px 0 0;font-size:clamp(30px,4vw,48px);letter-spacing:-.06em;line-height:1.18}.section-head p{margin:0;max-width:560px;color:var(--muted);font-size:14px;line-height:2}.label{color:var(--gold)}
-    .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.feature{min-height:330px;padding:27px;background:linear-gradient(145deg,#201b2a,#171320);border:1px solid var(--line);position:relative;overflow:hidden}.feature:after{content:"";position:absolute;width:175px;height:175px;border:1px solid #ffffff12;border-radius:50%;right:-60px;bottom:-75px;box-shadow:0 0 0 25px #ffffff05,0 0 0 50px #ffffff03}.feature .num{color:var(--gold);font:11px var(--mono)}.feature h3{font-size:22px;margin:20px 0 8px;letter-spacing:-.04em}.feature p{color:var(--muted);font-size:13px;line-height:2;max-width:290px}.feature img{position:absolute;bottom:24px;right:25px;width:78px;height:78px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 8px 18px #0008)}.feature:nth-child(2) img{width:90px;height:90px}.feature:nth-child(3) img{width:84px;height:84px}
-    .showcase{background:#15111e;border-block:1px solid var(--line)}.show-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.show-card{min-height:425px;background:#1c1725;border:1px solid var(--line);padding:33px;position:relative;overflow:hidden}.show-card h3{font-size:25px;letter-spacing:-.05em;margin:15px 0 8px}.show-card p{color:var(--muted);font-size:13px;max-width:380px;line-height:2}.show-card .items{position:absolute;left:28px;bottom:26px;display:flex;gap:11px}.items img{width:62px;height:62px;padding:11px;object-fit:contain;image-rendering:pixelated;background:#ffffff0a;border:1px solid #ffffff15;border-radius:10px}.show-bg{position:absolute;width:290px;height:290px;object-fit:contain;right:-14px;bottom:-25px;opacity:.25;image-rendering:pixelated;filter:drop-shadow(0 0 32px #a06cff70)}.show-card:last-child .show-bg{opacity:.22;filter:drop-shadow(0 0 32px #e9bd5b70)}
-    .journey{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line)}.step{padding:23px 22px 26px;min-height:180px;border-right:1px solid var(--line);position:relative}.step:last-child{border:0}.step .n{font:11px var(--mono);color:var(--gold)}.step h3{font-size:16px;margin:17px 0 6px}.step p{font-size:12px;color:var(--muted);line-height:1.8;margin:0}.step:not(:last-child):after{content:"→";position:absolute;right:-8px;top:50%;background:var(--bg);padding:0 3px;color:var(--gold);z-index:1}
-    .quote{padding:82px 0;background:linear-gradient(105deg,#211a30,#14111d);border-block:1px solid var(--line);text-align:center}.quote p{font-size:clamp(23px,4vw,40px);line-height:1.55;letter-spacing:-.04em;max-width:790px;margin:15px auto 0}.quote p em{font-style:normal;color:var(--violet)}
-    footer{padding:42px 0;color:var(--muted);font-size:11px}.foot{display:flex;justify-content:space-between;gap:24px;align-items:center}.foot-brand{display:flex;align-items:center;gap:10px;color:var(--paper);font-weight:700;letter-spacing:.1em}.foot-brand img{width:25px;height:25px;image-rendering:pixelated}.foot .mono{font-size:10px}
-    @media(max-width:800px){.hero{padding-top:130px;min-height:auto}.hero-grid{grid-template-columns:1fr;gap:20px}.hero-copy{max-width:680px}.artifact{height:390px}.orbit{width:330px;height:330px}.core-art{width:160px;height:160px}.artifact-item{width:64px;height:64px;padding:12px}.a1{top:12px}.a2{right:0;top:110px}.a3{right:42px;bottom:27px}.a4{left:26px;bottom:42px}.a5{left:0;top:114px}.section-head{grid-template-columns:1fr;gap:15px}.feature-grid{grid-template-columns:1fr 1fr}.feature:last-child{grid-column:span 2}.journey{grid-template-columns:1fr 1fr}.step:nth-child(2){border-right:0}.step:nth-child(-n+2){border-bottom:1px solid var(--line)}.step:nth-child(2):after{display:none}.show-card{min-height:390px;padding:25px}}
-    @media(max-width:540px){.wrap{width:calc(100% - 36px)}header{height:64px}.navlinks{gap:14px}.navlinks a:not(.navver){display:none}.brand{font-size:13px}.hero{padding-top:120px;padding-bottom:65px}h1{font-size:56px}.intro{font-size:14px}.facts{gap:14px}.fact{font-size:10px;padding-left:9px}.fact b{font-size:11px}.artifact{height:330px}.orbit{width:270px;height:270px}.core-art{width:132px;height:132px}.artifact-item{width:54px;height:54px;padding:10px}.a1{top:4px}.a2{right:0;top:91px}.a3{right:35px;bottom:21px}.a4{left:16px;bottom:31px}.a5{left:0;top:94px}.ticker-in{justify-content:flex-start;gap:25px}.ticker-in span:nth-child(even){display:none}section{padding:76px 0}.feature-grid,.show-grid{grid-template-columns:1fr}.feature{min-height:275px}.feature:last-child{grid-column:auto}.show-card{min-height:375px}.journey{grid-template-columns:1fr 1fr}.step{padding:19px 14px;min-height:170px}.step h3{font-size:14px}.foot{align-items:flex-start;flex-direction:column}.navver{padding:6px 9px;font-size:10px}}
-    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
-  </style>
+  <meta name="theme-color" content="#10120f">
+  <meta name="description" content="过往浮现 · ZuoyanMod：克莱因瓶、微型强子对撞机、异界探索与超乎想象的 Minecraft 冒险。">
+  <title>过往浮现 · ZuoyanMod</title>
+  <link rel="icon" type="image/png" href="ZuoyanMod/src/main/resources/zuoyanmod.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="site.css">
 </head>
 <body>
-  <header><nav class="wrap nav" aria-label="主导航"><a class="brand" href="#top"><img src="ZuoyanMod/src/main/resources/zuoyanmod.png" alt=""><span>过往浮现</span></a><div class="navlinks"><a href="#world">模组内容</a><a href="#artifacts">代表物品</a><a href="#journey">成长路线</a><span class="navver">MC 1.26.3</span></div></nav></header>
+  <div class="grain" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="ZuoyanMod 首页">
+      <img src="ZuoyanMod/src/main/resources/zuoyanmod.png" alt="" width="38" height="38">
+      <span><b>过往浮现</b><small>ZUOYANMOD</small></span>
+    </a>
+    <nav aria-label="主导航">
+      <a href="#features">模组内容</a><a href="#relics">代表物品</a><a href="#install">开始游玩</a>
+    </nav>
+    <a class="nav-version" href="#install"><span class="live-dot"></span> MC 1.26.3</a>
+    <button class="menu-toggle" aria-label="打开导航" aria-expanded="false"><span></span><span></span></button>
+  </header>
+
   <main id="top">
-    <section class="hero"><div class="wrap hero-grid"><div class="hero-copy"><div class="mono eyebrow">A MOD ABOUT POWER & POSSIBILITY</div><h1>让世界<br>越过边界<span>过往浮现 · ZuoyanMod</span></h1><p class="intro">从深处挖出紫金，在末地虚空采集暗物质，再把宇宙的力量握在手中。装备、奇物、科技与领域——一段从生存走向不可思议的冒险。</p><div class="cta-row"><a class="button" href="#world">探索模组内容</a><a class="button ghost" href="#journey">查看成长路线</a></div><div class="facts"><div class="fact"><b>26.3</b>MINECRAFT</div><div class="fact"><b>NEOFORGE</b>MOD LOADER</div><div class="fact"><b>2.5</b>MOD VERSION</div></div></div><div class="artifact" aria-label="模组代表物品"><div class="orbit"></div><img class="artifact-item a1" src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/klein_bottle.png" alt="克莱因瓶"><img class="artifact-item a2" src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/causality_pistol.png" alt="因果律手枪"><img class="artifact-item a3" src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/violet_gold_ingot.png" alt="紫金锭"><img class="artifact-item a4" src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/dark_matter.png" alt="暗物质"><img class="artifact-item a5" src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/domain_expansion.png" alt="领域展开"><img class="core-art" src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/primordial_black_hole.png" alt="原始黑洞"><div class="artifact-note"><span>●</span> ANOMALY DETECTED &nbsp;·&nbsp; REALITY UNSTABLE</div></div></div></section>
-    <div class="ticker"><div class="wrap ticker-in"><span><i>✦</i> 探索未知</span><span>紫金装备</span><span><i>✦</i> 暗物质科技</span><span>四维空间</span><span><i>✦</i> 领域决斗</span><span>宇宙奇物</span></div></div>
-    <section id="world"><div class="wrap"><div class="section-head"><div><div class="mono label">WHAT AWAITS YOU / 01</div><h2>不止是更强的装备</h2></div><p>过往浮现为熟悉的生存世界添上一条逐步展开的力量曲线：先发现新资源，再踏进危险之地，最后让物理法则也成为你的工具。</p></div><div class="feature-grid"><article class="feature"><div class="num">01 — FORGE</div><h3>锻造紫金神装</h3><p>寻找紫金矿石，打造全套防具与强力近战武器。穿齐神装，便能抵御暗物质的侵蚀。</p><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/violetgold_chestplate.png" alt="紫金胸甲"></article><article class="feature"><div class="num">02 — DISCOVER</div><h3>追逐暗物质</h3><p>把虚空共振泵架设在末地虚空上方，让末影资源在共振中化为稀有粒子。</p><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/dark_matter_particle.png" alt="暗物质粒子"></article><article class="feature"><div class="num">03 — TRANSCEND</div><h3>改写战斗规则</h3><p>以对撞机制造奇点与黑洞，或展开专属领域，把对手一同拉入决斗空间。</p><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/domain_expansion.png" alt="领域展开"></article></div></div></section>
-    <section class="showcase" id="artifacts"><div class="wrap"><div class="section-head"><div><div class="mono label">SIGNATURE ARTIFACTS / 02</div><h2>奇物各有其用</h2></div><p>有的改变战斗，有的改变探索方式。它们不仅是终点奖励，也是新的玩法入口。</p></div><div class="show-grid"><article class="show-card"><div class="mono label">POCKET DIMENSION</div><h3>克莱因瓶 · 随身四维空间</h3><p>把储物空间带在身上。物品分类收纳，并内嵌合成台、熔炉与铁砧，让旅途中的整理与制作都变得轻松。</p><img class="show-bg" src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/klein_bottle.png" alt=""><div class="items"><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/klein_bottle.png" alt="克莱因瓶"><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/space_anchor.png" alt="空间锚点"><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/netherite_universal_tool.png" alt="下界合金万能工具"></div></article><article class="show-card"><div class="mono label">COSMIC ENGINEERING</div><h3>从对撞机到原始黑洞</h3><p>搭建微型强子对撞机，让稀有材料在碰撞中诞生奇点。向前一步，便是能牵引实体与掉落物的原始黑洞。</p><img class="show-bg" src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/primordial_black_hole.png" alt=""><div class="items"><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/singularity_core.png" alt="奇点核心"><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/primordial_black_hole.png" alt="原始黑洞"><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/causality_pistol.png" alt="因果律手枪"></div></article></div></div></section>
-    <section id="journey"><div class="wrap"><div class="section-head"><div><div class="mono label">A NEW KIND OF ADVENTURE / 03</div><h2>一步一步，走向终局</h2></div><p>探索、收集、制造、挑战。每个阶段都将打开新的目标，让世界在熟悉与陌生之间不断延伸。</p></div><div class="journey"><article class="step"><div class="n">01 / FIND</div><h3>发现紫金</h3><p>从矿脉与遗迹开启全新的装备线。</p></article><article class="step"><div class="n">02 / PREPARE</div><h3>深入末地</h3><p>架起虚空共振泵，收集关键材料。</p></article><article class="step"><div class="n">03 / CREATE</div><h3>制造奇点</h3><p>用对撞机探索暗物质与反物质。</p></article><article class="step"><div class="n">04 / ASCEND</div><h3>领域展开</h3><p>带上终局力量，迎接一场决斗。</p></article></div></div></section>
-    <div class="quote"><div class="wrap"><div class="mono label">THE WORLD IS ONLY THE BEGINNING</div><p>当你能把虚空、时间与空间纳入掌心，<br><em>冒险才刚刚开始。</em></p></div></div>
+    <section class="hero">
+      <div class="hero-backdrop" aria-hidden="true"></div>
+      <div class="hero-grid"></div>
+      <div class="hero-copy">
+        <div class="eyebrow"><span>一个关于奇点、空间与传奇的模组</span><i></i> EST. IN YOUR WORLD</div>
+        <h1>世界的边界，<br><em>只是另一段旅程的开始。</em></h1>
+        <p>把四维空间装进口袋，让暗物质在虚空中共振。<br>这里有奇思妙想，也有足以改写战局的传奇装备。</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#features">探索模组 <span>↘</span></a>
+          <a class="button button-quiet" href="#install"><span class="play-icon">▶</span> 如何开始</a>
+        </div>
+        <div class="hero-meta"><span>为 Minecraft 创造更多可能</span><span class="meta-line"></span><span>NEOFORGE · 26.3</span></div>
+      </div>
+      <div class="hero-art" aria-label="超流体暗物质与奇点核心">
+        <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
+        <div class="planet-glow"></div><div class="planet"></div>
+        <img class="hero-item item-one" src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/klein_bottle.png" alt="克莱因瓶物品贴图">
+        <img class="hero-item item-two" src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/singularity_core.png" alt="奇点核心物品贴图">
+        <img class="hero-item item-three" src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/dark_matter.png" alt="暗物质物品贴图">
+        <div class="art-caption"><span>NO. 026</span><span>BEYOND THE KNOWN</span></div>
+        <span class="art-cross cross-a">+</span><span class="art-cross cross-b">+</span>
+      </div>
+      <div class="scroll-cue"><span></span> 向下探索</div>
+      <div class="hero-index">01 <span>/</span> 04</div>
+    </section>
+
+    <section class="intro-strip" aria-label="模组概览">
+      <div class="strip-title">在方块世界里<br><span>重新想象不可能</span></div>
+      <div class="strip-stat"><b>∞</b><span>四维随身空间</span></div>
+      <div class="strip-stat"><b>06</b><span>阶万能工具</span></div>
+      <div class="strip-stat"><b>01</b><span>未知异界</span></div>
+      <div class="strip-note">从手边的小发明<br>到撼动宇宙的力量。<span> →</span></div>
+    </section>
+
+    <section class="features section-pad" id="features">
+      <div class="section-heading">
+        <div><div class="eyebrow"><i></i> WHAT AWAITS YOU</div><h2>冒险，不止一种形状。</h2></div>
+        <p>装下更多，探索更多，<br>然后用自己的方式创造传奇。</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card feature-large">
+          <div class="card-top"><span>01 / POCKET DIMENSION</span><span class="card-arrow">↗</span></div>
+          <div class="dimension-visual"><div class="dim-ring"></div><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/klein_bottle.png" alt="克莱因瓶" loading="lazy"><span class="dim-label label-a">INVENTORY<br>NOT FOUND</span><span class="dim-label label-b">4D / ∞</span><i></i></div>
+          <div class="card-copy"><h3>把整个世界，收进瓶中。</h3><p>克莱因瓶连接四维空间，容量无界；同种物品只占一格。随身合成、熔炼、修理，物资管理从此另有维度。</p><a href="#relics" aria-label="了解克莱因瓶">了解更多 <span>↗</span></a></div>
+        </article>
+        <article class="feature-card feature-collider">
+          <div class="card-top"><span>02 / COLLISION LAB</span><span class="card-arrow">↗</span></div>
+          <div class="collider-visual"><div class="collider-ring ring-one"></div><div class="collider-ring ring-two"></div><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/block/micro_hadron_collider_front.png" alt="微型强子对撞机" loading="lazy"><span class="collision-flash"></span><span class="collider-chip">PARTICLE<br>COLLISION</span></div>
+          <div class="card-copy"><h3>让奇点，在掌中诞生。</h3><p>启动微型强子对撞机，让稀有物质相遇，解锁宇宙级造物。</p></div>
+        </article>
+        <article class="feature-card feature-realm">
+          <div class="card-top"><span>03 / UNKNOWN REALM</span><span class="card-arrow">↗</span></div>
+          <div class="realm-visual"><div class="realm-sun"></div><div class="realm-horizon"></div><div class="realm-mountain mountain-a"></div><div class="realm-mountain mountain-b"></div><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/space_anchor.png" alt="空间锚点" loading="lazy"><span class="realm-coord">X 418 · Y ? · Z 026</span></div>
+          <div class="card-copy"><h3>踏入从未抵达的远方。</h3><p>穿过空间的裂隙，在陌生维度中寻找矿脉、遗迹与新的故事。</p></div>
+        </article>
+        <article class="feature-card feature-tool">
+          <div class="card-top"><span>04 / BUILT TO ADAPT</span><span class="card-arrow">↗</span></div>
+          <div class="tool-visual"><div class="tool-glow"></div><div class="tool-sweep"></div><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/netherite_universal_tool.png" alt="下界合金万能工具" loading="lazy"><span class="tool-tag">PICKAXE · AXE<br>SHOVEL · HOE · SWORD</span></div>
+          <div class="card-copy"><h3>五件工具，一个答案。</h3><p>从木质到下界合金，六档万能工具把镐、斧、铲、锄、剑融为一体。</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="quote-band"><div class="quote-mark">“</div><blockquote>每一次相遇，都可能改变<br>这个世界的<em>物理法则。</em></blockquote><div class="quote-source">— 过往浮现 · 世界观档案 <span>ARCHIVE 001</span></div><div class="quote-orbit"></div></section>
+
+    <section class="relics section-pad" id="relics">
+      <div class="section-heading relic-heading"><div><div class="eyebrow"><i></i> ITEMS WITH A STORY</div><h2>每一件，都有它的来历。</h2></div><a class="text-link" href="#install">深入你的冒险 <span>↗</span></a></div>
+      <div class="relic-list">
+        <article class="relic-row"><span class="relic-num">01</span><div class="relic-icon"><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/primordial_black_hole.png" alt="" loading="lazy"></div><div class="relic-info"><small>GRAVITY · SINGULARITY</small><h3>原始黑洞</h3><p>让引力张开，再看万物归于奇点。</p></div><div class="relic-type">奇点遗物</div><div class="relic-mark">↗</div></article>
+        <article class="relic-row"><span class="relic-num">02</span><div class="relic-icon violet"><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/causality_pistol.png" alt="" loading="lazy"></div><div class="relic-info"><small>CAUSE & EFFECT · RANGED</small><h3>因果律手枪</h3><p>扣下扳机，让平行宇宙的射线改写结局。</p></div><div class="relic-type">因果武装</div><div class="relic-mark">↗</div></article>
+        <article class="relic-row"><span class="relic-num">03</span><div class="relic-icon blue"><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/absolute_zero.png" alt="" loading="lazy"></div><div class="relic-info"><small>THERMODYNAMICS · FROST</small><h3>绝对零度</h3><p>让热运动归于寂静，冻结战场上的可能。</p></div><div class="relic-type">极寒造物</div><div class="relic-mark">↗</div></article>
+        <article class="relic-row"><span class="relic-num">04</span><div class="relic-icon red"><img src="ZuoyanMod/src/main/resources/assets/zuoyanmod/textures/item/death_note.png" alt="" loading="lazy"></div><div class="relic-info"><small>FATE · FINAL RECORD</small><h3>死亡笔记</h3><p>一件危险的遗物，一个无法轻率书写的名字。</p></div><div class="relic-type">命运遗物</div><div class="relic-mark">↗</div></article>
+      </div>
+      <p class="relic-footnote">更多装备、饰品、音乐唱片与世界事件，等待在你的存档中逐一浮现。</p>
+    </section>
+
+    <section class="world-shot"><img src="ZuoyanMod/run/screenshots/2026-09-25_16.19.48.png" alt="ZuoyanMod 游戏内截图：玩家手持模组武器探索世界" loading="lazy"><div class="shot-overlay"></div><div class="shot-label"><span>AN ADVENTURE, REIMAGINED</span><b>让想象，<br>成为你的下一次冒险。</b><a href="#install">带上伙伴，一起出发 ↗</a></div><div class="shot-caption">截图来自游戏实机画面 <span>INGAME · 2026.09</span></div></section>
+
+    <section class="install section-pad" id="install">
+      <div class="install-intro"><div class="eyebrow"><i></i> YOUR WORLD, EXPANDED</div><h2>下一段冒险，<br><em>由你开启。</em></h2><p>带上你的好奇心，叫上朋友，<br>让熟悉的世界浮现新的可能。</p></div>
+      <div class="install-card"><div class="install-card-head"><div><span class="install-overline">QUICK START</span><h3>开始游玩</h3></div><img src="ZuoyanMod/src/main/resources/zuoyanmod.png" alt="ZuoyanMod 图标" loading="lazy"></div><div class="install-step"><span>01</span><p>准备 Minecraft <b>1.26.3</b><br>并安装 NeoForge <b>26.3</b></p></div><div class="install-step"><span>02</span><p>将 ZuoyanMod 模组文件<br>放入实例的 <code>mods</code> 文件夹</p></div><div class="install-step"><span>03</span><p>启动游戏，打开创造栏<br>「过往浮现」，开始探索</p></div><div class="install-note"><span class="live-dot"></span> Curios 为可选依赖 · 安装后可使用饰品栏</div><a class="install-button" href="https://neoforged.net/" target="_blank" rel="noreferrer">了解 NeoForge <span>↗</span></a></div>
+    </section>
   </main>
-  <footer><div class="wrap foot"><div class="foot-brand"><img src="ZuoyanMod/src/main/resources/zuoyanmod.png" alt="">过往浮现 · ZuoyanMod</div><div>Minecraft 1.26.3 &nbsp;·&nbsp; NeoForge 26.3 &nbsp;·&nbsp; Mod 2.5</div><div class="mono">MADE FOR THE CURIOUS</div></div></footer>
+
+  <footer><a class="brand footer-brand" href="#top"><img src="ZuoyanMod/src/main/resources/zuoyanmod.png" alt="" width="34" height="34" loading="lazy"><span><b>过往浮现</b><small>ZUOYANMOD</small></span></a><span>让世界，再次充满未知。</span><div class="footer-right"><span>版本 2.5 · NeoForge 26.3</span><a href="#top">回到顶部 ↑</a></div></footer>
+  <script src="site.js"></script>
 </body>
 </html>

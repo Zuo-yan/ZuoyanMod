@@ -144,6 +144,13 @@ public final class ItemRegistry {
             props -> UniversalToolItem.properties(ToolMaterial.STONE, 7.0F, -3.2F)
     );
 
+    public static final DeferredItem<UniversalToolItem> COPPER_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "copper_universal_tool",
+            UniversalToolItem::new,
+            // 原版铜斧基线：伤害 7.0、攻速 -3.2（26.x 新增的铜质工具档，介于石与铁之间）
+            props -> UniversalToolItem.properties(ToolMaterial.COPPER, 7.0F, -3.2F)
+    );
+
     public static final DeferredItem<UniversalToolItem> GOLDEN_UNIVERSAL_TOOL = ITEMS.registerItem(
             "golden_universal_tool",
             UniversalToolItem::new,
@@ -331,6 +338,15 @@ public final class ItemRegistry {
             props -> props.rarity(Rarity.EPIC)
     );
 
+    // ===== 天赋重置卷轴（右键清空已选终极天赋，可重新选择；基础加点不受影响）=====
+    public static final DeferredItem<TalentResetItem> TALENT_RESET_SCROLL = ITEMS.registerItem(
+            "talent_reset_scroll",
+            props -> new TalentResetItem(props,
+                    "item.zuoyanmod.talent_reset_scroll.desc1",
+                    "item.zuoyanmod.talent_reset_scroll.desc2"),
+            props -> props.stacksTo(16).rarity(Rarity.RARE)
+    );
+
     // ===== 超流体暗物质（原「暗物质桶」，仅显示名变更，注册 id 保持 dark_matter_bucket） =====
     // craftRemainder(BUCKET)：它要当合成材料（真空衰变的配方要 4 个），必须像原版奶桶那样把空桶还回来，
     // 否则每合成一次就白吞 4 个铁桶。
@@ -404,6 +420,22 @@ public final class ItemRegistry {
             "violet_gold_block", BlockRegistry.VIOLET_GOLD_BLOCK
     );
 
+    // ===== 草原传送门（门框 + 传送门本体）方块物品 =====
+    // 草原门框：描述里写明"打火石点燃"的开启方式（点燃入口见 GrassPortalEventHandler）。
+    // registerItem 默认显示名走 item. 前缀，必须 useBlockDescriptionPrefix() 让它复用
+    // 方块的 block.zuoyanmod.grass_portal_frame 键（与 registerSimpleBlockItem 行为一致），
+    // 否则游戏里物品名会显示成未翻译的 item.zuoyanmod.grass_portal_frame。
+    public static final DeferredItem<BlockItem> GRASS_PORTAL_FRAME_ITEM = ITEMS.registerItem(
+            "grass_portal_frame",
+            props -> new DescriptionBlockItem(BlockRegistry.GRASS_PORTAL_FRAME.get(), props,
+                    "block.zuoyanmod.grass_portal_frame.desc1"),
+            Item.Properties::useBlockDescriptionPrefix
+    );
+
+    public static final DeferredItem<BlockItem> GRASS_PORTAL_ITEM = ITEMS.registerSimpleBlockItem(
+            "grass_portal", BlockRegistry.GRASS_PORTAL
+    );
+
     // ===== 生物刷怪蛋 =====
     // 26.3 里 SpawnEggItem 不再自带"我对应哪个实体"的字段，
     // 信息全部落在 ENTITY_DATA 组件上，所以必须用 Properties#spawnEgg 来构造，
@@ -412,6 +444,27 @@ public final class ItemRegistry {
             "rick_spawn_egg",
             SpawnEggItem::new,
             props -> props.spawnEgg(EntityRegistry.RICK.get())
+    );
+
+    public static final DeferredItem<SpawnEggItem> VOID_MONARCH_SPAWN_EGG = ITEMS.registerItem(
+            "void_monarch_spawn_egg",
+            SpawnEggItem::new,
+            props -> props.spawnEgg(EntityRegistry.VOID_MONARCH.get())
+    );
+
+    public static final DeferredItem<SpawnEggItem> VOID_GUARD_SPAWN_EGG = ITEMS.registerItem(
+            "void_guard_spawn_egg",
+            SpawnEggItem::new,
+            props -> props.spawnEgg(EntityRegistry.VOID_GUARD.get())
+    );
+
+    // ===== 湮灭君王之刃（湮灭君主必掉武器：攻击 35、攻速 2.4、对 Boss 标签目标追加魔法伤害） =====
+    public static final DeferredItem<MonarchBladeItem> MONARCH_BLADE = ITEMS.registerItem(
+            "monarch_blade",
+            MonarchBladeItem::new,
+            // 攻击力 35（1 基础 + 34）、攻速 2.4（4 基础 - 1.6）：重剑手感
+            props -> swordComponents(props.stacksTo(1).rarity(Rarity.EPIC)
+                    .attributes(swordAttributes(34.0F, -1.6F)))
     );
 
 

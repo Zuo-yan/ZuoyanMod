@@ -92,17 +92,63 @@ public final class EntityRegistry {
                             .noSave()
             );
 
+    /**
+     * 湮灭君主：湮灭王座遗迹的守关 Boss（MobCategory.MONSTER）。
+     * <p>
+     * {@code sized(1.6, 3.6)}：比玩家高大一圈的君主体格；渲染端模型再放大 1.8 倍，
+     * 视觉高度 ≈ 3.4 格。{@code fireImmune()}：虚空之主不惧火焰，也免得遗迹里
+     * 的火把把 Boss 烧得乱跳。属性绑定见 {@link #onEntityAttributeCreation}。
+     */
+    public static final DeferredHolder<EntityType<?>, EntityType<VoidMonarchEntity>> VOID_MONARCH =
+            ENTITY_TYPES.registerEntityType(
+                    "void_monarch",
+                    VoidMonarchEntity::new,
+                    MobCategory.MONSTER,
+                    builder -> builder
+                            .sized(1.6F, 3.6F)
+                            .eyeHeight(3.2F)
+                            .clientTrackingRange(10)
+                            .fireImmune()
+            );
+
+    /** 湮灭侍卫：君主麾下的人形精英小怪，遗迹驻军 + 召唤物。 */
+    public static final DeferredHolder<EntityType<?>, EntityType<VoidGuardEntity>> VOID_GUARD =
+            ENTITY_TYPES.registerEntityType(
+                    "void_guard",
+                    VoidGuardEntity::new,
+                    MobCategory.MONSTER,
+                    builder -> builder
+                            .sized(0.7F, 2.0F)
+                            .eyeHeight(1.75F)
+                            .clientTrackingRange(10)
+            );
+
+    /** 暗物质螺栓：君主的弹幕投射物（MISC，与原版箭/雪球同类，不占刷怪上限）。 */
+    public static final DeferredHolder<EntityType<?>, EntityType<VoidBoltEntity>> VOID_BOLT =
+            ENTITY_TYPES.registerEntityType(
+                    "void_bolt",
+                    VoidBoltEntity::new,
+                    MobCategory.MISC,
+                    builder -> builder
+                            .sized(0.4F, 0.4F)
+                            .eyeHeight(0.2F)
+                            .clientTrackingRange(8)
+                            .updateInterval(2)
+            );
+
     private EntityRegistry() {}
 
     /**
-     * 把瑞克的属性表挂到实体类型上。
+     * 把实体属性表挂到实体类型上。
      * <p>
-     * 属性基值定义在 {@link RickEntity#createAttributes()}，这里只做绑定——
+     * 属性基值定义在各实体类的 {@code createAttributes()}，这里只做绑定——
      * 不绑定的话实体一生成就会因为找不到 AttributeSupplier 而崩。
      */
     @SubscribeEvent
     public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
         event.put(RICK.get(), RickEntity.createAttributes().build());
+        event.put(VOID_MONARCH.get(), VoidMonarchEntity.createAttributes().build());
+        event.put(VOID_GUARD.get(), VoidGuardEntity.createAttributes().build());
     }
 
     public static void register(IEventBus modBus) {

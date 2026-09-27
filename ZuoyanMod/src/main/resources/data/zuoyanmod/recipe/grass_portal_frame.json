@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "G": "minecraft:grass_block",
+    "D": "minecraft:dirt",
+    "O": "minecraft:obsidian"
+  },
+  "pattern": [
+    "GDG",
+    "DOD",
+    "GDG"
+  ],
+  "result": {
+    "id": "zuoyanmod:grass_portal_frame",
+    "count": 6
+  },
+  "category": "building"
+}

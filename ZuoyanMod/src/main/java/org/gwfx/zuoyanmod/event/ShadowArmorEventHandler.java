@@ -28,6 +28,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
 public class ShadowArmorEventHandler {
@@ -111,7 +112,7 @@ public class ShadowArmorEventHandler {
                 }
                 FRENZY_MAX_HEALTH_BONUS.remove(player.getUUID());
                 BATTLE_FRENZY_LAST_ATTACK.remove(player.getUUID());
-                player.sendSystemMessage(Component.translatable("message.zuoyanmod.shadow_armor.frenzy_end"));
+                ModToastPacket.send(player, Component.translatable("message.zuoyanmod.shadow_armor.frenzy_end"));
             }
         }
 
@@ -239,7 +240,7 @@ public class ShadowArmorEventHandler {
         if (!helmet.isEmpty() && helmet.is(ItemRegistry.SHADOW_HELMET.get())) {
             if (player.hasEffect(MobEffects.BLINDNESS) && RANDOM.nextFloat() < DAMAGE_NEGATE_CHANCE) {
                 event.setCanceled(true);
-                player.sendSystemMessage(Component.translatable("message.zuoyanmod.shadow_armor.aegis_block"));
+                ModToastPacket.send(player, Component.translatable("message.zuoyanmod.shadow_armor.aegis_block"));
             }
         }
     }
@@ -262,7 +263,7 @@ public class ShadowArmorEventHandler {
                 BATTLE_FRENZY_LAST_ATTACK.put(player.getUUID(), currentTick);
 
                 if (!wasInFrenzy) {
-                    player.sendSystemMessage(Component.translatable("message.zuoyanmod.shadow_armor.frenzy_enter"));
+                    ModToastPacket.send(player, Component.translatable("message.zuoyanmod.shadow_armor.frenzy_enter"));
                 }
 
                 float currentBonus = FRENZY_MAX_HEALTH_BONUS.getOrDefault(player.getUUID(), 0.0f);
@@ -284,8 +285,7 @@ public class ShadowArmorEventHandler {
                     event.setNewDamage(event.getNewDamage() + bonusDamage);
                 }
 
-                player.sendSystemMessage(Component.translatable("message.zuoyanmod.shadow_armor.frenzy_tick",
-                        String.format("%.1f", selfDamage), String.format("%.1f", bonusDamage)));
+                ModToastPacket.send(player, Component.translatable("message.zuoyanmod.shadow_armor.frenzy_tick", String.format("%.1f", selfDamage), String.format("%.1f", bonusDamage)));
             }
 
             ItemStack helmet = player.getItemBySlot(EquipmentSlot.HEAD);
@@ -303,8 +303,7 @@ public class ShadowArmorEventHandler {
                 LivingEntity target = event.getEntity();
                 float bonusDamage = target.getMaxHealth() * SET_BONUS_DAMAGE_PERCENT;
                 event.setNewDamage(event.getNewDamage() + bonusDamage);
-                player.sendSystemMessage(Component.translatable("message.zuoyanmod.shadow_armor.cosmos_bonus",
-                        String.format("%.1f", bonusDamage)));
+                ModToastPacket.send(player, Component.translatable("message.zuoyanmod.shadow_armor.cosmos_bonus", String.format("%.1f", bonusDamage)));
             }
 
             // 胜天之怒：生命>50%时30%增伤
@@ -325,8 +324,7 @@ public class ShadowArmorEventHandler {
                     event.setNewDamage(event.getNewDamage() + bonusDamage);
                     SHADOW_BLADE_COOLDOWNS.put(player.getUUID(), currentTick);
                     event.getEntity().addEffect(new MobEffectInstance(MobEffects.BLINDNESS, BLINDNESS_ON_ATTACK_DURATION, 0));
-                    player.sendSystemMessage(Component.translatable("message.zuoyanmod.shadow_armor.blade_bonus",
-                            String.format("%.1f", bonusDamage)));
+                    ModToastPacket.send(player, Component.translatable("message.zuoyanmod.shadow_armor.blade_bonus", String.format("%.1f", bonusDamage)));
                 }
             }
         }
@@ -354,7 +352,7 @@ public class ShadowArmorEventHandler {
                     if (attackerEntity instanceof LivingEntity livingAttacker) {
                         teleportRandomly(livingAttacker, serverLevel);
                     }
-                    player.sendSystemMessage(Component.translatable("message.zuoyanmod.shadow_armor.warp_on_fatal"));
+                    ModToastPacket.send(player, Component.translatable("message.zuoyanmod.shadow_armor.warp_on_fatal"));
                 }
             }
 

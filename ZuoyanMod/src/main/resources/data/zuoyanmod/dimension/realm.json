@@ -6,7 +6,9 @@
       "biome": "zuoyanmod:realm",
       "features": false,
       "lakes": false,
-      "structure_overrides": [],
+      "structure_overrides": [
+        "zuoyanmod:monarch_citadel"
+      ],
       "layers": [
         {
           "block": "minecraft:bedrock",
