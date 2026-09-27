@@ -1,5 +1,6 @@
 package org.gwfx.zuoyanmod.entity;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -9,11 +10,10 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityReference;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.SpawnGroupData;
@@ -35,11 +35,10 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
-import org.jspecify.annotations.Nullable;
 import org.gwfx.zuoyanmod.network.ModToastPacket;
+
+import java.util.UUID;
 
 /**
  * 瑞克 —— 中立人形生物。
@@ -97,7 +96,7 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
     /**
      * 守卫标签：打上它的瑞克会把出生点认作领地。
      * <p>结构 NBT 里给小屋那只预置了这个标签（见 {@code tools/rick_structure_nbt.py}）。
-     * <p>为什么不用 {@code EntitySpawnReason.STRUCTURE} 判断：只有走区块生成的
+     * <p>为什么不用生成类型判断：只有走区块生成的
      * {@code SinglePoolElement} 会设 {@code finalizeEntities=true}；{@code /place structure}
      * 这条路径走的是裸的 {@code StructureTemplate.placeInWorld}，<b>不会</b>调 finalizeSpawn。
      * 用标签的话，"结构生成 / {@code /place} / {@code /summon} 带 NBT"三种途径行为一致，
@@ -114,22 +113,24 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
      */
     private boolean canRebirth;
 
-    private long persistentAngerEndTime = NO_ANGER_END_TIME;
-    private @Nullable EntityReference<LivingEntity> persistentAngerTarget;
+    /** 剩余仇恨时间（tick），1.21.1 的 NeutralMob 计时模型。 */
+    private int remainingAngerTime;
+    /** 仇恨目标（UUID），null 表示没有记仇对象。 */
+    private UUID persistentAngerTarget;
 
     /**
      * 当前正在跟它做买卖的玩家，null 表示没人。
      * <p>刻意<b>不</b>存盘：交易是纯会话状态，读档后重新右键即可；
      * 存了反而会在"玩家退游戏时界面没关干净"的情况下留下一个永远打不开的幽灵交易锁。
      */
-    private @Nullable Player tradingPlayer;
+    private Player tradingPlayer;
 
     /**
      * 报价表，第一次有人开界面时才构造（见 {@link #getOffers}）。
      * <p>同样不存盘：价格固定、交易无限次，实体重新加载后重建一份结果完全一样，
      * 没有任何需要跨存档保留的状态（这也是我们不需要覆写 addAdditionalSaveData 的原因）。
      */
-    private @Nullable MerchantOffers offers;
+    private MerchantOffers offers;
 
     public RickEntity(EntityType<? extends RickEntity> type, Level level) {
         super(type, level);
@@ -175,47 +176,55 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
         //    从源头上避免它为了追人而贴到墙上磨蹭。
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(
                 this, Player.class, 10, true, false,
-                (target, serverLevel) -> this.isAngryAt(target, serverLevel) && this.canReachTarget(target)));
+                target -> this.isAngryAt(target) && this.canReachTarget(target)));
     }
 
     /** 有领地时只承认领地内的目标；没有领地（刷怪蛋生成）则一律照旧。 */
     private boolean canReachTarget(LivingEntity entity) {
-        return !this.hasHome() || this.isWithinHome(entity.blockPosition());
+        return !this.hasRestriction() || this.isWithinRestriction(entity.blockPosition());
     }
 
     // ===================== 中立生物（NeutralMob）=====================
+    // 1.21.1 的仇恨模型：剩余时间（int tick）+ 目标 UUID；
+    // 计时推进由 updatePersistentAnger 在 customServerAiStep 里驱动。
 
     @Override
-    public long getPersistentAngerEndTime() {
-        return this.persistentAngerEndTime;
+    public int getRemainingPersistentAngerTime() {
+        return this.remainingAngerTime;
     }
 
     @Override
-    public void setPersistentAngerEndTime(long endTime) {
-        this.persistentAngerEndTime = endTime;
+    public void setRemainingPersistentAngerTime(int time) {
+        this.remainingAngerTime = time;
     }
 
     @Override
-    public @Nullable EntityReference<LivingEntity> getPersistentAngerTarget() {
+    public UUID getPersistentAngerTarget() {
         return this.persistentAngerTarget;
     }
 
     @Override
-    public void setPersistentAngerTarget(@Nullable EntityReference<LivingEntity> target) {
+    public void setPersistentAngerTarget(UUID target) {
         this.persistentAngerTarget = target;
     }
 
     @Override
     public void startPersistentAngerTimer() {
-        this.setTimeToRemainAngry(PERSISTENT_ANGER_TICKS);
+        this.setRemainingPersistentAngerTime(PERSISTENT_ANGER_TICKS);
     }
 
     /** 仇恨计时结束、目标死亡、或目标切创造/旁观时调用。 */
     @Override
     public void stopBeingAngry() {
         NeutralMob.super.stopBeingAngry();
-        this.persistentAngerEndTime = NO_ANGER_END_TIME;
         this.persistentAngerTarget = null;
+    }
+
+    @Override
+    protected void customServerAiStep() {
+        super.customServerAiStep();
+        // 驱动仇恨倒计时 + 把字段里的仇恨目标同步成 AI 目标
+        this.updatePersistentAnger((ServerLevel) this.level(), true);
     }
 
     // ===================== 复活 =====================
@@ -246,25 +255,25 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
 
     private void rebirth(ServerLevel level, DamageSource source) {
         EntityType<RickEntity> type = EntityRegistry.RICK.get();
-        // create(Level, reason) 只构造实体，不会调 finalizeSpawn —— 正好，下面手动安排。
-        RickEntity next = type.create(level, EntitySpawnReason.MOB_SUMMONED);
+        // create(Level) 只构造实体，不会调 finalizeSpawn —— 正好，下面手动安排。
+        RickEntity next = type.create(level);
         if (next == null) {
             return;
         }
 
         // 死亡位置原样继承，朝向也一致：视觉上就是"原地站起来了一个新的"
-        next.snapTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+        next.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
         // 有意不给 next 设 canRebirth：第二代死透，复活链长度恒为 1。
         next.finalizeSpawn(level, level.getCurrentDifficultyAt(this.blockPosition()),
-                EntitySpawnReason.MOB_SUMMONED, null);
+                MobSpawnType.MOB_SUMMONED, null);
         // finalizeSpawn 会重掷血量相关随机，这里明确拉满 → 满血复活
         next.setHealth(next.getMaxHealth());
 
         // 领地跟着一起继承：小屋里那只被打倒后，新站起来的这只仍然守在同一块地方。
-        // 必须显式拷贝——next 是全新构造的实体，既没走存档读回、生成原因也不是 STRUCTURE，
+        // 必须显式拷贝——next 是全新构造的实体，既没走存档读回、生成类型也不是 STRUCTURE，
         // 上面 finalizeSpawn 里设家那一段不会替它触发。
-        if (this.hasHome()) {
-            next.setHomeTo(this.getHomePosition(), this.getHomeRadius());
+        if (this.hasRestriction()) {
+            next.restrictTo(this.getRestrictCenter(), (int) this.getRestrictRadius());
         }
 
         // 记住凶手：谁打死上一个，新瑞克接着跟他算账。
@@ -272,8 +281,8 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
         LivingEntity attacker = this.resolveAttacker(source);
         if (attacker != null) {
             next.setLastHurtByMob(attacker);
-            next.setPersistentAngerTarget(EntityReference.of(attacker));
-            next.setPersistentAngerEndTime(level.getGameTime() + REBIRTH_ANGER_TICKS);
+            next.setPersistentAngerTarget(attacker.getUUID());
+            next.setRemainingPersistentAngerTime(REBIRTH_ANGER_TICKS);
             next.setTarget(attacker);
         }
 
@@ -285,7 +294,7 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
     }
 
     /** 找出"算在谁头上"：优先伤害直接来源，其次是凶手，最后是最后打我的人。 */
-    private @Nullable LivingEntity resolveAttacker(DamageSource source) {
+    private LivingEntity resolveAttacker(DamageSource source) {
         if (source.getEntity() instanceof LivingEntity direct) {
             return direct;
         }
@@ -299,14 +308,14 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
     /**
      * 一切正常生成路径（刷怪蛋、{@code /summon}、自然生成）都会走到这里，
      * 在这里发"复活资格"，正好覆盖"第一代"的语义。
-     * 复活产生的下一代是手工 {@code create + snapTo} 的，不会经过 finalizeSpawn，因此拿不到资格。
+     * 复活产生的下一代是手工 {@code create + moveTo} 的，不会经过 finalizeSpawn，因此拿不到资格。
      */
     @Override
     public SpawnGroupData finalizeSpawn(
             ServerLevelAccessor level,
             DifficultyInstance difficulty,
-            EntitySpawnReason spawnReason,
-            net.minecraft.world.entity.@Nullable SpawnGroupData groupData) {
+            MobSpawnType spawnType,
+            SpawnGroupData groupData) {
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, spawnReason, groupData);
         this.canRebirth = true;
         // 无论哪条生成路径，瑞克出场都该是完整的 20 点血
@@ -331,11 +340,11 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
             return;
         }
         this.claimGuardHome();
-        if (!this.hasHome()) {
+        if (!this.hasRestriction()) {
             return;
         }
         LivingEntity target = this.getTarget();
-        if (target != null && !this.isWithinHome(target.blockPosition())) {
+        if (target != null && !this.isWithinRestriction(target.blockPosition())) {
             this.setTarget(null);
         }
     }
@@ -349,11 +358,10 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
      * 所以只需要认一次；不再带标签的、或者没有标签的瑞克完全不受影响。
      */
     private void claimGuardHome() {
-        // 注意 26.3 的 getter 叫 entityTags()，不是 getTags()；存盘键名仍是 "Tags"
-        if (this.hasHome() || !this.entityTags().contains(GUARD_TAG)) {
+        if (this.hasRestriction() || !this.getTags().contains(GUARD_TAG)) {
             return;
         }
-        this.setHomeTo(this.blockPosition(), STRUCTURE_HOME_RADIUS);
+        this.restrictTo(this.blockPosition(), STRUCTURE_HOME_RADIUS);
     }
 
     /**
@@ -372,8 +380,8 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
         }
 
         @Override
-        protected @Nullable Vec3 getPosition() {
-            if (!this.mob.hasHome()) {
+        protected Vec3 getPosition() {
+            if (!this.mob.hasRestriction()) {
                 return super.getPosition();
             }
             for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
@@ -381,7 +389,7 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
                 if (candidate == null) {
                     return null;
                 }
-                if (this.mob.isWithinHome(candidate)) {
+                if (this.mob.isWithinRestriction(BlockPos.containing(candidate.x, candidate.y, candidate.z))) {
                     return candidate;
                 }
             }
@@ -450,12 +458,12 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
     }
 
     @Override
-    public void setTradingPlayer(@Nullable Player player) {
+    public void setTradingPlayer(Player player) {
         this.tradingPlayer = player;
     }
 
     @Override
-    public @Nullable Player getTradingPlayer() {
+    public Player getTradingPlayer() {
         return this.tradingPlayer;
     }
 
@@ -563,7 +571,7 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
     public boolean stillValid(Player player) {
         return this.getTradingPlayer() == player
                 && this.isAlive()
-                && player.isWithinEntityInteractionRange(this, TRADE_DISTANCE);
+                && player.canInteractWithEntity(this, TRADE_DISTANCE);
     }
 
     // ===================== 音效 / 杂项 =====================
@@ -582,19 +590,19 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
 
     /** 不播环境音（原先借用玩家的呼吸声）。 */
     @Override
-    protected @Nullable SoundEvent getAmbientSound() {
+    protected SoundEvent getAmbientSound() {
         return null;
     }
 
     /** 不播受伤声（原先借用玩家的受伤声）。 */
     @Override
-    protected @Nullable SoundEvent getHurtSound(DamageSource source) {
+    protected SoundEvent getHurtSound(DamageSource source) {
         return null;
     }
 
     /** 不播死亡声（原先借用玩家的死亡声）。 */
     @Override
-    protected @Nullable SoundEvent getDeathSound() {
+    protected SoundEvent getDeathSound() {
         return null;
     }
 
@@ -616,7 +624,7 @@ public class RickEntity extends PathfinderMob implements NeutralMob, Merchant {
     }
 
     @Override
-    protected boolean shouldDropLoot(ServerLevel level) {
+    protected boolean shouldDropLoot() {
         return false;
     }
 }

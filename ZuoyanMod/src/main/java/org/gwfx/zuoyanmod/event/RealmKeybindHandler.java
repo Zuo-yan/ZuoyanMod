@@ -2,7 +2,7 @@ package org.gwfx.zuoyanmod.event;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -13,7 +13,7 @@ import org.gwfx.zuoyanmod.Zuoyanmod;
 public final class RealmKeybindHandler {
 
     /**
-     * 按键分类。这里的 {@link Identifier} 路径 {@code zuoyan} 同时决定了两件事：
+     * 按键分类。这里的 {@link ResourceLocation} 路径 {@code zuoyan} 同时决定了两件事：
      * 分类在按键设置里的排序位置，以及它去 lang 文件里取的名字
      * （{@code key.category.zuoyanmod.zuoyan}）。
      *
@@ -23,7 +23,7 @@ public final class RealmKeybindHandler {
      * 由加载器决定何时收集——见下方 {@link #onRegisterKeys}。
      */
     public static final KeyMapping.Category CATEGORY =
-            new KeyMapping.Category(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "zuoyan"));
+            new KeyMapping.Category(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "zuoyan"));
 
     // 26.x 使用 SDL scancode：InputConstants.KEY_HOME
     public static final KeyMapping TOGGLE_REALM =

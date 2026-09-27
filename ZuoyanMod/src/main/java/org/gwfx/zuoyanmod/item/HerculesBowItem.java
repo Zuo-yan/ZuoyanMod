@@ -8,6 +8,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BowItem;
@@ -15,13 +16,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.EventHooks;
 import org.gwfx.zuoyanmod.entity.LightSpiritArrow;
 
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Consumer;
 
 public class HerculesBowItem extends BowItem {
 
@@ -58,6 +58,12 @@ public class HerculesBowItem extends BowItem {
         super(properties);
     }
 
+    /** 铁砧修复：紫金锭（1.21.1 没有 Properties#repairable，走 Item 的覆盖点） */
+    @Override
+    public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
+        return repair.is(ItemRegistry.VIOLET_GOLD_INGOT.get()) || super.isValidRepairItem(toRepair, repair);
+    }
+
     @Override
     public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return 72000;
@@ -67,8 +73,8 @@ public class HerculesBowItem extends BowItem {
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         // 光灵箭由神圣光灵凝聚而成，无需背包中备有箭矢即可拉弓
         ItemStack stack = player.getItemInHand(hand);
-        InteractionResult ret = EventHooks.onArrowNock(stack, level, player, hand, true);
-        if (ret != null) return ret;
+        InteractionResultHolder<ItemStack> ret = EventHooks.onArrowNock(stack, level, player, hand, true);
+        if (ret != null) return ret.getResult();
 
         player.startUsingItem(hand);
         return InteractionResult.CONSUME;
@@ -149,55 +155,56 @@ public class HerculesBowItem extends BowItem {
     public static BlessingType getBlessingType(ItemStack stack) {
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         if (customData != null) {
-            return customData.copyTag().getString(BLESSING_TAG).map(name -> {
+            String name = customData.copyTag().getString(BLESSING_TAG);
+            if (!name.isEmpty()) {
                 try {
                     return BlessingType.valueOf(name);
                 } catch (IllegalArgumentException e) {
                     return null;
                 }
-            }).orElse(null);
+            }
         }
         return null;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.desc1"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.desc2"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.desc3"));
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.desc3"));
 
         BlessingType blessing = getBlessingType(stack);
         if (blessing != null) {
-            tooltip.accept(Component.literal(""));
-            tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.blessing_header"));
+            tooltip.add(Component.literal(""));
+            tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.blessing_header"));
             switch (blessing) {
                 case ARTEMIS:
-                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.artemis.title"));
-                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.artemis.desc1"));
-                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.artemis.desc2"));
-                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.artemis.desc3"));
+                    tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.artemis.title"));
+                    tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.artemis.desc1"));
+                    tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.artemis.desc2"));
+                    tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.artemis.desc3"));
                     break;
                 case HELIOS:
-                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.helios.title"));
-                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.helios.desc1"));
-                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.helios.desc2"));
+                    tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.helios.title"));
+                    tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.helios.desc1"));
+                    tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.helios.desc2"));
                     break;
                 case CERBERUS:
-                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.cerberus.title"));
-                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.cerberus.desc1"));
-                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.cerberus.desc2"));
+                    tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.cerberus.title"));
+                    tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.cerberus.desc1"));
+                    tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.cerberus.desc2"));
                     break;
                 case HIPPOLYTA:
-                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.hippolyta.title"));
-                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.hippolyta.desc1"));
+                    tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.hippolyta.title"));
+                    tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.hippolyta.desc1"));
                     break;
             }
         } else {
-            tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.blessing_pending"));
+            tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.blessing_pending"));
         }
 
-        tooltip.accept(Component.literal(""));
-        tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.desc4"));
+        tooltip.add(Component.literal(""));
+        tooltip.add(Component.translatable("item.zuoyanmod.hercules_bow.desc4"));
     }
 }

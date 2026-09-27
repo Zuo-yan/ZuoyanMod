@@ -4,9 +4,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 
-import java.util.function.Consumer;
+import java.util.List;
 
 public class VioletGoldIngotItem extends Item {
 
@@ -15,9 +14,9 @@ public class VioletGoldIngotItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.translatable("item.zuoyanmod.violet_gold_ingot.desc1"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.violet_gold_ingot.desc2"));
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        tooltip.add(Component.translatable("item.zuoyanmod.violet_gold_ingot.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.violet_gold_ingot.desc2"));
     }
 }

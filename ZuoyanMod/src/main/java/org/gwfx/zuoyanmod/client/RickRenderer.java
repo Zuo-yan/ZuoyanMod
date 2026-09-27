@@ -5,7 +5,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.entity.RickEntity;
 
@@ -24,8 +24,8 @@ import org.gwfx.zuoyanmod.entity.RickEntity;
 public class RickRenderer extends HumanoidMobRenderer<RickEntity, HumanoidRenderState, HumanoidModel<HumanoidRenderState>> {
 
     /** 皮肤贴图位置：assets/zuoyanmod/textures/entity/rick.png */
-    private static final Identifier TEXTURE =
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/rick.png");
+    private static final ResourceLocation TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/rick.png");
 
     public RickRenderer(EntityRendererProvider.Context context) {
         super(context, new HumanoidModel<>(context.bakeLayer(RickModelLayers.RICK_BODY)), 0.5F);
@@ -38,7 +38,7 @@ public class RickRenderer extends HumanoidMobRenderer<RickEntity, HumanoidRender
     }
 
     @Override
-    public Identifier getTextureLocation(HumanoidRenderState state) {
+    public ResourceLocation getTextureLocation(HumanoidRenderState state) {
         return TEXTURE;
     }
 }

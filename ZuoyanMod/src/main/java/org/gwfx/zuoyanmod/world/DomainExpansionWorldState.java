@@ -4,12 +4,9 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.gwfx.zuoyanmod.platform.Teleports;
 import org.slf4j.Logger;
@@ -44,21 +41,24 @@ public final class DomainExpansionWorldState {
             entity.discard();
             return recreated;
         }
-        LOGGER.warn("Failed to recreate entity {} in dimension {}", entity.getType(), destination.dimension().identifier());
+        LOGGER.warn("Failed to recreate entity {} in dimension {}", entity.getType(), destination.dimension().location());
         return entity;
     }
 
     private static Entity recreateInDestination(ServerLevel destination, Entity source, double x, double y, double z, float yRot, float xRot) {
-        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, source.registryAccess());
-        source.saveWithoutId(output);
-        CompoundTag tag = output.buildResult();
-        Entity recreated = EntityType.loadEntityRecursive(source.getType(), tag, destination, EntitySpawnReason.DIMENSION_TRAVEL, entity -> {
-            entity.snapTo(x, y, z, yRot, xRot);
+        // 1.21.1 直接 CompoundTag 快照：saveAsPassenger 连实体 id 一起写入，
+        // 产出的 NBT 足以用 loadEntityRecursive 原样重建（乘客状态下也能导出）
+        CompoundTag tag = new CompoundTag();
+        if (!source.saveAsPassenger(tag)) {
+            return null;
+        }
+        Entity recreated = EntityType.loadEntityRecursive(tag, destination, entity -> {
+            entity.moveTo(x, y, z, yRot, xRot);
             entity.setDeltaMovement(Vec3.ZERO);
             return entity;
         });
         if (recreated != null) {
-            recreated.snapTo(x, y, z, yRot, xRot);
+            recreated.moveTo(x, y, z, yRot, xRot);
             recreated.setDeltaMovement(Vec3.ZERO);
             destination.addFreshEntity(recreated);
         }

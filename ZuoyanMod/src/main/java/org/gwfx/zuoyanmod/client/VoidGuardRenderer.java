@@ -5,7 +5,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.entity.VoidGuardEntity;
 
@@ -15,8 +15,8 @@ import org.gwfx.zuoyanmod.entity.VoidGuardEntity;
 public class VoidGuardRenderer extends HumanoidMobRenderer<VoidGuardEntity, HumanoidRenderState, HumanoidModel<HumanoidRenderState>> {
 
     /** 皮肤贴图位置：assets/zuoyanmod/textures/entity/void_guard.png */
-    private static final Identifier TEXTURE =
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/void_guard.png");
+    private static final ResourceLocation TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/void_guard.png");
 
     public VoidGuardRenderer(EntityRendererProvider.Context context) {
         super(context, new HumanoidModel<>(context.bakeLayer(BossModelLayers.VOID_GUARD_BODY)), 0.5F);
@@ -29,7 +29,7 @@ public class VoidGuardRenderer extends HumanoidMobRenderer<VoidGuardEntity, Huma
     }
 
     @Override
-    public Identifier getTextureLocation(HumanoidRenderState state) {
+    public ResourceLocation getTextureLocation(HumanoidRenderState state) {
         return TEXTURE;
     }
 }

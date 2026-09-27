@@ -1,29 +1,31 @@
 package org.gwfx.zuoyanmod.item;
 
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 
-import java.util.function.Consumer;
+import java.util.List;
 
-public class ShadowArmorItem extends Item {
+/** 紫金头盔：材质在注册时传入（1.21.1 的 ArmorMaterial 是注册表对象，不再塞进 Properties）。 */
+public class ShadowArmorItem extends ArmorItem {
 
-    public ShadowArmorItem(Properties properties) {
-        super(properties);
+    public ShadowArmorItem(Holder<ArmorMaterial> material, Properties properties) {
+        super(material, ArmorItem.Type.HELMET, properties);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.translatable("item.zuoyanmod.shadow_armor.desc1"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.shadow_armor.desc2"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.shadow_armor.desc3"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.shadow_armor.desc4"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.shadow_armor.desc5"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.shadow_armor.desc6"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.shadow_armor.desc7"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.shadow_armor.desc8"));
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        tooltip.add(Component.translatable("item.zuoyanmod.shadow_armor.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.shadow_armor.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.shadow_armor.desc3"));
+        tooltip.add(Component.translatable("item.zuoyanmod.shadow_armor.desc4"));
+        tooltip.add(Component.translatable("item.zuoyanmod.shadow_armor.desc5"));
+        tooltip.add(Component.translatable("item.zuoyanmod.shadow_armor.desc6"));
+        tooltip.add(Component.translatable("item.zuoyanmod.shadow_armor.desc7"));
+        tooltip.add(Component.translatable("item.zuoyanmod.shadow_armor.desc8"));
     }
 }

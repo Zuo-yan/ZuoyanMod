@@ -1,6 +1,8 @@
 package org.gwfx.zuoyanmod.worldgen;
 
 import com.mojang.logging.LogUtils;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.DataResult;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -9,15 +11,19 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.TagKey;
@@ -33,12 +39,13 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
-import net.minecraft.world.level.levelgen.feature.AbstractOreFeature;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
-import net.minecraft.world.level.levelgen.placement.CountPlacement;
+import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
+import net.minecraft.world.level.levelgen.feature.OreFeature;
+import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
-import net.minecraft.world.level.levelgen.placement.RarityFilter;
 import org.gwfx.zuoyanmod.Config;
 import org.slf4j.Logger;
 
@@ -58,7 +65,7 @@ import org.slf4j.Logger;
  * <h2>矿物来源（自动）</h2>
  * 每个带从对应维度标签的群系里收集矿物特征：
  * {@code #minecraft:is_overworld} / {@code #minecraft:is_nether} / {@code #minecraft:is_end}。
- * 判据是 {@code feature instanceof AbstractOreFeature}，因此<b>任何</b>模组后来往这些群系
+ * 判据是 {@code feature instanceof OreFeature}，因此<b>任何</b>模组后来往这些群系
  * 添加的矿物（无论是改群系 JSON 还是用 {@code neoforge:add_features}）都会自动进入矿带，
  * 数据包重载后自动刷新，无需手写任何配置。
  *
@@ -94,7 +101,7 @@ public final class RealmOreBandGenerator {
     private record Band(BandKind kind, int minY, int height) {
     }
 
-    private record OreEntry(Holder<Feature> feature, float attempts) {
+    private record OreEntry(Holder<ConfiguredFeature<?, ?>> feature, float attempts) {
     }
 
     private record Snapshot(List<Band> bands, Map<BandKind, List<OreEntry>> pools) {
@@ -159,14 +166,14 @@ public final class RealmOreBandGenerator {
             return new Snapshot(List.of(), Map.of());
         }
 
-        List<Band> bands = detectBands(flat.settings().getLayers(), level.getMinY());
+        List<Band> bands = detectBands(flat.settings().getLayers(), level.getMinBuildHeight());
         if (bands.isEmpty()) {
             LOGGER.warn("[Realm] 层配置里没有识别到任何矿带（需要 stone/deepslate、netherrack、end_stone 连续层）");
             return new Snapshot(List.of(), Map.of());
         }
 
         RegistryAccess access = level.registryAccess();
-        Registry<Biome> biomes = access.lookupOrThrow(Registries.BIOME);
+        HolderLookup.RegistryLookup<Biome> biomes = access.lookupOrThrow(Registries.BIOME);
 
         float multiplier = (float) Config.realmOreDensityMultiplier;
         int maxPerOre = Config.realmOreMaxAttemptsPerOre;
@@ -175,24 +182,25 @@ public final class RealmOreBandGenerator {
         Map<BandKind, List<OreEntry>> pools = new EnumMap<>(BandKind.class);
         for (Band band : bands) {
             // 先按 placed_feature 去重（同一个 placed_feature 会出现在几十个群系里，会被重复扫到），
-            // 再把同一 Feature 的多个 placed_feature 的次数累加（例如煤的 upper + lower）。
-            Set<Identifier> seenPlacedFeatures = new HashSet<>();
-            Map<Identifier, Holder<Feature>> holders = new HashMap<>();
-            Map<Identifier, Float> counts = new HashMap<>();
+            // 再把同一 ConfiguredFeature 的多个 placed_feature 的次数累加（例如煤的 upper + lower）。
+            Set<ResourceLocation> seenPlacedFeatures = new HashSet<>();
+            Map<ResourceLocation, Holder<ConfiguredFeature<?, ?>>> holders = new HashMap<>();
+            Map<ResourceLocation, Float> counts = new HashMap<>();
 
             for (Holder<Biome> biome : biomes.getOrThrow(band.kind().biomeTag)) {
                 for (HolderSet<PlacedFeature> step : biome.value().getGenerationSettings().features()) {
                     for (Holder<PlacedFeature> placedHolder : step) {
                         PlacedFeature placed = placedHolder.value();
-                        Holder<Feature> featureHolder = placed.feature();
-                        if (!(featureHolder.value() instanceof AbstractOreFeature)) {
+                        Holder<ConfiguredFeature<?, ?>> configuredHolder = placed.feature();
+                        // 1.21.1：PlacedFeature 持有 ConfiguredFeature，Feature 实例在 CF 里
+                        if (!(configuredHolder.value().feature() instanceof OreFeature)) {
                             continue;
                         }
-                        Identifier featureId = featureHolder.unwrapKey().map(ResourceKey::identifier).orElse(null);
+                        ResourceLocation featureId = configuredHolder.unwrapKey().map(ResourceKey::location).orElse(null);
                         if (featureId == null || excluded.contains(featureId.toString())) {
                             continue;
                         }
-                        Identifier placedId = placedHolder.unwrapKey().map(ResourceKey::identifier).orElse(null);
+                        ResourceLocation placedId = placedHolder.unwrapKey().map(ResourceKey::location).orElse(null);
                         if (placedId == null || !seenPlacedFeatures.add(placedId)) {
                             continue;
                         }
@@ -200,14 +208,14 @@ public final class RealmOreBandGenerator {
                         if (count <= 0.0f) {
                             continue;
                         }
-                        holders.putIfAbsent(featureId, featureHolder);
+                        holders.putIfAbsent(featureId, configuredHolder);
                         counts.merge(featureId, count, Float::sum);
                     }
                 }
             }
 
             List<OreEntry> entries = new ArrayList<>(counts.size());
-            for (Map.Entry<Identifier, Float> entry : counts.entrySet()) {
+            for (Map.Entry<ResourceLocation, Float> entry : counts.entrySet()) {
                 float attempts = entry.getValue() * band.height() / (float) band.kind().referenceHeight * multiplier;
                 attempts = Math.min(attempts, maxPerOre);
                 if (attempts < 0.01f) {
@@ -217,7 +225,7 @@ public final class RealmOreBandGenerator {
             }
             // 稳定排序：随机种子按索引派生，顺序必须只与注册 id 有关，不能依赖集合迭代顺序
             entries.sort(Comparator.comparing(e -> e.feature().unwrapKey()
-                    .map(key -> key.identifier().toString()).orElse("")));
+                    .map(key -> key.location().toString()).orElse("")));
             pools.put(band.kind(), List.copyOf(entries));
 
             LOGGER.info("[Realm] {} 矿带: y={}..{} ({} 格), 矿物 {} 种",
@@ -268,23 +276,47 @@ public final class RealmOreBandGenerator {
         return null;
     }
 
-    /** 摊平成一个 placed_feature 的「每区块平均尝试次数」。 */
+    /**
+     * 摊平成一个 placed_feature 的「每区块平均尝试次数」。
+     *
+     * <p>1.21.1 的 {@code CountPlacement.count}/{@code RarityFilter.chance} 都是私有字段，
+     * 这里走各自的 type codec 把修饰符序列化回 NBT 再解析出 count/chance ——
+     * 与字段的编解码走同一条路，行为与原版 JSON 完全一致。
+     */
     private static float countOf(PlacedFeature placed) {
         for (PlacementModifier modifier : placed.placement()) {
-            if (modifier instanceof CountPlacement count) {
-                IntProvider provider = count.count();
+            DataResult<Tag> encoded = modifier.type().codec().encodeStart(NbtOps.INSTANCE, modifier);
+            Tag tag = encoded.result().orElse(null);
+            if (!(tag instanceof CompoundTag compound)) {
+                continue;
+            }
+            if (compound.contains("count")) {
+                IntProvider provider = IntProvider.CODEC.parse(NbtOps.INSTANCE, compound.get("count"))
+                        .result().orElse(null);
+                if (provider == null) {
+                    return 1.0f;
+                }
                 try {
                     return (provider.minInclusive() + provider.maxInclusive()) / 2.0f;
                 } catch (Throwable ignored) {
                     return 1.0f;
                 }
             }
-            if (modifier instanceof RarityFilter rarity) {
-                return 1.0f / Math.max(1, rarity.chance());
+            if (compound.contains("chance")) {
+                return 1.0f / Math.max(1, compound.getInt("chance"));
             }
         }
         // 既没有 count 也没有 rarity_filter = 原版语义「每区块 1 次」（远古残骸等）
         return 1.0f;
+    }
+
+    /** 在指定位置按给定配置直接落一次矿物特征（绕过 PlacedFeature 自带的空间修饰符）。 */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static boolean placeConfigured(ConfiguredFeature<?, ?> configured, WorldGenLevel level,
+                                           ChunkGenerator generator, WorldgenRandom random, BlockPos pos) {
+        Feature feature = configured.feature();
+        FeatureConfiguration config = configured.config();
+        return feature.place(new FeaturePlaceContext<>(Optional.empty(), level, generator, random, pos, config));
     }
 
     // ------------------------------------------------------------------ 投放
@@ -319,8 +351,9 @@ public final class RealmOreBandGenerator {
                     int x = chunkPos.getMinBlockX() + random.nextInt(16);
                     int z = chunkPos.getMinBlockZ() + random.nextInt(16);
                     int y = band.minY() + random.nextInt(band.height());
-                    // 26.3 没有 ConfiguredFeature：配置直接内联在 Feature 实例上
-                    entry.feature().value().place(level, generator, random, new BlockPos(x, y, z));
+                    // 1.21.1：Feature 与配置分离，通过 FeaturePlaceContext 显式传入配置
+                    ConfiguredFeature<?, ?> configured = entry.feature().value();
+                    placeConfigured(configured, level, generator, random, new BlockPos(x, y, z));
                 }
             }
         }

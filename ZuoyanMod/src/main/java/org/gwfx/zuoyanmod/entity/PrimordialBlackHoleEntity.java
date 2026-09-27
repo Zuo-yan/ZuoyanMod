@@ -3,10 +3,11 @@ package org.gwfx.zuoyanmod.entity;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -19,13 +20,10 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.damage.PrimordialBlackHoleDamageSource;
-import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -156,7 +154,7 @@ public class PrimordialBlackHoleEntity extends Entity {
     /** Boss 判定标签：{@code zuoyanmod:bosses}（data/zuoyanmod/tags/entity_type/bosses.json）。 */
     private static final TagKey<EntityType<?>> BOSSES_TAG = TagKey.create(
             Registries.ENTITY_TYPE,
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "bosses")
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "bosses")
     );
 
     /**
@@ -178,7 +176,7 @@ public class PrimordialBlackHoleEntity extends Entity {
      * 施法者 UUID，null 表示不是玩家放出来的（{@code /summon} 调试生成）。
      * <p>存 UUID 而不是实体引用：黑洞要比玩家在线时间活得久，持有实体引用会阻止它被回收。
      */
-    private @Nullable UUID ownerUuid;
+    private UUID ownerUuid;
 
     // ===================== 构造 =====================
 
@@ -191,7 +189,7 @@ public class PrimordialBlackHoleEntity extends Entity {
     }
 
     /** 施法路径。 */
-    public PrimordialBlackHoleEntity(ServerLevel level, @Nullable Player caster, Vec3 center) {
+    public PrimordialBlackHoleEntity(ServerLevel level, Player caster, Vec3 center) {
         this(EntityRegistry.PRIMORDIAL_BLACK_HOLE.get(), level);
         if (caster != null) {
             this.ownerUuid = caster.getUUID();
@@ -204,7 +202,7 @@ public class PrimordialBlackHoleEntity extends Entity {
      * 在指定位置展开一个黑洞（只负责"造 + 放 + 演出"，**不含**任何上限/冷却检查 ——
      * 那些属于使用它的物品，见 {@code item/PrimordialBlackHoleItem}）。
      */
-    public static void spawn(ServerLevel level, @Nullable Player caster, Vec3 center) {
+    public static void spawn(ServerLevel level, Player caster, Vec3 center) {
         PrimordialBlackHoleEntity hole = new PrimordialBlackHoleEntity(level, caster, center);
         level.addFreshEntity(hole);
         hole.playOpenEffects(level);
@@ -220,7 +218,7 @@ public class PrimordialBlackHoleEntity extends Entity {
         this.entityData.set(DATA_VISUAL_RADIUS, radius);
     }
 
-    public @Nullable UUID getOwnerUuid() {
+    public UUID getOwnerUuid() {
         return this.ownerUuid;
     }
 
@@ -240,12 +238,12 @@ public class PrimordialBlackHoleEntity extends Entity {
 
     /**
      * 免疫一切伤害。
-     * <p>注意这不影响管理员清场：{@code /kill} 走的是 {@code Entity#kill(ServerLevel)} →
-     * {@code remove(RemovalReason.KILLED)}，**根本不经过 hurtServer**。
+     * <p>注意这不影响管理员清场：{@code /kill} 走的是 {@code Entity#kill()} →
+     * {@code remove(RemovalReason.KILLED)}，**根本不经过 hurt**。
      * 所以返回 false 是安全的 —— 玩家打不烂它，管理员仍然收得掉它。
      */
     @Override
-    public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
+    public boolean hurt(DamageSource source, float damage) {
         return false;
     }
 
@@ -265,17 +263,17 @@ public class PrimordialBlackHoleEntity extends Entity {
     // 但它们把状态写全，既满足抽象方法的要求，也让"哪天想让它存盘"只需要删掉 noSave()。
 
     @Override
-    protected void addAdditionalSaveData(ValueOutput output) {
-        output.putInt("Life", this.life);
+    protected void addAdditionalSaveData(CompoundTag tag) {
+        tag.putInt("Life", this.life);
         if (this.ownerUuid != null) {
-            output.putString("Owner", this.ownerUuid.toString());
+            tag.putString("Owner", this.ownerUuid.toString());
         }
     }
 
     @Override
-    protected void readAdditionalSaveData(ValueInput input) {
-        this.life = input.getIntOr("Life", LIFETIME_TICKS);
-        String owner = input.getStringOr("Owner", "");
+    protected void readAdditionalSaveData(CompoundTag tag) {
+        this.life = tag.contains("Life") ? tag.getInt("Life") : LIFETIME_TICKS;
+        String owner = tag.getString("Owner");
         try {
             this.ownerUuid = owner.isEmpty() ? null : UUID.fromString(owner);
         } catch (IllegalArgumentException ignored) {
@@ -404,7 +402,7 @@ public class PrimordialBlackHoleEntity extends Entity {
             if (distance < PULL_DEAD_ZONE) {
                 // 死区：不再加速，改为强阻尼 —— 让它们"堆"在中心，而不是绕中心公转
                 entity.setDeltaMovement(entity.getDeltaMovement().scale(DEAD_ZONE_DAMPING));
-                entity.syncVelocity = true;
+                entity.hasImpulse = true;
                 continue;
             }
 
@@ -420,10 +418,10 @@ public class PrimordialBlackHoleEntity extends Entity {
             }
             entity.setDeltaMovement(velocity);
 
-            // ⚠️ 26.3 的坑（真空衰变黑洞那边已经踩过一次）：setDeltaMovement / push 只会置
-            //    needsSync，也就是**只同步位置**。速度变更必须额外打这个标记，否则服务端不会补发
-            //    ClientboundSetEntityMotionPacket —— 玩家（客户端权威）会纹丝不动。
-            entity.syncVelocity = true;
+            // ⚠️ 1.21.1 的坑（真空衰变黑洞那边已经踩过一次）：setDeltaMovement 本身不触发发包，
+            //    必须置 hasImpulse，ServerEntity 才会补发 ClientboundSetEntityMotionPacket ——
+            //    否则玩家（客户端权威）会纹丝不动。
+            entity.hasImpulse = true;
             // 被吸着飞不算坠落：不清零的话，等它松手落地会按"从高处掉下来"结算摔落伤害
             entity.resetFallDistance();
 
@@ -470,8 +468,8 @@ public class PrimordialBlackHoleEntity extends Entity {
             if (this.ownerUuid != null && this.ownerUuid.equals(living.getUUID())) {
                 continue; // 施法者不吃自己的爆发
             }
-            // 26.3：hurt(...) 已废弃，必须用 hurtServer(...)
-            living.hurtServer(level, source, BLAST_DAMAGE);
+            // 免疫普通伤害；hurt 对免疫伤害是正确的 1.21.1 签名
+            living.hurt(source, BLAST_DAMAGE);
         }
 
         // 内爆演出：三层叠 —— 爆炸亮闪 + 音波冲击 + 反向传送门粒子内收 + 幽匿灵魂上升

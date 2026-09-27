@@ -73,7 +73,7 @@ public class VoidBoltEntity extends ThrowableProjectile {
                 && result.getEntity() instanceof LivingEntity target
                 && !(result.getEntity() instanceof VoidMonarchEntity)
                 && !(result.getEntity() instanceof VoidGuardEntity)) {
-            target.hurtServer(serverLevel, this.damageSources().mobProjectile(this, getOwnerLiving()), DAMAGE);
+            target.hurt(this.damageSources().mobProjectile(this, getOwnerLiving()), DAMAGE);
             serverLevel.sendParticles(ParticleTypes.SOUL_FIRE_FLAME,
                     this.getX(), this.getY(), this.getZ(), 12, 0.2D, 0.2D, 0.2D, 0.02D);
             this.level().playSound(null, this.blockPosition(), SoundEvents.GENERIC_EXTINGUISH_FIRE,

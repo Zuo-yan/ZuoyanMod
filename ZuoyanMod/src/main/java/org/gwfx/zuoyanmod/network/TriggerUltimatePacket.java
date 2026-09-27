@@ -3,7 +3,7 @@ package org.gwfx.zuoyanmod.network;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.gwfx.zuoyanmod.Zuoyanmod;
@@ -16,7 +16,7 @@ import org.gwfx.zuoyanmod.upgrade.UpgradeManager;
 public record TriggerUltimatePacket() implements CustomPacketPayload {
 
     public static final Type<TriggerUltimatePacket> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "trigger_ultimate"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "trigger_ultimate"));
 
     public static final StreamCodec<ByteBuf, TriggerUltimatePacket> STREAM_CODEC =
             StreamCodec.unit(new TriggerUltimatePacket());

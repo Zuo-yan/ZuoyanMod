@@ -1,6 +1,6 @@
 package org.gwfx.zuoyanmod;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -121,12 +121,12 @@ public class Config {
     public static int upgradeLaunchRadius = 10;
 
     private static boolean validateIdentifier(final Object obj) {
-        return obj instanceof String name && Identifier.tryParse(name) != null;
+        return obj instanceof String name && ResourceLocation.tryParse(name) != null;
     }
 
     private static boolean validateItemName(final Object obj) {
         if (obj instanceof String itemName) {
-            return RegistryLookup.hasItem(Identifier.tryParse(itemName));
+            return RegistryLookup.hasItem(ResourceLocation.tryParse(itemName));
         }
         return false;
     }
@@ -155,7 +155,7 @@ public class Config {
         // 注册表按 ID 查询的返回类型随版本变化（26.3 是 Optional<Holder.Reference>），
         // 解包细节统一封装在 platform 适配层的 RegistryLookup 里
         items = ITEM_STRINGS.get().stream()
-                .map(Identifier::tryParse)
+                .map(ResourceLocation::tryParse)
                 .filter(Objects::nonNull)
                 .flatMap(id -> RegistryLookup.item(id).stream())
                 .collect(Collectors.toSet());

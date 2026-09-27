@@ -5,7 +5,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -27,7 +27,7 @@ import org.gwfx.zuoyanmod.client.ClientModToasts;
 public record ModToastPacket(Component text) implements CustomPacketPayload {
 
     public static final Type<ModToastPacket> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "mod_toast"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "mod_toast"));
 
     public static final StreamCodec<ByteBuf, ModToastPacket> STREAM_CODEC = StreamCodec.composite(
             ComponentSerialization.TRUSTED_CONTEXT_FREE_STREAM_CODEC, ModToastPacket::text,

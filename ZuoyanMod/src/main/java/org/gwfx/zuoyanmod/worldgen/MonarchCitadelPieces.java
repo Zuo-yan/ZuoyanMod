@@ -4,11 +4,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
@@ -53,7 +53,7 @@ public final class MonarchCitadelPieces {
     /** 前庭/大殿共用的宝箱战利品表：data/zuoyanmod/loot_table/chests/ruined_monarch_citadel.json */
     static final ResourceKey<net.minecraft.world.level.storage.loot.LootTable> CITADEL_CHEST_LOOT =
             ResourceKey.create(Registries.LOOT_TABLE,
-                    Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "chests/ruined_monarch_citadel"));
+                    ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "chests/ruined_monarch_citadel"));
 
     // ---- 常用方块（局部缓存，避免每格调用 get()）----
     private static final BlockState STONE_BRICKS = Blocks.STONE_BRICKS.defaultBlockState();
@@ -108,7 +108,7 @@ public final class MonarchCitadelPieces {
 
     private static VoidGuardEntity spawnGuard(WorldGenLevel level, EntityType<VoidGuardEntity> type,
                                               double x, double y, double z, float yRot) {
-        VoidGuardEntity guard = type.create(level.getLevel(), EntitySpawnReason.STRUCTURE);
+        VoidGuardEntity guard = type.create(level.getLevel());
         if (guard == null) {
             return null;
         }
@@ -116,7 +116,7 @@ public final class MonarchCitadelPieces {
         guard.setYRot(yRot);
         guard.setYHeadRot(yRot);
         guard.finalizeSpawn(level, level.getCurrentDifficultyAt(BlockPos.containing(x, y, z)),
-                EntitySpawnReason.STRUCTURE, null);
+                MobSpawnType.STRUCTURE, null);
         level.addFreshEntityWithPassengers(guard);
         return guard;
     }
@@ -141,8 +141,8 @@ public final class MonarchCitadelPieces {
 
         public HallPiece(CompoundTag tag) {
             super(WorldgenRegistry.CITADEL_HALL.get(), tag);
-            this.spawnedMonarch = tag.getBooleanOr("SpawnedMonarch", false);
-            this.spawnedGuards = tag.getBooleanOr("SpawnedGuards", false);
+            this.spawnedMonarch = tag.getBoolean("SpawnedMonarch");
+            this.spawnedGuards = tag.getBoolean("SpawnedGuards");
         }
 
         @Override
@@ -283,7 +283,7 @@ public final class MonarchCitadelPieces {
                     this.getWorldX(12, 20), this.getWorldY(5), this.getWorldZ(12, 20)))) {
                 this.spawnedMonarch = true;
                 VoidMonarchEntity monarch = EntityRegistry.VOID_MONARCH.get()
-                        .create(level.getLevel(), EntitySpawnReason.STRUCTURE);
+                        .create(level.getLevel());
                 if (monarch != null) {
                     double mx = this.getWorldX(12, 20) + 0.5D;
                     double mz = this.getWorldZ(12, 20) + 0.5D;
@@ -291,7 +291,7 @@ public final class MonarchCitadelPieces {
                     monarch.setYRot(180.0F);
                     monarch.setYHeadRot(180.0F);
                     monarch.finalizeSpawn(level, level.getCurrentDifficultyAt(monarch.blockPosition()),
-                            EntitySpawnReason.STRUCTURE, null);
+                            MobSpawnType.STRUCTURE, null);
                     level.addFreshEntityWithPassengers(monarch);
                 }
             }
@@ -317,9 +317,9 @@ public final class MonarchCitadelPieces {
 
         public TowerPiece(CompoundTag tag) {
             super(WorldgenRegistry.CITADEL_TOWER.get(), tag);
-            this.height = tag.getIntOr("Height", 16);
-            this.spawnedGuard = tag.getBooleanOr("SpawnedGuard", false);
-            this.placedChest = tag.getBooleanOr("PlacedChest", false);
+            this.height = tag.contains("Height") ? tag.getInt("Height") : 16;
+            this.spawnedGuard = tag.getBoolean("SpawnedGuard");
+            this.placedChest = tag.getBoolean("PlacedChest");
         }
 
         @Override
@@ -420,8 +420,8 @@ public final class MonarchCitadelPieces {
 
         public CourtyardPiece(CompoundTag tag) {
             super(WorldgenRegistry.CITADEL_COURTYARD.get(), tag);
-            this.guardsSpawned = tag.getIntOr("GuardsSpawned", 0);
-            this.chestsPlaced = tag.getIntOr("ChestsPlaced", 0);
+            this.guardsSpawned = tag.contains("GuardsSpawned") ? tag.getInt("GuardsSpawned") : 0;
+            this.chestsPlaced = tag.contains("ChestsPlaced") ? tag.getInt("ChestsPlaced") : 0;
         }
 
         @Override

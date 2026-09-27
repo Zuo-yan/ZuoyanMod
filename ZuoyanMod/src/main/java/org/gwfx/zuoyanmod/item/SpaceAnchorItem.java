@@ -4,7 +4,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -19,11 +19,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.List;
 import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 /**
@@ -132,7 +131,7 @@ public class SpaceAnchorItem extends Item {
     public static void saveAnchor(Player player, ItemStack stack) {
         CompoundTag tag = readTag(stack);
         tag.putBoolean(KEY_SET, true);
-        tag.putString(KEY_DIM, player.level().dimension().identifier().toString());
+        tag.putString(KEY_DIM, player.level().dimension().location().toString());
         tag.putDouble(KEY_X, player.getX());
         tag.putDouble(KEY_Y, player.getY());
         tag.putDouble(KEY_Z, player.getZ());
@@ -181,7 +180,7 @@ public class SpaceAnchorItem extends Item {
         if (server == null) {
             return false;
         }
-        ResourceKey<Level> dimensionKey = ResourceKey.create(Registries.DIMENSION, Identifier.parse(pos.dimension()));
+        ResourceKey<Level> dimensionKey = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(pos.dimension()));
         ServerLevel target = server.getLevel(dimensionKey);
         if (target == null) {
             ModToastPacket.send(player, Component.translatable("message.zuoyanmod.space_anchor.dimension_unavailable"));
@@ -223,28 +222,27 @@ public class SpaceAnchorItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc1"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc2"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc3"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc4"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc5"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc6"));
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc3"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc4"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc5"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc6"));
 
         CompoundTag tag = readTag(stack);
         if (tag.getBoolean(KEY_SET).orElse(false)) {
             String dimensionId = tag.getString(KEY_DIM).orElse("");
-            tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc9", dimensionId,
+            tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc9", dimensionId,
                     String.format("%.0f, %.0f, %.0f",
                             tag.getDouble(KEY_X).orElse(0D),
                             tag.getDouble(KEY_Y).orElse(0D),
                             tag.getDouble(KEY_Z).orElse(0D))));
         } else {
-            tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc7"));
+            tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc7"));
         }
 
-        tooltip.accept(Component.translatable("item.zuoyanmod.space_anchor.desc8"));
+        tooltip.add(Component.translatable("item.zuoyanmod.space_anchor.desc8"));
     }
 }

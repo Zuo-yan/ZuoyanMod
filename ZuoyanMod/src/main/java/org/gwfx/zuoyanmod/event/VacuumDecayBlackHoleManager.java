@@ -34,8 +34,8 @@ import org.gwfx.zuoyanmod.network.ModToastPacket;
  *   <li><b>坍缩爆炸</b>：时间到 → 对 {@link #BLAST_RADIUS} 内的活体各造成
  *       {@link #BLAST_DAMAGE} 点伤害，**同样不打施术者**，然后场消失。</li>
  * </ol>
- * 牵引为什么要写 {@code syncVelocity}：{@code Entity.push} 在 26.3 只置 {@code needsSync}
- * （位置同步），速度变更必须额外置 {@code entity.syncVelocity = true}，服务端才会补发
+ * 牵引为什么要置 {@code hasImpulse}：1.21.1 里 {@code Entity.push} / {@code setDeltaMovement}
+ * 本身不触发发包，必须额外置 {@code entity.hasImpulse = true}，服务端才会补发
  * {@code ClientboundSetEntityMotionPacket}（见 {@code ServerEntity.sendChanges}）。
  * 玩家是客户端权威的，漏了这一步就只有生物会被吸过来、玩家纹丝不动。
  */
@@ -134,8 +134,8 @@ public final class VacuumDecayBlackHoleManager {
             double accel = PULL_ACCEL_BASE + PULL_ACCEL_BONUS * (1.0D - Math.min(1.0D, distance / PULL_RADIUS));
             Vec3 pull = delta.scale(accel / distance);
             entity.push(pull.x, pull.y, pull.z);
-            // 26.3：push 只同步位置，速度要额外打这个标记才会发 SetEntityMotion 包
-            entity.syncVelocity = true;
+            // 1.21.1：push 本身不触发发包，置 hasImpulse 才会发 SetEntityMotion 包
+            entity.hasImpulse = true;
 
             if (visualTick) {
                 level.sendParticles(ParticleTypes.PORTAL,
@@ -162,7 +162,7 @@ public final class VacuumDecayBlackHoleManager {
             if (living.getUUID().equals(hole.caster())) {
                 continue;
             }
-            living.hurtServer(level, source, BLAST_DAMAGE);
+            living.hurt(source, BLAST_DAMAGE);
         }
 
         level.playSound(null, center.x, center.y, center.z,

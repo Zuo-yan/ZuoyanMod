@@ -6,7 +6,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.entity.VoidMonarchEntity;
 
@@ -30,12 +30,12 @@ public class VoidMonarchRenderer extends HumanoidMobRenderer<VoidMonarchEntity, 
     public static final float SCALE = 1.8F;
 
     /** 常态皮肤：assets/zuoyanmod/textures/entity/void_monarch.png */
-    private static final Identifier TEXTURE =
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/void_monarch.png");
+    private static final ResourceLocation TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/void_monarch.png");
 
     /** 狂暴皮肤：assets/zuoyanmod/textures/entity/void_monarch_phase2.png */
-    private static final Identifier TEXTURE_ENRAGED =
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/void_monarch_phase2.png");
+    private static final ResourceLocation TEXTURE_ENRAGED =
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/void_monarch_phase2.png");
 
     public VoidMonarchRenderer(EntityRendererProvider.Context context) {
         super(context, new HumanoidModel<>(context.bakeLayer(BossModelLayers.VOID_MONARCH_BODY)), 1.2F);
@@ -61,7 +61,7 @@ public class VoidMonarchRenderer extends HumanoidMobRenderer<VoidMonarchEntity, 
     }
 
     @Override
-    public Identifier getTextureLocation(VoidMonarchRenderState state) {
+    public ResourceLocation getTextureLocation(VoidMonarchRenderState state) {
         return state.enraged ? TEXTURE_ENRAGED : TEXTURE;
     }
 

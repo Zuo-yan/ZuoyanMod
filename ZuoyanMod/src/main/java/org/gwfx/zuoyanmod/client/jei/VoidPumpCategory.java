@@ -9,9 +9,9 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.block.BlockRegistry;
@@ -34,7 +34,7 @@ public class VoidPumpCategory implements IRecipeCategory<VoidPumpCategory.VoidPu
      * （create(uid, class) 不触碰注册表，静态初始化安全）。
      */
     public static final IRecipeType<VoidPumpDisplay> TYPE =
-            IRecipeType.create(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "void_pump"), VoidPumpDisplay.class);
+            IRecipeType.create(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "void_pump"), VoidPumpDisplay.class);
 
     private static final int WIDTH = 124;
     private static final int HEIGHT = 40;
@@ -89,7 +89,7 @@ public class VoidPumpCategory implements IRecipeCategory<VoidPumpCategory.VoidPu
 
     @Override
     public void draw(VoidPumpDisplay recipe, IRecipeSlotsView recipeSlotsView,
-                     GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
+                     GuiGraphics guiGraphics, double mouseX, double mouseY) {
         var font = Minecraft.getInstance().font;
 
         // 共振线：输入 → 产物方向的一条充能线
@@ -99,7 +99,7 @@ public class VoidPumpCategory implements IRecipeCategory<VoidPumpCategory.VoidPu
 
         // 燃料共振值——玩家据此算"多少材料换多少粒子"（1 珍珠 = 120 共振 = L1 下 1 粒子）
         Component label = Component.translatable("gui.zuoyanmod.jei.resonance", recipe.fuelValue());
-        guiGraphics.text(font, label, (WIDTH - font.width(label)) / 2, HEIGHT - 10, 0xFF9FB8C8, false);
+        guiGraphics.drawString(font, label, (WIDTH - font.width(label)) / 2, HEIGHT - 10, 0xFF9FB8C8, false);
     }
 
     /**

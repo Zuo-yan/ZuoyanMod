@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.entity.VoidBoltEntity;
 
@@ -24,8 +24,8 @@ import org.gwfx.zuoyanmod.entity.VoidBoltEntity;
 public class VoidBoltRenderer extends EntityRenderer<VoidBoltEntity, EntityRenderState> {
 
     /** 能量球贴图：assets/zuoyanmod/textures/entity/void_bolt.png */
-    private static final Identifier TEXTURE =
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/void_bolt.png");
+    private static final ResourceLocation TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/void_bolt.png");
 
     private static final RenderType RENDER_TYPE = RenderTypes.entityCutout(TEXTURE);
 

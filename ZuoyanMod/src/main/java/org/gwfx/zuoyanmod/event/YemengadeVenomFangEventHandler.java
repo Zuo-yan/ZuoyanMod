@@ -42,7 +42,7 @@ public final class YemengadeVenomFangEventHandler {
         if (attacker.hasEffect(MobEffects.POISON)) {
             float armorDamage = (float) player.getArmorValue();
             if (armorDamage > 0.0f && attacker.level() instanceof ServerLevel serverLevel) {
-                attacker.hurtServer(serverLevel, player.damageSources().thorns(player), armorDamage);
+                attacker.hurt(player.damageSources().thorns(player), armorDamage);
                 ModToastPacket.send(player, Component.translatable("message.zuoyanmod.venom_fang.reflect", armorDamage));
             }
         }

@@ -15,7 +15,7 @@ public final class DomainExpansionDimensionBootstrap {
         if (server == null) return null;
         ServerLevel domain = server.getLevel(DomainExpansionDimensions.DOMAIN_KEY);
         if (domain == null) {
-            LOGGER.warn("Domain expansion dimension '{}' is not loaded in this world.", DomainExpansionDimensions.DOMAIN_KEY.identifier());
+            LOGGER.warn("Domain expansion dimension '{}' is not loaded in this world.", DomainExpansionDimensions.DOMAIN_KEY.location());
         }
         return domain;
     }

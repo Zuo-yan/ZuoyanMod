@@ -34,7 +34,7 @@ public final class CuriosCompat {
      * @return 佩戴中的饰品堆；未佩戴返回 {@link ItemStack#EMPTY}；
      *         玩家身上没有饰品栏能力时返回 {@code null}，由调用方决定回退策略
      */
-    @Nullable
+    
     public static ItemStack findEquipped(Player player, Item item) {
         Optional<ICuriosItemHandler> handler = CuriosApi.getCuriosInventory(player);
         if (handler.isEmpty()) {

@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.NoiseColumn;
@@ -49,12 +49,12 @@ public class LandCheckedJigsawStructure extends Structure {
             i -> i.group(
                     settingsCodec(i),
                     StructureTemplatePool.CODEC.fieldOf("start_pool").forGetter(s -> s.startPool),
-                    Identifier.CODEC.optionalFieldOf("start_jigsaw_name").forGetter(s -> s.startJigsawName),
+                    ResourceLocation.CODEC.optionalFieldOf("start_jigsaw_name").forGetter(s -> s.startJigsawName),
                     Codec.intRange(0, 20).fieldOf("size").forGetter(s -> s.maxDepth),
                     HeightProvider.CODEC.fieldOf("start_height").forGetter(s -> s.startHeight),
                     Codec.BOOL.fieldOf("use_expansion_hack").forGetter(s -> s.useExpansionHack),
                     Heightmap.Types.CODEC.optionalFieldOf("project_start_to_heightmap").forGetter(s -> s.projectStartToHeightmap),
-                    JigsawStructure.MaxDistance.CODEC.fieldOf("max_distance_from_center").forGetter(s -> s.maxDistanceFromCenter),
+                    Codec.intRange(1, 128).fieldOf("max_distance_from_center").forGetter(s -> s.maxDistanceFromCenter),
                     Codec.list(PoolAliasBinding.CODEC).optionalFieldOf("pool_aliases", List.of()).forGetter(s -> s.poolAliases),
                     DimensionPadding.CODEC.optionalFieldOf("dimension_padding", DimensionPadding.ZERO).forGetter(s -> s.dimensionPadding),
                     LiquidSettings.CODEC.optionalFieldOf("liquid_settings", LiquidSettings.APPLY_WATERLOGGING).forGetter(s -> s.liquidSettings)
@@ -62,12 +62,12 @@ public class LandCheckedJigsawStructure extends Structure {
     ).validate(LandCheckedJigsawStructure::verifyRange);
 
     private final net.minecraft.core.Holder<StructureTemplatePool> startPool;
-    private final Optional<Identifier> startJigsawName;
+    private final Optional<ResourceLocation> startJigsawName;
     private final int maxDepth;
     private final HeightProvider startHeight;
     private final boolean useExpansionHack;
     private final Optional<Heightmap.Types> projectStartToHeightmap;
-    private final JigsawStructure.MaxDistance maxDistanceFromCenter;
+    private final int maxDistanceFromCenter;
     private final List<PoolAliasBinding> poolAliases;
     private final DimensionPadding dimensionPadding;
     private final LiquidSettings liquidSettings;
@@ -75,12 +75,12 @@ public class LandCheckedJigsawStructure extends Structure {
     public LandCheckedJigsawStructure(
             Structure.StructureSettings settings,
             net.minecraft.core.Holder<StructureTemplatePool> startPool,
-            Optional<Identifier> startJigsawName,
+            Optional<ResourceLocation> startJigsawName,
             int maxDepth,
             HeightProvider startHeight,
             boolean useExpansionHack,
             Optional<Heightmap.Types> projectStartToHeightmap,
-            JigsawStructure.MaxDistance maxDistanceFromCenter,
+            int maxDistanceFromCenter,
             List<PoolAliasBinding> poolAliases,
             DimensionPadding dimensionPadding,
             LiquidSettings liquidSettings
@@ -107,7 +107,7 @@ public class LandCheckedJigsawStructure extends Structure {
             case NONE -> 0;
             case BURY, BEARD_THIN, BEARD_BOX, ENCAPSULATE -> 12;
         };
-        return structure.maxDistanceFromCenter.horizontal() + edgeNeeded > JigsawStructure.MAX_TOTAL_STRUCTURE_RANGE
+        return structure.maxDistanceFromCenter + edgeNeeded > JigsawStructure.MAX_TOTAL_STRUCTURE_RANGE
                 ? DataResult.error(() -> "Horizontal structure size including terrain adaptation must not exceed 128")
                 : DataResult.success(structure);
     }

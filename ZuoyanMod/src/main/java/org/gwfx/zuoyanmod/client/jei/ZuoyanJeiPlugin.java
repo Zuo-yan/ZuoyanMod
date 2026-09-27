@@ -8,7 +8,7 @@ import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
@@ -41,8 +41,8 @@ import java.util.Optional;
 public class ZuoyanJeiPlugin implements IModPlugin {
 
     @Override
-    public Identifier getPluginUid() {
-        return Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "jei");
+    public ResourceLocation getPluginUid() {
+        return ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "jei");
     }
 
     /**
@@ -58,7 +58,7 @@ public class ZuoyanJeiPlugin implements IModPlugin {
     @Override
     public void onRuntimeAvailable(mezz.jei.api.runtime.IJeiRuntime runtime) {
         runtime.getRecipeManager()
-                .getRecipeType(Identifier.fromNamespaceAndPath("minecraft", "tag_recipes/block"))
+                .getRecipeType(ResourceLocation.fromNamespaceAndPath("minecraft", "tag_recipes/block"))
                 .ifPresent(type -> runtime.getRecipeManager().hideRecipeCategory(type));
     }
 
@@ -162,7 +162,7 @@ public class ZuoyanJeiPlugin implements IModPlugin {
                 // 试算：客户端拿不到四维空间的内容，无法判断够不够，一律放行让按钮显示
                 return null;
             }
-            PacketHandler.sendCraftingTransfer(recipe.id().identifier(), maxTransfer);
+            PacketHandler.sendCraftingTransfer(recipe.id().location(), maxTransfer);
             return null;
         }
     }

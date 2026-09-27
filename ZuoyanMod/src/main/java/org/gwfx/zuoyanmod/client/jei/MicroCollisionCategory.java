@@ -9,7 +9,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeHolderType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import org.gwfx.zuoyanmod.block.BlockRegistry;
@@ -86,7 +86,7 @@ public class MicroCollisionCategory implements IRecipeCategory<RecipeHolder<Micr
 
     @Override
     public void draw(RecipeHolder<MicroCollisionRecipe> recipe, IRecipeSlotsView recipeSlotsView,
-                     GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
+                     GuiGraphics guiGraphics, double mouseX, double mouseY) {
         var font = Minecraft.getInstance().font;
 
         // 对撞束线：A|B → 产物方向的一条充能线
@@ -97,6 +97,6 @@ public class MicroCollisionCategory implements IRecipeCategory<RecipeHolder<Micr
         // 对撞时长（秒）——只在这里给数字：玩家要据此决定红石脉冲宽度
         int seconds = Math.max(1, Math.round(recipe.value().duration() / 20.0F));
         Component label = Component.translatable("gui.zuoyanmod.jei.duration", seconds);
-        guiGraphics.text(font, label, (WIDTH - font.width(label)) / 2, HEIGHT - 10, 0xFF9FB8C8, false);
+        guiGraphics.drawString(font, label, (WIDTH - font.width(label)) / 2, HEIGHT - 10, 0xFF9FB8C8, false);
     }
 }

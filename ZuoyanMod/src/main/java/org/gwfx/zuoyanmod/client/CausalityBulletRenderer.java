@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.gwfx.zuoyanmod.Zuoyanmod;
@@ -33,12 +33,12 @@ import org.gwfx.zuoyanmod.entity.CausalityBulletEntity;
 public class CausalityBulletRenderer extends EntityRenderer<CausalityBulletEntity, CausalityBulletRenderer.BulletRenderState> {
 
     /** 能量球（弹头）贴图 */
-    private static final Identifier BALL_TEXTURE =
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/causality_bullet.png");
+    private static final ResourceLocation BALL_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/causality_bullet.png");
 
     /** 曳光尾迹贴图：纵向渐变（头部亮、尾部透明） */
-    private static final Identifier TRAIL_TEXTURE =
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/causality_trail.png");
+    private static final ResourceLocation TRAIL_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/causality_trail.png");
 
     /** 能量球用 cutout（硬边缘透明） */
     private static final RenderType BALL_TYPE = RenderTypes.entityCutout(BALL_TEXTURE);

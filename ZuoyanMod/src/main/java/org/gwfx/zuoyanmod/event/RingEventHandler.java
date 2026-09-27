@@ -1,6 +1,6 @@
 package org.gwfx.zuoyanmod.event;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
 public class RingEventHandler {
 
-    private static final Identifier HEALTH_BONUS_ID = Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "ring_health_bonus");
+    private static final ResourceLocation HEALTH_BONUS_ID = ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "ring_health_bonus");
 
     private static final Map<UUID, Integer> KILL_COUNTS = new ConcurrentHashMap<>();
     private static final Map<UUID, Float> HEALTH_BONUS_VALUES = new ConcurrentHashMap<>();
@@ -91,7 +91,7 @@ public class RingEventHandler {
         if (attr == null) return;
         attr.removeModifier(HEALTH_BONUS_ID);
         if (bonus > 0) {
-            attr.addTransientModifier(new AttributeModifier(HEALTH_BONUS_ID, bonus, AttributeModifier.Operation.ADD_VALUE));
+            attr.addTransientModifier(new AttributeModifier(HEALTH_BONUS_ID, bonus, AttributeModifier.Operation.ADDITION));
             player.heal(bonus);
         }
     }

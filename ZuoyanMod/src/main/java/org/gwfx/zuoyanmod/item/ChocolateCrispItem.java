@@ -8,12 +8,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import org.gwfx.zuoyanmod.effect.EffectRegistry;
 import org.gwfx.zuoyanmod.sound.SoundRegistry;
 
-import java.util.function.Consumer;
+import java.util.List;
 
 public class ChocolateCrispItem extends Item {
 
@@ -58,11 +57,11 @@ public class ChocolateCrispItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.translatable("item.zuoyanmod.chocolate_crisp.desc1"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.chocolate_crisp.desc2"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.chocolate_crisp.desc3"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.chocolate_crisp.desc4"));
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        tooltip.add(Component.translatable("item.zuoyanmod.chocolate_crisp.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.chocolate_crisp.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.chocolate_crisp.desc3"));
+        tooltip.add(Component.translatable("item.zuoyanmod.chocolate_crisp.desc4"));
     }
 }

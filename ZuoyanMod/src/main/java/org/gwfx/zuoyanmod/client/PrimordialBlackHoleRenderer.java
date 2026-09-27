@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import org.gwfx.zuoyanmod.Zuoyanmod;
@@ -41,12 +41,12 @@ public class PrimordialBlackHoleRenderer
         extends EntityRenderer<PrimordialBlackHoleEntity, PrimordialBlackHoleRenderer.BlackHoleRenderState> {
 
     /** 事件视界贴图（平面贴图：整张图就是那个圆盘） */
-    private static final Identifier CORE_TEXTURE =
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/primordial_black_hole_core.png");
+    private static final ResourceLocation CORE_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/primordial_black_hole_core.png");
 
     /** 能量涡流贴图（参数空间贴图：x = 绕圆周的角度，y = 半径方向） */
-    private static final Identifier SWIRL_TEXTURE =
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/primordial_black_hole_swirl.png");
+    private static final ResourceLocation SWIRL_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "textures/entity/primordial_black_hole_swirl.png");
 
     /** 黑盘：硬边缘透明，适合"实体球体"的剪影 */
     private static final RenderType CORE_TYPE = RenderTypes.entityCutout(CORE_TEXTURE);

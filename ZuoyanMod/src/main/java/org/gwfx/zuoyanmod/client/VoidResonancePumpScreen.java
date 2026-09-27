@@ -1,10 +1,9 @@
 package org.gwfx.zuoyanmod.client;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.gwfx.zuoyanmod.block.VoidResonancePumpBlockEntity;
 import org.gwfx.zuoyanmod.menu.VoidResonancePumpMenu;
@@ -14,14 +13,14 @@ import org.gwfx.zuoyanmod.menu.VoidResonancePumpMenu;
  * 布局：顶部标题 + 状态；中部「输入槽 — 产出进度条 — 输出槽」一行；下方一条共振储备条（5 段等级刻度）；
  * 下半是玩家背包。所有坐标常量与 tools/gen_void_pump_textures.py 的 GUI 部分严格对应，改一处必改另一处。
  *
- * 26.3 的 GUI 走 GuiGraphicsExtractor + RenderPipelines 架构：
+ * 26.3 的 GUI 走 GuiGraphics + RenderPipelines 架构：
  *   - extractBackground 里的坐标是屏幕绝对坐标（需加 leftPos/topPos）
  *   - extractLabels 由父类在 translate(leftPos, topPos) 之后调用，坐标为 GUI 局部坐标
  */
 public class VoidResonancePumpScreen extends AbstractContainerScreen<VoidResonancePumpMenu> {
 
-    private static final Identifier TEXTURE =
-            Identifier.fromNamespaceAndPath("zuoyanmod", "textures/gui/void_resonance_pump.png");
+    private static final ResourceLocation TEXTURE =
+            ResourceLocation.fromNamespaceAndPath("zuoyanmod", "textures/gui/void_resonance_pump.png");
 
     private static final int TEX_W = 176;
     private static final int TEX_H = 146;
@@ -49,11 +48,11 @@ public class VoidResonancePumpScreen extends AbstractContainerScreen<VoidResonan
     }
 
     @Override
-    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         int x = leftPos;
         int y = topPos;
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0.0F, 0.0F, TEX_W, TEX_H, TEX_W, TEX_H);
+        graphics.blit(TEXTURE, x, y, 0.0F, 0.0F, TEX_W, TEX_H, TEX_W, TEX_H);
 
         int level = menu.getResonanceLevel();
 
@@ -77,17 +76,17 @@ public class VoidResonancePumpScreen extends AbstractContainerScreen<VoidResonan
     }
 
     @Override
-    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         // 深紫底上用浅色文字（原版默认 0xFF404040 会看不清），故不调用 super
-        graphics.text(font, title, titleLabelX, titleLabelY, 0xFFEDE7F6, false);
-        graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFF9C8FBE, false);
+        graphics.drawString(font, title, titleLabelX, titleLabelY, 0xFFEDE7F6, false);
+        graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFF9C8FBE, false);
 
         int level = menu.getResonanceLevel();
         String status = level > 0
                 ? Component.translatable("gui.zuoyanmod.void_pump.status.resonating", level, menu.getResonance(), RES_MAX).getString()
                 : Component.translatable("gui.zuoyanmod.void_pump.status.idle").getString();
         int color = level > 0 ? levelColor(level) : 0xFF7A6E96;
-        graphics.text(font, status, TEX_W - 9 - font.width(status), titleLabelY, color, false);
+        graphics.drawString(font, status, TEX_W - 9 - font.width(status), titleLabelY, color, false);
     }
 
     /** 进度条填充色：等级越高越偏青 */

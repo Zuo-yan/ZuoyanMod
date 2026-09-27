@@ -2,15 +2,11 @@ package org.gwfx.zuoyanmod.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import com.mojang.blaze3d.platform.Window;
-import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -25,6 +21,7 @@ import org.gwfx.zuoyanmod.item.FourDimensionalSpace;
 import org.gwfx.zuoyanmod.menu.KleinBottleMenu;
 import org.gwfx.zuoyanmod.network.KleinBottleSyncPacket;
 import org.gwfx.zuoyanmod.network.PacketHandler;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
@@ -63,13 +60,12 @@ import java.util.List;
  *   <tr><td>JEI 配方上的 +</td><td>材料从四维空间直接填进右栏的 3×3</td></tr>
  * </table>
  *
- * <h2>26.3 的两条界面约定（踩过坑）</h2>
+ * <h2>1.21.1 的两条界面约定（踩过坑）</h2>
  * <ul>
- *   <li>{@code extractBackground} 里是**屏幕绝对坐标**（要加 leftPos/topPos）；</li>
- *   <li>{@code extractLabels} / {@code extractSlot} / 原版高亮都在
+ *   <li>{@code renderBg} 里是**屏幕绝对坐标**（要加 leftPos/topPos）；</li>
+ *   <li>{@code renderLabels} / {@code renderSlot} / 原版高亮都在
  *       {@code translate(leftPos, topPos)} **之后**调用，用的是界面局部坐标。
- *       所以 {@code extractContents} 里 {@code super} 返回时矩阵已弹回，之后画的
- *       滚动条、扫光要按<b>绝对坐标</b>来。</li>
+ *       扫光、滚动条在 {@code renderBg} 末尾画，也按<b>绝对坐标</b>来。</li>
  * </ul>
  */
 public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> {
@@ -100,7 +96,9 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
     private KleinBottleSyncPacket seenSnapshot;
 
     public KleinBottleScreen(KleinBottleMenu menu, Inventory inventory, Component title) {
-        super(menu, inventory, title, IMAGE_W, IMAGE_H);
+        super(menu, inventory, title);
+        this.imageWidth = IMAGE_W;
+        this.imageHeight = IMAGE_H;
         this.titleLabelX = KleinTerminalLayout.TITLE_X;
         this.titleLabelY = KleinTerminalLayout.TITLE_Y;
         this.inventoryLabelX = KleinTerminalLayout.GRID_X;
@@ -288,37 +286,37 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
         // 滚动条不是控件（原因见 KleinScrollbar 类注释），由这里转发；
         // 功能按钮现在是真控件，走 super 的子控件分发，不再在这里手写命中判定。
-        if (event.button() == 0 && scrollbar != null && scrollbar.mouseClicked(event.x(), event.y(), 0)) {
+        if (button == 0 && scrollbar != null && scrollbar.mouseClicked(mouseX, mouseY, 0)) {
             return true;
         }
-        return super.mouseClicked(event, doubleClick);
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
-    public boolean mouseReleased(MouseButtonEvent event) {
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (scrollbar != null && scrollbar.mouseReleased()) {
             return true;
         }
-        return super.mouseReleased(event);
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
-    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (scrollbar != null && scrollbar.isDragging()) {
-            scrollbar.mouseDragged(event.y());
+            scrollbar.mouseDragged(mouseY);
             return true;
         }
-        return super.mouseDragged(event, dragX, dragY);
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     /**
      * 拖动滚动条的第二条路。
      *
-     * <p>26.3 里 {@code ContainerEventHandler#mouseDragged} 只转发**右键**拖动，
-     * 左键拖动能不能到我们这层取决于 {@code MouseHandler} 的按压状态。所以拖滚动条
+     * <p>1.21.1 里 {@code ContainerEventHandler#mouseDragged} 的分发取决于
+     * {@code MouseHandler} 的按压状态。所以拖滚动条
      * 同时挂在 {@code mouseDragged} 和 {@code mouseMoved} 两条路上——鼠标一动这里
      * 必到，哪条通走哪条。
      */
@@ -356,36 +354,36 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
     }
 
     @Override
-    public boolean charTyped(CharacterEvent event) {
-        if (searchBox != null && searchBox.charTyped(event)) {
+    public boolean charTyped(char codePoint, int modifiers) {
+        if (searchBox != null && searchBox.charTyped(codePoint, modifiers)) {
             return true;
         }
-        return super.charTyped(event);
+        return super.charTyped(codePoint, modifiers);
     }
     @Override
-    public boolean keyPressed(KeyEvent event) {
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         // 铁砧改名框独占键盘：否则打字会顺手触发 F 聚焦搜索框、数字键换物品
         if (anvilName != null && anvilName.isFocused()) {
-            if (event.isEscape()) {
+            if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
                 anvilName.setFocused(false);
                 return true;
             }
-            anvilName.keyPressed(event);
+            anvilName.keyPressed(keyCode, scanCode, modifiers);
             return true;
         }
         // 搜索框拿着焦点时独占键盘：否则打字会顺手触发 E 关界面、数字键换物品
         if (searchBox != null && searchBox.isFocused()) {
-            if (event.isEscape() || event.isConfirmation()) {
+            if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
                 searchBox.setFocused(false);
                 return true;
             }
-            searchBox.keyPressed(event);
+            searchBox.keyPressed(keyCode, scanCode, modifiers);
             return true;
         }
 
-        // 26.3 的 KeyEvent#key() 是 InputConstants 那套 SDL scancode（不是 GLFW key），
-        // 所以这里统一用 InputConstants.KEY_* 比较；Esc/回车/方向键另有语义化判断可用。
-        switch (event.key()) {
+        // 1.21.1 的 keyPressed 直接给 GLFW keycode，用 InputConstants.KEY_* / GLFW 常量比较；
+        // Esc/回车另有语义化判断可用。
+        switch (keyCode) {
             case InputConstants.KEY_PAGEUP -> {
                 button(KleinBottleMenu.BUTTON_SCROLL_UP_PAGE);
                 return true;
@@ -403,7 +401,7 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
                 return true;
             }
             case InputConstants.KEY_F -> {
-                if (!event.hasShiftDown()) {
+                if (!hasShiftDown()) {
                     if (searchBox != null) {
                         searchBox.setFocused(true);
                     }
@@ -414,7 +412,7 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
                 // 交给原版
             }
         }
-        return super.keyPressed(event);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     // ===== 每 tick =====
@@ -427,10 +425,7 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
         // 前两条（mouseDragged / mouseMoved）走的是事件分发，哪条断了这条兜底；
         // 20Hz 的分辨率对"拖滚动条"完全够用，而且不依赖任何事件能不能到。
         if (scrollbar != null && scrollbar.isDragging() && minecraft != null) {
-            Window window = minecraft.getWindow();
-            if (window.getScreenWidth() > 0) {
-                scrollbar.mouseDragged(minecraft.mouseHandler.getScaledYPos(window));
-            }
+            scrollbar.mouseDragged(minecraft.mouseHandler.ypos());
         }
 
         if (searchDebounce > 0 && --searchDebounce == 0) {
@@ -465,14 +460,17 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
 
     // ===== 绘制：背景 =====
 
+    /**
+     * 1.21.1 里模糊底衬由原版 {@code renderBackground} 负责，这里只画终端本体
+     * （绝对坐标）与右栏、滚动条、扫光等运行时部件。
+     */
     @Override
-    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+    public void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         int x = leftPos;
         int y = topPos;
         float time = KleinTheme.now();
 
-        graphics.blit(RenderPipelines.GUI_TEXTURED, KleinTheme.BACKGROUND, x, y, 0.0F, 0.0F,
+        graphics.blit(KleinTheme.BACKGROUND, x, y, 0.0F, 0.0F,
                 IMAGE_W, IMAGE_H, IMAGE_W, IMAGE_H);
 
         // 外框呼吸：一条极淡的青边，让整个终端看起来在"通电"
@@ -495,13 +493,23 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
         KleinTheme.infinityFlow(graphics,
                 x + KleinTerminalLayout.LEFT_FLOW_X, y + KleinTerminalLayout.LEFT_FLOW_Y,
                 KleinTerminalLayout.LEFT_FLOW_W, KleinTerminalLayout.LEFT_FLOW_H, time + 2.1F);
+
+        // 斜向扫光：铺在网格带上，alpha 极低，只为让整片槽位"活"起来
+        KleinTheme.sweep(graphics,
+                leftPos + KleinTerminalLayout.GRID_X, topPos + KleinTerminalLayout.GRID_Y,
+                KleinTerminalLayout.GRID_W, KleinTerminalLayout.GRID_H,
+                time, KleinTheme.CYAN);
+
+        if (scrollbar != null) {
+            scrollbar.render(graphics, time, scrollbar.isOver(mouseX, mouseY));
+        }
     }
 
     /**
      * 右栏：合成箭头、熔炉的<b>炉火与进度条</b>、铁砧的<b>代价与改名框</b>。
      * 卡片底、槽位凹槽、改名框凹槽都烤在底图里；带状态的件（火、进度、代价颜色）运行时画。
      */
-    private void drawSidebar(GuiGraphicsExtractor graphics, int x, int y, float time) {
+    private void drawSidebar(GuiGraphics graphics, int x, int y, float time) {
         // 合成箭头
         int ax = x + KleinTerminalLayout.CRAFT_ARROW_X;
         int ay = y + KleinTerminalLayout.CRAFT_ARROW_Y;
@@ -550,7 +558,7 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
     }
 
     /** 铁砧的代价：不够就红、够就暗金；没有产物就不显示 */
-    private void drawAnvilCost(GuiGraphicsExtractor graphics) {
+    private void drawAnvilCost(GuiGraphics graphics) {
         int cost = menu.anvilCost();
         if (cost <= 0) {
             return;
@@ -558,14 +566,14 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
         boolean affordable = minecraft != null && minecraft.player != null
                 && (minecraft.player.hasInfiniteMaterials() || minecraft.player.experienceLevel >= cost);
         String text = Component.translatable("gui.zuoyanmod.klein.anvil_cost", cost).getString();
-        graphics.text(font, text, KleinTerminalLayout.ANVIL_COST_X, KleinTerminalLayout.ANVIL_COST_Y,
+        graphics.drawString(font, text, KleinTerminalLayout.ANVIL_COST_X, KleinTerminalLayout.ANVIL_COST_Y,
                 affordable ? KleinTheme.TEXT_DIM : KleinTheme.TEXT_WARN, false);
     }
 
     // ===== 绘制：槽位与滚动条 =====
 
     @Override
-    public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.extractContents(graphics, mouseX, mouseY, partialTick);
         float time = KleinTheme.now();
 
@@ -581,7 +589,7 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
     }
 
     @Override
-    protected void extractSlot(GuiGraphicsExtractor graphics, Slot slot, int mouseX, int mouseY) {
+    protected void extractSlot(GuiGraphics graphics, Slot slot, int mouseX, int mouseY) {
         if (slot.index < STORAGE_COUNT) {
             drawStorageSlot(graphics, slot);
             return;
@@ -596,11 +604,11 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
      * （那个数字是夹到 64 的展示栈，不是真实总量），两个数字会重叠，
      * 所以这里自己画图标、自己画总量——AE2 对 {@code RepoSlot} 也是这么处理的。
      */
-    private void drawStorageSlot(GuiGraphicsExtractor graphics, Slot slot) {
+    private void drawStorageSlot(GuiGraphics graphics, Slot slot) {
         ItemStack stack = slot.getItem();
         if (!stack.isEmpty()) {
             int seed = slot.x + slot.y * imageWidth;
-            graphics.item(stack, slot.x, slot.y, seed);
+            graphics.renderItem(stack, slot.x, slot.y, seed);
 
             long total = ClientKleinBottleView.windowTotal(slot.index);
             if (total <= 0) {
@@ -610,7 +618,6 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
             int color = KleinTheme.amountColor(total);
 
             // 把图标和叠字切成两个绘制批次，保证叠字一定压在图标之上
-            graphics.nextStratum();
             if (total >= 1_000L) {
                 KleinAmountRenderer.drawGlow(graphics, font, slot.x, slot.y, text, color, KleinTheme.now());
             }
@@ -630,30 +637,30 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
     // ===== 绘制：文字 =====
 
     @Override
-    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         // 不调 super：原版标签色 0xFF404040 在深紫底上根本看不见
         KleinBottleSyncPacket snapshot = ClientKleinBottleView.latest();
 
-        graphics.text(font, title, KleinTerminalLayout.TITLE_X, KleinTerminalLayout.TITLE_Y, KleinTheme.TEXT, false);
+        graphics.drawString(font, title, KleinTerminalLayout.TITLE_X, KleinTerminalLayout.TITLE_Y, KleinTheme.TEXT, false);
         drawStats(graphics, snapshot);
 
-        graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, KleinTheme.TEXT_DIM, false);
+        graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, KleinTheme.TEXT_DIM, false);
 
         // 右栏三个小标题：合成 / 熔炼 / 铁砧
         int labelX = KleinTerminalLayout.SIDEBAR_X + 6;
         KleinTheme.iconCrafting(graphics, labelX, KleinTerminalLayout.CRAFT_LABEL_Y - 1, 10,
                 KleinTheme.BORDER_BRIGHT);
-        graphics.text(font, Component.translatable("gui.zuoyanmod.klein.craft"),
+        graphics.drawString(font, Component.translatable("gui.zuoyanmod.klein.craft"),
                 labelX + 14, KleinTerminalLayout.CRAFT_LABEL_Y, KleinTheme.TEXT, false);
 
         KleinTheme.iconFurnace(graphics, labelX, KleinTerminalLayout.FURNACE_LABEL_Y - 1, 10,
                 KleinTheme.BORDER_BRIGHT, KleinTheme.GOLD);
-        graphics.text(font, Component.translatable("gui.zuoyanmod.klein.smelt"),
+        graphics.drawString(font, Component.translatable("gui.zuoyanmod.klein.smelt"),
                 labelX + 14, KleinTerminalLayout.FURNACE_LABEL_Y, KleinTheme.TEXT, false);
 
         KleinTheme.iconAnvil(graphics, labelX, KleinTerminalLayout.ANVIL_LABEL_Y - 1, 10,
                 KleinTheme.BORDER_BRIGHT);
-        graphics.text(font, Component.translatable("gui.zuoyanmod.klein.anvil"),
+        graphics.drawString(font, Component.translatable("gui.zuoyanmod.klein.anvil"),
                 labelX + 14, KleinTerminalLayout.ANVIL_LABEL_Y, KleinTheme.TEXT, false);
         drawAnvilCost(graphics);
 
@@ -663,15 +670,15 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
                     : Component.translatable("gui.zuoyanmod.klein.no_match").getString();
             int cx = KleinTerminalLayout.GRID_X + KleinTerminalLayout.GRID_W / 2;
             int cy = KleinTerminalLayout.GRID_Y + KleinTerminalLayout.GRID_H / 2 - 12;
-            graphics.centeredText(font, hint, cx, cy, KleinTheme.TEXT_FAINT);
+            graphics.drawCenteredString(font, hint, cx, cy, KleinTheme.TEXT_FAINT);
             if (!snapshot.search().isEmpty()) {
                 String tip = Component.translatable("gui.zuoyanmod.klein.no_match_tip").getString();
-                graphics.centeredText(font, tip, cx, cy + 12, KleinTheme.TEXT_FAINT);
+                graphics.drawCenteredString(font, tip, cx, cy + 12, KleinTheme.TEXT_FAINT);
             }
         }
     }
 
-    private void drawStats(GuiGraphicsExtractor graphics, KleinBottleSyncPacket snapshot) {
+    private void drawStats(GuiGraphics graphics, KleinBottleSyncPacket snapshot) {
         if (snapshot == null) {
             return;
         }
@@ -679,14 +686,14 @@ public class KleinBottleScreen extends AbstractContainerScreen<KleinBottleMenu> 
         String total = AmountFormat.grouped(snapshot.totalItems());
         String text = Component.translatable("gui.zuoyanmod.klein.stats", kinds, total).getString();
         int color = snapshot.viewSize() == 0 ? KleinTheme.TEXT_FAINT : KleinTheme.GOLD;
-        graphics.text(font, text, KleinTerminalLayout.STATS_RIGHT - font.width(text),
+        graphics.drawString(font, text, KleinTerminalLayout.STATS_RIGHT - font.width(text),
                 KleinTerminalLayout.TITLE_Y, color, false);
     }
 
     // ===== 提示 =====
 
     @Override
-    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+    protected void extractTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
         // 侧边按钮的提示：排序方式/方向会随状态变，所以每帧重读快照
         if (sideButtons != null) {
             for (int i = 0; i < sideButtons.length; i++) {

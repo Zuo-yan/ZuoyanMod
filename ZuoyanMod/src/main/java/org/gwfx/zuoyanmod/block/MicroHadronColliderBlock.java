@@ -74,13 +74,13 @@ public class MicroHadronColliderBlock extends BaseEntityBlock {
         return InteractionResult.CONSUME;
     }
 
-    @Nullable
+    
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new MicroHadronColliderBlockEntity(pos, state);
     }
 
-    @Nullable
+    
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level instanceof ServerLevel serverLevel

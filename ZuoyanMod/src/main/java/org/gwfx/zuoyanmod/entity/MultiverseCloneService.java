@@ -4,24 +4,18 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.level.storage.TagValueInput;
-import net.minecraft.world.level.storage.TagValueOutput;
-import net.minecraft.world.level.storage.ValueInput;
-import org.jetbrains.annotations.Nullable;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.damage.MultiverseRayDamageSource;
 import org.slf4j.Logger;
@@ -48,29 +42,28 @@ import java.util.concurrent.ConcurrentHashMap;
  *       湮灭射线（{@value #RAY_DAMAGE}，一击湮灭任何原版 Boss），伴随高能音效与粒子。</li>
  * </ul>
  *
- * <p>仇恨锁定的三道保障（26.3 实战验证的坑）：
+ * <p>仇恨锁定的三道保障（实战验证的坑）：
  * <ol>
- *   <li>生成时移除快照中的 {@link LivingEntity#TAG_BRAIN} 字段——否则同位体会继承本体
+ *   <li>生成时移除快照中的 {@code Brain} 字段——否则同位体会继承本体
  *       对玩家的仇恨记忆（Brain 序列化了 ATTACK_TARGET），出生即转头打射手；</li>
  *   <li>每 tick 由 {@link #tickClones} 强制维持互设目标——vanilla 的
  *       {@code NearestAttackableTargetGoal} 等索敌 AI 会周期性重选目标（通常是玩家），
  *       一次性 {@code setTarget} 会被覆盖，必须周期性刷回；</li>
- *   <li>目标写入走 {@link #lockTarget} 双轨（字段 + 脑记忆）——26.3 生物 AI 分
+ *   <li>目标写入走 {@link #lockTarget} 双轨（字段 + 脑记忆）——生物 AI 分
  *       Goal 系（僵尸/卫道士，读 {@code Mob.target} 字段）与 Brain 系（猪灵/疣猪兽，
  *       读 {@code ATTACK_TARGET} 脑记忆）两套体系，只写一边必有一半生物不互殴。</li>
  * </ol>
  *
- * <p>26.3 实现要点：实体克隆走 NBT 快照法——{@code Entity.copy()} 在 26.3 已不存在，
- * 用 {@link TagValueOutput}/{@link TagValueInput} 序列化管道（替代旧版 CompoundTag 直存）
- * 完整复制目标状态（装备、药水效果、鞍、血量等一网打尽）；
- * 快照中移除 {@link Entity#TAG_UUID} 字段避免克隆体与本体 UUID 冲突（"移除旧 UUID"）。
+ * <p>实现要点：实体克隆走 NBT 快照法——{@link Entity#saveAsPassenger} 直接产出
+ * CompoundTag（含实体 id，可完整重建），快照中移除 {@link Entity#UUID_TAG} 字段
+ * 避免克隆体与本体 UUID 冲突（"移除旧 UUID"）。
  *
  * <p>粒子语言：统一"平行宇宙撕裂"主题——裂隙电光（ELECTRIC_SPARK）、
  * 能量流光（TOTEM_OF_UNDYING）、亮白芯（END_ROD）、冲击波（SONIC_BOOM）。
  */
 public final class MultiverseCloneService {
 
-    /** 克隆体标记：注入 entityTags（26.3 中 getTags 改名为 entityTags） */
+    /** 克隆体标记：注入实体 tag 列表（{@link Entity#getTags}，存盘键名 "Tags"） */
     public static final String CLONE_TAG = "zuoyanmod:multiverse_clone";
 
     /** 同位体存活时长：300 ticks = 15 秒 */
@@ -85,7 +78,7 @@ public final class MultiverseCloneService {
     /** Boss 判定标签：zuoyanmod:bosses（data/zuoyanmod/tags/entity_type/bosses.json） */
     private static final TagKey<EntityType<?>> BOSSES_TAG = TagKey.create(
             Registries.ENTITY_TYPE,
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "bosses")
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "bosses")
     );
 
     /**
@@ -110,9 +103,9 @@ public final class MultiverseCloneService {
      * @param shooter 射手（可空：发射器等非生物射手降级为无归因）
      */
     public static void tryResolve(ServerLevel level, LivingEntity target,
-                                  @Nullable LivingEntity shooter) {
+                                  LivingEntity shooter) {
         // 防套娃：目标本身已是同位体 → 无效，仅电光裂隙反馈（示意"因果已用尽"）
-        if (target.entityTags().contains(CLONE_TAG)) {
+        if (target.getTags().contains(CLONE_TAG)) {
             level.sendParticles(ParticleTypes.ELECTRIC_SPARK,
                     target.getX(), target.getY(0.5), target.getZ(),
                     16, 0.4, 0.5, 0.4, 0.15);
@@ -140,7 +133,7 @@ public final class MultiverseCloneService {
     /**
      * 仇恨锁定（双轨写入，兼容两套 AI 体系）：
      *
-     * <p>26.3 的生物 AI 分两套体系，只写任何一边都会有一半生物"不听话"：
+     * <p>生物 AI 分两套体系，只写任何一边都会有一半生物"不听话"：
      * <ul>
      *   <li><b>Goal 系</b>（僵尸、卫道士等经典生物）：目标存 {@code Mob.target} 字段，
      *       由 {@code setTarget} 写入，索敌 Goal 周期性重选覆盖；</li>
@@ -167,7 +160,7 @@ public final class MultiverseCloneService {
      * 特效：音爆冲击波 + 电光迸射 + 亮芯环绕。
      */
     private static void fireAnnihilationRay(ServerLevel level, LivingEntity victim,
-                                            @Nullable LivingEntity shooter) {
+                                            LivingEntity shooter) {
         DamageSource source = shooter != null
                 ? MultiverseRayDamageSource.create(level, shooter)
                 : MultiverseRayDamageSource.create(level);
@@ -183,7 +176,7 @@ public final class MultiverseCloneService {
                 16, 0.6, 0.6, 0.6, 0.08);
         level.playSound(null, victim.getX(), victim.getY(), victim.getZ(),
                 SoundEvents.WARDEN_SONIC_BOOM, SoundSource.PLAYERS, 1.2F, 0.8F);
-        victim.hurtServer(level, source, RAY_DAMAGE);
+        victim.hurt(source, RAY_DAMAGE);
     }
 
     /**
@@ -191,22 +184,21 @@ public final class MultiverseCloneService {
      * 清除快照中的仇恨记忆与旧 UUID、注入克隆标记、放到目标侧翼、仇恨互设、登记生命周期。
      */
     private static void spawnClone(ServerLevel level, Mob target) {
-        // 1. 序列化快照（saveWithoutId 不写入实体 id，天然适合克隆）
-        TagValueOutput out = TagValueOutput.createWithoutContext(ProblemReporter.DISCARDING);
-        target.saveWithoutId(out);
-        CompoundTag snapshot = out.buildResult();
+        // 1. 序列化快照（saveAsPassenger 写入实体 id + 全量状态，可完整重建；
+        //    实体是乘客时也能导出，比 save() 更稳）
+        CompoundTag snapshot = new CompoundTag();
+        if (!target.saveAsPassenger(snapshot)) {
+            return; // 实体已处于移除流程，放弃克隆
+        }
 
         // 2. 移除旧 UUID：否则 load 会把克隆体的 UUID 覆盖成本体的，两者同 UUID 冲突
-        snapshot.remove(Entity.TAG_UUID);
+        snapshot.remove(Entity.UUID_TAG);
         // 3. 移除 Brain 仇恨记忆：否则克隆体继承本体对玩家（射手）的 ATTACK_TARGET，
         //    出生即转头与本体一起围殴射手——这是"克隆体不打本体反打玩家"的第一根源
-        snapshot.remove(LivingEntity.TAG_BRAIN);
+        snapshot.remove("Brain");
 
-        // 4. 反序列化为新实体（CONVERSION：由既有实体转化而来）
-        ValueInput in = TagValueInput.create(
-                ProblemReporter.DISCARDING, level.registryAccess(), snapshot);
-        Optional<Entity> revived = EntityType.create(
-                (EntityType<?>) target.getType(), in, level, EntitySpawnReason.CONVERSION);
+        // 4. 反序列化为新实体
+        Optional<Entity> revived = EntityType.create(snapshot, level);
         if (revived.isEmpty() || !(revived.get() instanceof Mob clone)) {
             return; // 反序列化失败（极端情况），宁可静默不结算也不崩服
         }
@@ -218,8 +210,8 @@ public final class MultiverseCloneService {
         float yawRad = (float) Math.toRadians(target.getYRot());
         double dx = -Math.cos(yawRad) * 1.5;
         double dz = Math.sin(yawRad) * 1.5;
-        clone.setPos(target.getX() + dx, target.getY(), target.getZ() + dz);
-        clone.forceSetRotation(target.getYRot() + 180.0F, true, target.getXRot(), true);
+        clone.moveTo(target.getX() + dx, target.getY(), target.getZ() + dz,
+                target.getYRot() + 180.0F, target.getXRot());
 
         // 7. 注入克隆标记（先于 addFreshEntity，确保出生即受防掉落保护）
         clone.addTag(CLONE_TAG);
@@ -269,11 +261,9 @@ public final class MultiverseCloneService {
             // —— 到期消散 ——
             if (record.expireAtTick() <= now) {
                 iterator.remove();
-                for (ServerLevel level : server.getAllLevels()) {
-                    Entity entity = level.getEntityInAnyDimension(entry.getKey());
-                    if (entity == null) {
-                        continue;
-                    }
+                Entity entity = findEntityAcrossDimensions(server, entry.getKey());
+                if (entity != null) {
+                    ServerLevel level = (ServerLevel) entity.level();
                     entity.discard();
                     level.sendParticles(ParticleTypes.TOTEM_OF_UNDYING,
                             entity.getX(), entity.getY(0.5), entity.getZ(),
@@ -283,34 +273,45 @@ public final class MultiverseCloneService {
                             16, 0.5, 0.6, 0.5, 0.15);
                     level.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
                             SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, 0.6F, 1.4F);
-                    break;
                 }
                 continue;
             }
 
             // —— 互殴维持（每 tick 刷回，压制 vanilla 索敌 AI） ——
-            for (ServerLevel level : server.getAllLevels()) {
-                Entity cloneEntity = level.getEntityInAnyDimension(entry.getKey());
-                if (cloneEntity == null) {
-                    continue;
-                }
-                Entity originEntity = level.getEntityInAnyDimension(record.originId());
-                boolean applied = false;
-                if (originEntity instanceof Mob origin && cloneEntity instanceof Mob clone
-                        && origin.isAlive() && clone.isAlive()) {
-                    lockTarget(clone, origin);
-                    lockTarget(origin, clone);
-                    applied = true;
-                }
-                // 临时调试：每 2 秒汇报一次维持状态（问题解决后删除）
-                if (now % 40L == 0L) {
-                    String cloneTarget = cloneEntity instanceof Mob m ? String.valueOf(m.getTarget()) : "-";
-                    String originTarget = originEntity instanceof Mob m2 ? String.valueOf(m2.getTarget()) : "-";
-                    DEBUG_LOG.info("[MCDBG] maintain: cloneFound={} originFound={} applied={} cloneTarget={} originTarget={}",
-                            cloneEntity != null, originEntity != null, applied, cloneTarget, originTarget);
-                }
-                break;
+            Entity cloneEntity = findEntityAcrossDimensions(server, entry.getKey());
+            if (cloneEntity == null) {
+                continue;
+            }
+            Entity originEntity = findEntityAcrossDimensions(server, record.originId());
+            boolean applied = false;
+            if (originEntity instanceof Mob origin && cloneEntity instanceof Mob clone
+                    && origin.isAlive() && clone.isAlive()) {
+                lockTarget(clone, origin);
+                lockTarget(origin, clone);
+                applied = true;
+            }
+            // 临时调试：每 2 秒汇报一次维持状态（问题解决后删除）
+            if (now % 40L == 0L) {
+                String cloneTarget = cloneEntity instanceof Mob m ? String.valueOf(m.getTarget()) : "-";
+                String originTarget = originEntity instanceof Mob m2 ? String.valueOf(m2.getTarget()) : "-";
+                DEBUG_LOG.info("[MCDBG] maintain: cloneFound={} originFound={} applied={} cloneTarget={} originTarget={}",
+                        cloneEntity != null, originEntity != null, applied, cloneTarget, originTarget);
             }
         }
+    }
+
+    /**
+     * 跨维度按 UUID 找实体。
+     * <p>1.21.1 的 {@code ServerLevel#getEntity(UUID)} 只查本维度；
+     * 对普通实体逐维度遍历 {@code server.getAllLevels()} 收口在这里。
+     */
+    private static Entity findEntityAcrossDimensions(MinecraftServer server, UUID uuid) {
+        for (ServerLevel level : server.getAllLevels()) {
+            Entity entity = level.getEntity(uuid);
+            if (entity != null) {
+                return entity;
+            }
+        }
+        return null;
     }
 }

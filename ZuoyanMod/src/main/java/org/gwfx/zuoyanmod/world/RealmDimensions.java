@@ -2,7 +2,7 @@ package org.gwfx.zuoyanmod.world;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -11,7 +11,7 @@ import org.gwfx.zuoyanmod.Zuoyanmod;
 public final class RealmDimensions {
     public static final ResourceKey<Level> REALM_KEY = ResourceKey.create(
             Registries.DIMENSION,
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "realm")
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "realm")
     );
 
     /** 出生点的水平坐标（世界中心）。 */

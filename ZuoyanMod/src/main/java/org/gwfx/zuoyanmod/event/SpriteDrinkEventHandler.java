@@ -2,7 +2,7 @@ package org.gwfx.zuoyanmod.event;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -16,8 +16,8 @@ import org.gwfx.zuoyanmod.network.ModToastPacket;
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
 public final class SpriteDrinkEventHandler {
 
-    private static final Identifier SPEED_MODIFIER = Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "sprite_speed");
-    private static final Identifier ATTACK_MODIFIER = Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "sprite_attack");
+    private static final ResourceLocation SPEED_MODIFIER = ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "sprite_speed");
+    private static final ResourceLocation ATTACK_MODIFIER = ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "sprite_attack");
 
     private SpriteDrinkEventHandler() {}
 
@@ -53,13 +53,13 @@ public final class SpriteDrinkEventHandler {
         var speedAttr = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (speedAttr != null) {
             speedAttr.removeModifier(SPEED_MODIFIER);
-            speedAttr.addTransientModifier(new AttributeModifier(SPEED_MODIFIER, speedBonus, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+            speedAttr.addTransientModifier(new AttributeModifier(SPEED_MODIFIER, speedBonus, AttributeModifier.Operation.MULTIPLY_TOTAL));
         }
 
         var attackAttr = player.getAttribute(Attributes.ATTACK_DAMAGE);
         if (attackAttr != null) {
             attackAttr.removeModifier(ATTACK_MODIFIER);
-            attackAttr.addTransientModifier(new AttributeModifier(ATTACK_MODIFIER, attackBonus, AttributeModifier.Operation.ADD_VALUE));
+            attackAttr.addTransientModifier(new AttributeModifier(ATTACK_MODIFIER, attackBonus, AttributeModifier.Operation.ADDITION));
         }
     }
 
@@ -89,7 +89,7 @@ public final class SpriteDrinkEventHandler {
 
             if (player.level() instanceof ServerLevel serverLevel) {
                 for (int i = 0; i < steps && player.isAlive(); i++) {
-                    player.hurtServer(serverLevel, player.damageSources().generic(), damagePerStep);
+                    player.hurt(player.damageSources().generic(), damagePerStep);
                     currentBonus += damagePerStep;
                 }
             }

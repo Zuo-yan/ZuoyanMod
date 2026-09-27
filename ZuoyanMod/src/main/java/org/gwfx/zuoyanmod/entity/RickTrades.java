@@ -2,9 +2,9 @@ package org.gwfx.zuoyanmod.entity;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.trading.ItemCost;
@@ -162,7 +162,7 @@ public final class RickTrades {
      * 这是刻意的取舍：为了"退还空桶"要自己接管成交结算，代价远大于一个铁桶。
      */
     private static MerchantOffer mendingBookOffer(RegistryAccess registries) {
-        ItemStack book = EnchantmentHelper.createBook(new EnchantmentInstance(
+        ItemStack book = EnchantedBookItem.createForEnchantment(new EnchantmentInstance(
                 registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.MENDING),
                 1));
         return new MerchantOffer(

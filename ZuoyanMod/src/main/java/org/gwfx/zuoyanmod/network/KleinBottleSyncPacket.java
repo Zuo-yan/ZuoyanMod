@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -44,7 +44,7 @@ public record KleinBottleSyncPacket(
         List<Integer> windowTotals) implements CustomPacketPayload {
 
     public static final Type<KleinBottleSyncPacket> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "klein_bottle_sync"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "klein_bottle_sync"));
 
     public static final StreamCodec<ByteBuf, KleinBottleSyncPacket> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, KleinBottleSyncPacket::scrollRow,

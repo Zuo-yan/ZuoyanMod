@@ -47,7 +47,7 @@ public class CounterBeltEventHandler {
                 float counterDamage = maxHealth * DAMAGE_PERCENTAGE;
 
                 if (target.level() instanceof ServerLevel serverLevel) {
-                    target.hurtServer(serverLevel, event.getSource(), counterDamage);
+                    target.hurt(event.getSource(), counterDamage);
                 }
 
                 ModToastPacket.send(attacker, Component.translatable("message.zuoyanmod.counter_belt.triggered", Math.round(counterDamage)));

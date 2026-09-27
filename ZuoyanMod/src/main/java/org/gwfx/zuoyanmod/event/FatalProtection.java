@@ -1,7 +1,7 @@
 package org.gwfx.zuoyanmod.event;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -100,7 +100,7 @@ public final class FatalProtection {
             if (server == null) {
                 return false;
             }
-            ResourceKey<Level> dimensionKey = ResourceKey.create(Registries.DIMENSION, Identifier.parse(dimensionId));
+            ResourceKey<Level> dimensionKey = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(dimensionId));
             ServerLevel target = server.getLevel(dimensionKey);
             if (target == null) {
                 ModToastPacket.send(player, net.minecraft.network.chat.Component.translatable("message.zuoyanmod.space_anchor.dimension_unavailable"));

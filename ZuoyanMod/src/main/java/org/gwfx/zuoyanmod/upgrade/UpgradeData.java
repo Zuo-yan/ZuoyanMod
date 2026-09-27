@@ -1,8 +1,8 @@
 package org.gwfx.zuoyanmod.upgrade;
 
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
@@ -12,7 +12,6 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.network.UpgradeSyncPacket;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,8 +22,7 @@ import java.util.List;
  *
  * <p>存四样东西：5 条基础能力的等级、已选的终极天赋（-1 = 未选）、每个天赋的冷却截止
  * （gameTime 绝对值）、「分子离解·灌能」的到期时间。序列化时冷却存的是<b>剩余秒数</b>，
- * 读档时按当前 gameTime 换算回来——gameTime 是 long 而 {@code ValueOutput} 没有长整型数组，
- * 存剩余值顺便把"存档闲置一年后冷却还剩多少"这种边界问题一起消掉了。
+ * 读档时按当前 gameTime 换算回来——存剩余值把"存档闲置一年后冷却还剩多少"这种边界问题一起消掉了。
  */
 public final class UpgradeData {
 
@@ -34,18 +32,19 @@ public final class UpgradeData {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<UpgradeData>> ATTACHMENT =
             ATTACHMENTS.register("upgrade_data", () -> AttachmentType
                     .builder(UpgradeData::new)
-                    .serialize(new IAttachmentSerializer<UpgradeData>() {
+                    .serialize(new IAttachmentSerializer<CompoundTag, UpgradeData>() {
                         @Override
-                        public UpgradeData read(IAttachmentHolder holder, ValueInput input) {
+                        public UpgradeData read(IAttachmentHolder holder, CompoundTag tag, HolderLookup.Provider provider) {
                             UpgradeData data = new UpgradeData();
-                            data.deserialize(input);
+                            data.deserialize(tag);
                             return data;
                         }
 
                         @Override
-                        public boolean write(UpgradeData attachment, ValueOutput output) {
-                            attachment.serialize(output);
-                            return true;
+                        public CompoundTag write(UpgradeData attachment, HolderLookup.Provider provider) {
+                            CompoundTag tag = new CompoundTag();
+                            attachment.serialize(tag);
+                            return tag;
                         }
                     })
                     .copyOnDeath()
@@ -84,7 +83,7 @@ public final class UpgradeData {
     }
 
     /** 已选天赋，未选时返回 null。 */
-    public @Nullable UltimateTalent talent() {
+    public UltimateTalent talent() {
         return this.talent >= 0 ? UltimateTalent.VALUES[this.talent] : null;
     }
 
@@ -119,7 +118,7 @@ public final class UpgradeData {
      * 每 tick 轮询：已选天赋的冷却是否<b>刚刚</b>结束（结束瞬间返回一次，之后不再返回）。
      * 服务端据此发「冷却完毕」toast——HUD 不再常驻冷却显示，就绪与否全靠这一下。
      */
-    public @Nullable UltimateTalent pollReadyAnnouncement(long gameTime) {
+    public UltimateTalent pollReadyAnnouncement(long gameTime) {
         UltimateTalent talent = this.talent();
         if (talent == null) {
             return null;
@@ -179,26 +178,26 @@ public final class UpgradeData {
 
     // ===== 序列化 =====
 
-    private void serialize(ValueOutput output) {
+    private void serialize(CompoundTag tag) {
         long gameTime = serverGameTime();
-        output.putIntArray("Levels", this.levels);
-        output.putInt("Talent", this.talent);
+        tag.putIntArray("Levels", this.levels);
+        tag.putInt("Talent", this.talent);
         int[] cooldownSeconds = new int[this.cooldownEnds.length];
         for (int i = 0; i < cooldownSeconds.length; i++) {
             cooldownSeconds[i] = remainingSeconds(this.cooldownEnds[i], gameTime);
         }
-        output.putIntArray("CooldownSeconds", cooldownSeconds);
-        output.putInt("DissociationSeconds", remainingSeconds(this.dissociationExpire, gameTime));
+        tag.putIntArray("CooldownSeconds", cooldownSeconds);
+        tag.putInt("DissociationSeconds", remainingSeconds(this.dissociationExpire, gameTime));
     }
 
-    private void deserialize(ValueInput input) {
+    private void deserialize(CompoundTag tag) {
         long gameTime = serverGameTime();
-        int[] levels = input.getIntArray("Levels").orElse(null);
+        int[] levels = tag.getIntArray("Levels");
         if (levels != null && levels.length == this.levels.length) {
             System.arraycopy(levels, 0, this.levels, 0, levels.length);
         }
-        this.talent = Math.min(input.getIntOr("Talent", -1), UltimateTalent.VALUES.length - 1);
-        int[] cooldownSeconds = input.getIntArray("CooldownSeconds").orElse(null);
+        this.talent = Math.min(tag.contains("Talent") ? tag.getInt("Talent") : -1, UltimateTalent.VALUES.length - 1);
+        int[] cooldownSeconds = tag.getIntArray("CooldownSeconds");
         if (cooldownSeconds != null) {
             for (int i = 0; i < Math.min(cooldownSeconds.length, this.cooldownEnds.length); i++) {
                 this.cooldownEnds[i] = gameTime + cooldownSeconds[i] * 20L;
@@ -206,7 +205,7 @@ public final class UpgradeData {
                 this.readyAnnounced[i] = this.cooldownEnds[i] <= gameTime;
             }
         }
-        this.dissociationExpire = gameTime + input.getIntOr("DissociationSeconds", 0) * 20L;
+        this.dissociationExpire = gameTime + tag.getInt("DissociationSeconds") * 20L;
     }
 
     private static int remainingSeconds(long end, long gameTime) {

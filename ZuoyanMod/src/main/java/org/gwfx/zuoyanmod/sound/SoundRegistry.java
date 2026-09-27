@@ -1,7 +1,7 @@
 package org.gwfx.zuoyanmod.sound;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier; // 改为 Identifier
+import net.minecraft.resources.ResourceLocation; // 改为 ResourceLocation
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.JukeboxSong;
@@ -16,12 +16,12 @@ public class SoundRegistry {
 
     public static final DeferredHolder<SoundEvent, SoundEvent> CHILLED_DRINK = SOUND_EVENTS.register(
             "drink.chilled",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "drink.chilled"))
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "drink.chilled"))
     );
 
     public static final DeferredHolder<SoundEvent, SoundEvent> DOMAIN_EXPANSION_ACTIVATE = SOUND_EVENTS.register(
             "domain_expansion.activate",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "domain_expansion.activate"))
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "domain_expansion.activate"))
     );
 
     /**
@@ -34,7 +34,7 @@ public class SoundRegistry {
      */
     public static final DeferredHolder<SoundEvent, SoundEvent> DOMAIN_EXPANSION_MUSIC = SOUND_EVENTS.register(
             "domain_expansion.music",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "domain_expansion.music"))
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "domain_expansion.music"))
     );
 
     /**
@@ -43,7 +43,7 @@ public class SoundRegistry {
      */
     public static final DeferredHolder<SoundEvent, SoundEvent> CAUSALITY_PISTOL_SHOOT = SOUND_EVENTS.register(
             "causality_pistol.shoot",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "causality_pistol.shoot"))
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "causality_pistol.shoot"))
     );
 
     // ===== 音乐唱片（三首约 3 分钟的完整曲子）=====
@@ -63,7 +63,7 @@ public class SoundRegistry {
 
     private static ResourceKey<JukeboxSong> songKey(String name) {
         return ResourceKey.create(Registries.JUKEBOX_SONG,
-                Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, name));
+                ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, name));
     }
 
     /**
@@ -74,6 +74,6 @@ public class SoundRegistry {
     private static DeferredHolder<SoundEvent, SoundEvent> musicDisc(String name) {
         String path = "music_disc." + name;
         return SOUND_EVENTS.register(path,
-                () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, path)));
+                () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, path)));
     }
 }

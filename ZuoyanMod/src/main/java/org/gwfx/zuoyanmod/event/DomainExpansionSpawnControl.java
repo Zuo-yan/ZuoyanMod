@@ -1,7 +1,6 @@
 package org.gwfx.zuoyanmod.event;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.entity.EntityTypeIds;
+import net.minecraft.world.entity.EntityType;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
@@ -16,7 +15,7 @@ public final class DomainExpansionSpawnControl {
     @SubscribeEvent
     public static void onFinalizeSpawn(FinalizeSpawnEvent event) {
         if (event.getEntity().level().dimension().equals(DomainExpansionDimensions.DOMAIN_KEY)
-                && event.getEntity().getType() == BuiltInRegistries.ENTITY_TYPE.getValue(EntityTypeIds.ENDERMAN)) {
+                && event.getEntity().getType() == EntityType.ENDERMAN) {
             event.setSpawnCancelled(true);
         }
     }

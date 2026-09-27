@@ -2,7 +2,7 @@ package org.gwfx.zuoyanmod.client;
 
 import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.resources.model.sprite.Material;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -22,8 +22,8 @@ public final class ClientFluidModels {
     @SubscribeEvent
     public static void onRegisterFluidModels(RegisterFluidModelsEvent event) {
         FluidModel.Unbaked model = new FluidModel.Unbaked(
-                new Material(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "block/dark_matter_still")),
-                new Material(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "block/dark_matter_flow")),
+                new Material(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "block/dark_matter_still")),
+                new Material(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "block/dark_matter_flow")),
                 null, // 无 overlay
                 null  // 无染色
         );

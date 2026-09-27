@@ -3,7 +3,7 @@ package org.gwfx.zuoyanmod.menu;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -958,7 +958,7 @@ public class KleinBottleMenu extends AbstractContainerMenu {
      * 无形配方没有宽度，直接按顺序占 0..n-1（本来就不关心位置）。
      * 填完再用 {@code recipe.matches(...)} 自检，不匹配就整单撤销、原样退回四维空间。
      */
-    public static void transfer(ServerPlayer player, Identifier recipeId, boolean maxTransfer) {
+    public static void transfer(ServerPlayer player, ResourceLocation recipeId, boolean maxTransfer) {
         if (!(player.containerMenu instanceof KleinBottleMenu menu) || menu.space == null) {
             return;
         }

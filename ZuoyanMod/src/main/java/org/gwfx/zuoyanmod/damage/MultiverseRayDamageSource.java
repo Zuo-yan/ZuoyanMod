@@ -4,7 +4,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * 「平行宇宙射线」湮灭伤害：因果律手枪对 Boss 级目标的降级结算。
@@ -30,7 +29,7 @@ public final class MultiverseRayDamageSource {
     }
 
     /** 归因版本：caster 同时作为 directEntity 与 causingEntity，用于死亡消息归因 */
-    public static DamageSource create(Level level, @Nullable Entity caster) {
+    public static DamageSource create(Level level, Entity caster) {
         return new DamageSource(
                 level.registryAccess()
                         .lookupOrThrow(Registries.DAMAGE_TYPE)

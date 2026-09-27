@@ -1,6 +1,6 @@
 package org.gwfx.zuoyanmod.client.klein;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.function.IntConsumer;
 
@@ -194,7 +194,7 @@ public final class KleinScrollbar {
     // ===== 绘制 =====
 
     /** 手柄。轨道凹槽已经烤进底图了，这里只画会动的那截。 */
-    public void render(GuiGraphicsExtractor g, float time, boolean hovered) {
+    public void render(GuiGraphics g, float time, boolean hovered) {
         boolean enabled = isEnabled();
         int h = handleHeight();
         int y = handleTop();

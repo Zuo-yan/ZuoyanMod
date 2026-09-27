@@ -3,12 +3,11 @@ package org.gwfx.zuoyanmod.event;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.wolf.Wolf;
+import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -71,7 +70,7 @@ public class HerculesBowEventHandler {
             case CERBERUS:
                 if (attacker.level() instanceof ServerLevel serverLevel) {
                     for (int i = 0; i < 3; i++) {
-                        Wolf hound = EntityTypes.WOLF.create(serverLevel, EntitySpawnReason.TRIGGERED);
+                        Wolf hound = EntityType.WOLF.create(serverLevel);
                         if (hound != null) {
                             hound.setPos(target.getX() + (serverLevel.getRandom().nextDouble() - 0.5) * 2,
                                     target.getY(),
@@ -101,7 +100,7 @@ public class HerculesBowEventHandler {
         CompoundTag data = wolf.getPersistentData();
         if (!data.contains(HOUND_DESPAWN_AT_TAG)) return;
 
-        if (data.getLong(HOUND_DESPAWN_AT_TAG).map(t -> wolf.level().getGameTime() >= t).orElse(false)) {
+        if (data.getLong(HOUND_DESPAWN_AT_TAG) != 0L && wolf.level().getGameTime() >= data.getLong(HOUND_DESPAWN_AT_TAG)) {
             if (wolf.level() instanceof ServerLevel serverLevel) {
                 serverLevel.sendParticles(ParticleTypes.POOF,
                         wolf.getX(), wolf.getY(0.5), wolf.getZ(),

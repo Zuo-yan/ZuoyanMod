@@ -30,7 +30,7 @@ public final class MultiverseCloneEventHandler {
     /** 防刷物①：带克隆标记的实体死亡时清空全部掉落 */
     @SubscribeEvent
     public static void onLivingDrops(LivingDropsEvent event) {
-        if (event.getEntity().entityTags().contains(MultiverseCloneService.CLONE_TAG)) {
+        if (event.getEntity().getTags().contains(MultiverseCloneService.CLONE_TAG)) {
             event.getDrops().clear();
         }
     }
@@ -38,7 +38,7 @@ public final class MultiverseCloneEventHandler {
     /** 防刷物②：带克隆标记的实体死亡时不产出任何经验 */
     @SubscribeEvent
     public static void onLivingExperienceDrop(LivingExperienceDropEvent event) {
-        if (event.getEntity().entityTags().contains(MultiverseCloneService.CLONE_TAG)) {
+        if (event.getEntity().getTags().contains(MultiverseCloneService.CLONE_TAG)) {
             event.setDroppedExperience(0);
         }
     }

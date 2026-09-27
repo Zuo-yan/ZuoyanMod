@@ -1,6 +1,6 @@
 package org.gwfx.zuoyanmod.client.klein;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.InputWithModifiers;
@@ -27,7 +27,7 @@ public final class KleinSideButton extends AbstractButton {
 
     /** 图标绘制回调：在按钮左上角坐标系里画 {@code size × size} 的图标 */
     public interface IconRenderer {
-        void draw(GuiGraphicsExtractor graphics, int x, int y, int size, boolean hovered, float time);
+        void draw(GuiGraphics graphics, int x, int y, int size, boolean hovered, float time);
     }
 
     private final IconRenderer icon;
@@ -45,7 +45,7 @@ public final class KleinSideButton extends AbstractButton {
     }
 
     @Override
-    protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    protected void extractContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         boolean hovered = isHovered();
         // **无边框、无底板**（v8，玩家点名要 RS2 那种"四个浮空控件"）：
         // 平时只有图标本身；hover 时也**只画一条青色下划线**，连淡底都不给——

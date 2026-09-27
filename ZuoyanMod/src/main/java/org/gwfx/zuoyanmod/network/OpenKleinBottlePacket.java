@@ -3,7 +3,7 @@ package org.gwfx.zuoyanmod.network;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -14,7 +14,7 @@ import org.gwfx.zuoyanmod.item.KleinBottleItem;
 public record OpenKleinBottlePacket() implements CustomPacketPayload {
 
     public static final Type<OpenKleinBottlePacket> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "open_klein_bottle"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "open_klein_bottle"));
 
     public static final StreamCodec<ByteBuf, OpenKleinBottlePacket> STREAM_CODEC =
             StreamCodec.unit(new OpenKleinBottlePacket());

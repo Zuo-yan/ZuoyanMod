@@ -28,7 +28,7 @@ public class InstantKillEventHandler {
                 event.setCanceled(true);
 
                 if (target.level() instanceof ServerLevel serverLevel) {
-                    target.hurtServer(serverLevel, event.getSource(), Float.MAX_VALUE);
+                    target.hurt(event.getSource(), Float.MAX_VALUE);
                 }
             }
         }

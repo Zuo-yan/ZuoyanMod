@@ -1,10 +1,9 @@
 package org.gwfx.zuoyanmod.client;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.gwfx.zuoyanmod.menu.MicroHadronColliderMenu;
 
@@ -17,8 +16,8 @@ import org.gwfx.zuoyanmod.menu.MicroHadronColliderMenu;
  */
 public class MicroHadronColliderScreen extends AbstractContainerScreen<MicroHadronColliderMenu> {
 
-    private static final Identifier TEXTURE =
-            Identifier.fromNamespaceAndPath("zuoyanmod", "textures/gui/micro_hadron_collider.png");
+    private static final ResourceLocation TEXTURE =
+            ResourceLocation.fromNamespaceAndPath("zuoyanmod", "textures/gui/micro_hadron_collider.png");
 
     private static final int TEX_W = 176;
     private static final int TEX_H = 146;
@@ -38,11 +37,11 @@ public class MicroHadronColliderScreen extends AbstractContainerScreen<MicroHadr
     }
 
     @Override
-    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         int x = leftPos;
         int y = topPos;
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0.0F, 0.0F, TEX_W, TEX_H, TEX_W, TEX_H);
+        graphics.blit(TEXTURE, x, y, 0.0F, 0.0F, TEX_W, TEX_H, TEX_W, TEX_H);
 
         // 对撞进度：从左向右填充，充能后呈高能青白色
         int progress = menu.getProgress();
@@ -57,10 +56,10 @@ public class MicroHadronColliderScreen extends AbstractContainerScreen<MicroHadr
     }
 
     @Override
-    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         // 深底上用浅色文字（原版默认 0xFF404040 会看不清），故不调用 super
-        graphics.text(font, title, titleLabelX, titleLabelY, 0xFFE8F4F6, false);
-        graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFF8FA3BE, false);
+        graphics.drawString(font, title, titleLabelX, titleLabelY, 0xFFE8F4F6, false);
+        graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFF8FA3BE, false);
 
         String status;
         int color;
@@ -75,6 +74,6 @@ public class MicroHadronColliderScreen extends AbstractContainerScreen<MicroHadr
             status = Component.translatable("gui.zuoyanmod.collider.status.charged").getString();
             color = 0xFF6FE3D4;
         }
-        graphics.text(font, status, TEX_W - 9 - font.width(status), titleLabelY, color, false);
+        graphics.drawString(font, status, TEX_W - 9 - font.width(status), titleLabelY, color, false);
     }
 }

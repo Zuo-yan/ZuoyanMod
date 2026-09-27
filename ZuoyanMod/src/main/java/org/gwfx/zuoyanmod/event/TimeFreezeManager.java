@@ -241,7 +241,7 @@ public final class TimeFreezeManager {
                     living.setDeltaMovement(0.0D, 0.0D, 0.0D);
                     // 6 级缓慢 ≈ 移动速度归零；按间隔续期，随场一起过期
                     if (refreshEffects) {
-                        living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS,
+                        living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,
                                 remaining + (int) EFFECT_REFRESH_INTERVAL + 1, 6, false, false, false));
                     }
                     if (living instanceof Mob mob) {

@@ -1,7 +1,7 @@
 package org.gwfx.zuoyanmod.event;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -33,8 +33,8 @@ import org.gwfx.zuoyanmod.network.ModToastPacket;
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
 public class ShadowArmorEventHandler {
 
-    private static final Identifier WIND_HEALTH_ID = Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "wind_health");
-    private static final Identifier WIND_SPEED_ID = Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "wind_speed");
+    private static final ResourceLocation WIND_HEALTH_ID = ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "wind_health");
+    private static final ResourceLocation WIND_SPEED_ID = ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "wind_speed");
 
     private static final Map<UUID, Long> SHADOW_BLADE_COOLDOWNS = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> ABSORPTION_REFRESH_TIMES = new ConcurrentHashMap<>();
@@ -76,7 +76,7 @@ public class ShadowArmorEventHandler {
         double x = entity.getX() + (RANDOM.nextDouble() * 2 - 1) * TELEPORT_RANGE;
         double y = entity.getY() + (RANDOM.nextDouble() * 2 - 1) * TELEPORT_RANGE / 2;
         double z = entity.getZ() + (RANDOM.nextDouble() * 2 - 1) * TELEPORT_RANGE;
-        y = Math.max(level.getMinY() + 1, Math.min(y, level.getMaxY() - 1));
+        y = Math.max(level.getMinBuildHeight() + 1, Math.min(y, level.getMaxBuildHeight() - 1));
         entity.setPos(x, y, z);
     }
 
@@ -129,10 +129,10 @@ public class ShadowArmorEventHandler {
         var moveAttr = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (hasLeggings) {
             if (healthAttr != null && !healthAttr.hasModifier(WIND_HEALTH_ID)) {
-                healthAttr.addTransientModifier(new AttributeModifier(WIND_HEALTH_ID, 20.0, AttributeModifier.Operation.ADD_VALUE));
+                healthAttr.addTransientModifier(new AttributeModifier(WIND_HEALTH_ID, 20.0, AttributeModifier.Operation.ADDITION));
             }
             if (moveAttr != null && !moveAttr.hasModifier(WIND_SPEED_ID)) {
-                moveAttr.addTransientModifier(new AttributeModifier(WIND_SPEED_ID, 0.25, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+                moveAttr.addTransientModifier(new AttributeModifier(WIND_SPEED_ID, 0.25, AttributeModifier.Operation.MULTIPLY_BASE));
             }
         } else {
             if (healthAttr != null) healthAttr.removeModifier(WIND_HEALTH_ID);
@@ -182,7 +182,7 @@ public class ShadowArmorEventHandler {
         if (!chestplate.isEmpty() && chestplate.is(ItemRegistry.SHENG_TIAN_CHESTPLATE.get())) {
             if (tickCounter % EFFECT_REFRESH_INTERVAL == 0) {
                 player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, EFFECT_DURATION, 1, false, false));
-                player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, EFFECT_DURATION, 4, false, false));
+                player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, EFFECT_DURATION, 4, false, false));
             }
 
             long currentTick = player.level().getGameTime();
@@ -200,7 +200,7 @@ public class ShadowArmorEventHandler {
         if (hasLeggings) {
             float healthPercent = player.getHealth() / player.getMaxHealth();
             if (healthPercent < WIND_LOW_HEALTH_THRESHOLD) {
-                player.addEffect(new MobEffectInstance(MobEffects.SPEED, EFFECT_DURATION, 4, false, true));
+                player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, EFFECT_DURATION, 4, false, true));
             }
         }
 

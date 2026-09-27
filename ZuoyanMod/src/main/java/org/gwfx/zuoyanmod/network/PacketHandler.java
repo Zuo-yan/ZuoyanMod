@@ -111,7 +111,7 @@ public final class PacketHandler {
     }
 
     /** JEI 的 + 按钮：请服务端从四维空间抓这份配方的材料 */
-    public static void sendCraftingTransfer(net.minecraft.resources.Identifier recipeId, boolean maxTransfer) {
+    public static void sendCraftingTransfer(net.minecraft.resources.ResourceLocation recipeId, boolean maxTransfer) {
         sendToServer(new CraftingTransferPacket(recipeId, maxTransfer));
     }
 

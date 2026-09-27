@@ -4,7 +4,7 @@ import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -41,7 +41,7 @@ public final class ModToastHud {
             return;
         }
 
-        GuiGraphicsExtractor g = event.getGuiGraphics();
+        GuiGraphics g = event.getGuiGraphics();
         Font font = minecraft.font;
         int right = minecraft.getWindow().getGuiScaledWidth() - MARGIN;
         long now = System.currentTimeMillis();
@@ -55,7 +55,7 @@ public final class ModToastHud {
 
             g.fill(x, y, x + width, y + height, KleinTheme.withAlpha(KleinTheme.PANEL_DEEP, 0.85F * alpha));
             g.outline(x, y, width, height, KleinTheme.withAlpha(KleinTheme.BORDER, alpha));
-            g.text(font, toast.text(), x + PAD_X, y + PAD_Y, KleinTheme.withAlpha(KleinTheme.TEXT, alpha), true);
+            g.drawString(font, toast.text(), x + PAD_X, y + PAD_Y, KleinTheme.withAlpha(KleinTheme.TEXT, alpha), true);
 
             y += height + GAP;
         }

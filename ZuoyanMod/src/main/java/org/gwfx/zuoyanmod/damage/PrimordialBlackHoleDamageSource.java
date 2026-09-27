@@ -4,7 +4,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
-import org.jspecify.annotations.Nullable;
 
 /**
  * 「原始黑洞」坍缩时的爆发伤害。
@@ -24,7 +23,7 @@ public final class PrimordialBlackHoleDamageSource {
 
     private PrimordialBlackHoleDamageSource() {}
 
-    public static DamageSource create(Level level, @Nullable Entity caster) {
+    public static DamageSource create(Level level, Entity caster) {
         return new DamageSource(
                 level.registryAccess()
                         .lookupOrThrow(Registries.DAMAGE_TYPE)

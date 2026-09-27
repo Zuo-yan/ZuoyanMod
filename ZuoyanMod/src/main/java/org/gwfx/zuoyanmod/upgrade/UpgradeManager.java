@@ -2,7 +2,7 @@ package org.gwfx.zuoyanmod.upgrade;
 
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -77,14 +77,16 @@ public final class UpgradeManager {
     private UpgradeManager() {}
 
     /**
-     * 服务端改写实体速度。旧版靠 {@code hurtMarked = true} 触发同步，26.3 里那个字段
-     * 收归 protected {@code markHurt()}——对生物，速度由服务端模拟 + ServerEntity 跟踪同步；
-     * 对玩家型目标必须再直发一次 motion 包（原版爆炸就是这么做击退的），否则客户端不认。
+     * 服务端改写实体速度。1.21.1 里 {@code hurtMarked} 是 public 字段，直接置位即可让
+     * ServerEntity 补发 motion 包；玩家型目标是客户端权威模拟，必须再直发一次 motion 包
+     * （原版爆炸击退也是这套做法），否则客户端不认。
      */
     private static void applyVelocity(Entity target, Vec3 velocity) {
         target.setDeltaMovement(velocity);
         if (target instanceof ServerPlayer serverPlayer) {
             serverPlayer.connection.send(new ClientboundSetEntityMotionPacket(serverPlayer));
+        } else {
+            target.hasImpulse = true;
         }
     }
 
@@ -237,7 +239,7 @@ public final class UpgradeManager {
         FREEZES.add(new Freeze(level.dimension(), target.getUUID(), FREEZE_TICKS));
         if (target instanceof LivingEntity living) {
             // 缓慢 X：横向位移归零；跳跃由 tick 段的运动清零兜住
-            living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, FREEZE_TICKS, 9, false, true));
+            living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, FREEZE_TICKS, 9, false, true));
         }
         target.level().playSound(null, target.getX(), target.getY(), target.getZ(),
                 SoundEvents.GLASS_PLACE, SoundSource.PLAYERS, 0.8F, 1.4F);
@@ -391,8 +393,8 @@ public final class UpgradeManager {
         }
     }
 
-    private static Identifier modifierId(UpgradeType type) {
-        return Identifier.fromNamespaceAndPath(Zuoyanmod.MODID,
+    private static ResourceLocation modifierId(UpgradeType type) {
+        return ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID,
                 "upgrade_" + type.name().toLowerCase(java.util.Locale.ROOT));
     }
 

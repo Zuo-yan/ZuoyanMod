@@ -25,7 +25,7 @@ displayName = "${mod_name}" #mandatory
 # A URL for the "homepage" for this mod, displayed in the mod UI
 #displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
 # A file name (in the root of the mod JAR) containing a logo for display
-iconFile = "zuoyanmod.png" #optional ('logoFile' is deprecated in 26.3; 'iconFile' for square icons, 'bannerFile' for wide banners)
+logoFile = "zuoyanmod.png" #optional
 # A text field displayed in the mod UI
 #credits="" #optional
 # A text field displayed in the mod UI
@@ -77,7 +77,7 @@ side = "BOTH"
 [[dependencies."${mod_id}"]]
 modId = "curios"
 type = "optional"
-versionRange = "[17,)"
+versionRange = "[9,)"
 ordering = "AFTER"
 side = "BOTH"
 

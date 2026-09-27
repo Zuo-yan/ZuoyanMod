@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import org.gwfx.zuoyanmod.network.UpgradeSyncPacket;
 import org.gwfx.zuoyanmod.upgrade.UltimateTalent;
 import org.gwfx.zuoyanmod.upgrade.UpgradeType;
-import org.jspecify.annotations.Nullable;
 
 /**
  * 客户端的升级档案快照（{@link UpgradeSyncPacket} 的落地点）。
@@ -49,7 +48,7 @@ public final class ClientUpgradeData {
         return talent;
     }
 
-    public static @Nullable UltimateTalent talent() {
+    public static UltimateTalent talent() {
         return talent >= 0 && talent < UltimateTalent.VALUES.length
                 ? UltimateTalent.VALUES[talent] : null;
     }

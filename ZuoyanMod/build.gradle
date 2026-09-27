@@ -33,7 +33,7 @@ base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 // 强制所有文本处理走 UTF-8。
 // 为什么不依赖构建机的默认编码：Gradle 的 ProcessResources（含 expand()）与 javac
@@ -45,6 +45,8 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 // 因此这里显式锁死编码，与构建机环境解耦。
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+    // 迁移期放开 javac 默认 100 条错误上限，避免大版本移植时错误列表被截断
+    options.compilerArgs += ['-Xmaxerrs', '10000']
 }
 
 tasks.withType(ProcessResources).configureEach {
@@ -112,16 +114,17 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     // 使用 CurseMaven 作为开发期运行环境加载 JEI（不强绑定到你的发布产物中）
-    // 项目 ID: 238222 (JEI), 文件 ID: 8941416
+    // 项目 ID: 238222 (JEI), 文件 ID: 8964989 (19.57.0.449, 1.21.1-neoforge)
     // compileOnly：四维空间工作台要接 JEI 的配方传输 API，需要编译期可见；
     // runtimeOnly：开发环境下真的把 JEI 跑起来。两者同时声明不冲突。
-    compileOnly "curse.maven:jei-238222:8941416"
-    runtimeOnly "curse.maven:jei-238222:8941416"
+    compileOnly "curse.maven:jei-238222:8964989"
+    runtimeOnly "curse.maven:jei-238222:8964989"
 
     // Curios API（可选集成）：仅编译期可见 + 开发运行环境加载，不打包进发布产物。
     // 运行时由玩家自行安装；未安装 Curios 时饰品走"放背包生效"逻辑。
-    compileOnly "curse.maven:curios-309927:8945239"
-    runtimeOnly "curse.maven:curios-309927:8945239"
+    // 文件 ID: 6538281 (curios-neoforge-9.5.1+1.21.1)
+    compileOnly "curse.maven:curios-309927:6538281"
+    runtimeOnly "curse.maven:curios-309927:6538281"
 }
 
 // 展开元数据替换属性

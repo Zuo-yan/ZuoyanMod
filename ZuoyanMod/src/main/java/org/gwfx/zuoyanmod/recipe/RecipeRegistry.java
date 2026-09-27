@@ -7,7 +7,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -20,7 +20,7 @@ import org.gwfx.zuoyanmod.Zuoyanmod;
 /**
  * 自定义配方注册：RecipeType + RecipeSerializer。
  * 26.3 的 RecipeSerializer 是 record(MapCodec 数据层, StreamCodec 网络层)，直接构造；
- * RecipeType 用 RecipeType.simple(Identifier) 包一个实例。
+ * RecipeType 用 RecipeType.simple(ResourceLocation) 包一个实例。
  */
 public final class RecipeRegistry {
 
@@ -34,7 +34,7 @@ public final class RecipeRegistry {
 
     public static final DeferredHolder<RecipeType<?>, RecipeType<MicroCollisionRecipe>> MICRO_COLLISION_TYPE =
             RECIPE_TYPES.register("micro_collision",
-                    () -> RecipeType.simple(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "micro_collision")));
+                    () -> RecipeType.simple(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "micro_collision")));
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<MicroCollisionRecipe>> MICRO_COLLISION_SERIALIZER =
             RECIPE_SERIALIZERS.register("micro_collision",

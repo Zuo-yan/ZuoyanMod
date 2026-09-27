@@ -4,10 +4,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.block.Block;
 
-import java.util.function.Consumer;
+import java.util.List;
 
 /**
  * 带多行描述的方块物品（如机器"能放什么材料"的说明）。
@@ -22,11 +21,10 @@ public class DescriptionBlockItem extends BlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, tooltip, flag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
         for (String key : this.descKeys) {
-            tooltip.accept(Component.translatable(key));
+            tooltip.add(Component.translatable(key));
         }
     }
 }

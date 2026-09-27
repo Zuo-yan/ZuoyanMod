@@ -1,10 +1,8 @@
 package org.gwfx.zuoyanmod.event;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntityTypeIds;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -24,12 +22,12 @@ public final class RealmSpawnControlEventHandler {
             return;
         }
 
-        EntitySpawnReason spawnType = event.getSpawnType();
+        MobSpawnType spawnType = event.getSpawnType();
         EntityType<?> entityType = event.getEntity().getType();
-        boolean naturalSpawn = spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION || spawnType == EntitySpawnReason.PATROL;
+        boolean naturalSpawn = spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION || spawnType == MobSpawnType.PATROL;
         boolean hostile = entityType.getCategory() == MobCategory.MONSTER;
-        boolean slime = entityType == BuiltInRegistries.ENTITY_TYPE.getValue(EntityTypeIds.SLIME)
-                || entityType == BuiltInRegistries.ENTITY_TYPE.getValue(EntityTypeIds.MAGMA_CUBE);
+        boolean slime = entityType == EntityType.SLIME
+                || entityType == EntityType.MAGMA_CUBE;
         if (naturalSpawn && (hostile || slime)) {
             event.setSpawnCancelled(true);
         }

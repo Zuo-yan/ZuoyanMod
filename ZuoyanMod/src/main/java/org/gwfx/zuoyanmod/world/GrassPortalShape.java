@@ -12,10 +12,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.gwfx.zuoyanmod.block.BlockRegistry;
-import org.jspecify.annotations.Nullable;
 
 /**
- * 草原传送门的门框形状检测，算法照抄 26.3 原版 {@code PortalShape}，
+ * 草原传送门的门框形状检测，算法照抄 1.21.1 原版 {@code PortalShape}，
  * 只替换两个谓词：框体 = 草原门框，内部可穿透 = 空气 / 火 / 草原传送门。
  *
  * <p>不直接复用原版类的原因：原版 FRAME 谓词硬编码下界合金门框标签，
@@ -84,8 +83,8 @@ public final class GrassPortalShape {
         return new GrassPortalShape(axis, portalBlockCount.intValue(), rightDir, bottomLeft, width, height);
     }
 
-    private static @Nullable BlockPos calculateBottomLeft(BlockGetter level, Direction rightDir, BlockPos pos) {
-        int minY = Math.max(level.getMinY(), pos.getY() - MAX_HEIGHT);
+    private static BlockPos calculateBottomLeft(BlockGetter level, Direction rightDir, BlockPos pos) {
+        int minY = Math.max(level.getMinBuildHeight(), pos.getY() - MAX_HEIGHT);
 
         while (pos.getY() > minY && isEmpty(level.getBlockState(pos.below()))) {
             pos = pos.below();

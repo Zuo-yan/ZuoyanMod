@@ -4,7 +4,7 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 
 /**
@@ -26,7 +26,7 @@ public final class RickModelLayers {
 
     /** 瑞克皮肤模型层。必须注册到 {@code EntityRenderersEvent.RegisterLayerDefinitions}。 */
     public static final ModelLayerLocation RICK_BODY = new ModelLayerLocation(
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "rick"), "main");
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "rick"), "main");
 
     private RickModelLayers() {}
 

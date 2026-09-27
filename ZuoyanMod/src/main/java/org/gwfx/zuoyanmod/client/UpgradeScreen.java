@@ -1,7 +1,7 @@
 package org.gwfx.zuoyanmod.client;
 
 import net.minecraft.util.Util;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
@@ -13,7 +13,6 @@ import org.gwfx.zuoyanmod.client.klein.KleinTheme;
 import org.gwfx.zuoyanmod.network.PacketHandler;
 import org.gwfx.zuoyanmod.upgrade.UltimateTalent;
 import org.gwfx.zuoyanmod.upgrade.UpgradeType;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -39,7 +38,7 @@ import java.util.function.Supplier;
  * 的体感就是这么来的。所以校验结果直接画在页脚：不可负担/满级在客户端就地拦截，
  * 升级成功靠同步快照的等级差闪烁确认（服务端仍然是权威，actionbar 在界面关闭后照发）。
  *
- * <p>全部运行时绘制（{@code GuiGraphicsExtractor.fill}），配色沿用 klein 主题，
+ * <p>全部运行时绘制（{@code GuiGraphics.fill}），配色沿用 klein 主题，
  * 没有任何贴图依赖，任意 GUI 缩放都是 1:1 像素。
  */
 public class UpgradeScreen extends Screen {
@@ -68,14 +67,14 @@ public class UpgradeScreen extends Screen {
     private static final int STATUS_Y = PANEL_H - 34;
 
     /** 两段确认的"待选定"卡（第一击存这里，第二击发包） */
-    private @Nullable UltimateTalent pendingTalent;
+    private UltimateTalent pendingTalent;
 
     // ===== 界面内行内反馈 =====
 
-    private @Nullable Component statusText;
+    private Component statusText;
     private int statusColor;
     private long statusUntilMs;
-    private int @org.jspecify.annotations.Nullable [] lastLevels;
+    private int [] lastLevels;
 
     public UpgradeScreen() {
         super(Component.translatable("gui.zuoyanmod.upgrade.title"));
@@ -135,18 +134,18 @@ public class UpgradeScreen extends Screen {
     private final class UpgradeRowButton extends AbstractButton {
 
         private interface RowPainter {
-            void draw(GuiGraphicsExtractor g, int x, int y, int w, int h, boolean hovered);
+            void draw(GuiGraphics g, int x, int y, int w, int h, boolean hovered);
         }
 
         private final RowPainter painter;
-        private final @Nullable Supplier<List<Component>> tooltip;
+        private final Supplier<List<Component>> tooltip;
         private final Runnable action;
         /** Shift+左键动作（属性行 = 退还最后一级；天赋卡没有，传 null） */
-        private final @Nullable Runnable shiftAction;
+        private final Runnable shiftAction;
 
         UpgradeRowButton(int x, int y, int w, int h, Component name,
-                         RowPainter painter, @Nullable Supplier<List<Component>> tooltip,
-                         Runnable action, @Nullable Runnable shiftAction) {
+                         RowPainter painter, Supplier<List<Component>> tooltip,
+                         Runnable action, Runnable shiftAction) {
             super(x, y, w, h, name);
             this.painter = painter;
             this.tooltip = tooltip;
@@ -168,7 +167,7 @@ public class UpgradeScreen extends Screen {
         }
 
         @Override
-        protected void extractContents(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+        protected void extractContents(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
             this.painter.draw(g, getX(), getY(), getWidth(), getHeight(), isHovered());
             if (isHovered() && this.tooltip != null) {
                 List<Component> lines = this.tooltip.get();
@@ -187,7 +186,7 @@ public class UpgradeScreen extends Screen {
     // ===== 绘制 =====
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         // 同步快照等级上涨 → 界面内闪一条"升级成功"（哪条升的、升到几级都点名）
         int[] levels = new int[UpgradeType.VALUES.length];
         for (int i = 0; i < levels.length; i++) {
@@ -215,20 +214,20 @@ public class UpgradeScreen extends Screen {
     }
 
     /** 面板底 + 双层描边 + 顶部青色亮线（klein 面板的三件套） */
-    private void drawPanel(GuiGraphicsExtractor g, int px, int py) {
+    private void drawPanel(GuiGraphics g, int px, int py) {
         g.fill(px, py, px + PANEL_W, py + PANEL_H, withAlpha(KleinTheme.PANEL, 0.94F));
         g.outline(px - 1, py - 1, PANEL_W + 2, PANEL_H + 2, KleinTheme.BORDER_OUTER);
         g.outline(px, py, PANEL_W, PANEL_H, KleinTheme.BORDER);
         g.fill(px + 1, py + 1, px + PANEL_W - 1, py + 2, withAlpha(KleinTheme.CYAN, 0.55F));
     }
 
-    private void drawHeader(GuiGraphicsExtractor g, int px, int py) {
-        g.text(this.font, this.title, px + 10, py + 8, KleinTheme.GOLD, true);
+    private void drawHeader(GuiGraphics g, int px, int py) {
+        g.drawString(this.font, this.title, px + 10, py + 8, KleinTheme.GOLD, true);
 
         Player player = minecraftPlayer();
         if (player != null) {
             Component xp = Component.translatable("gui.zuoyanmod.upgrade.xp", player.experienceLevel);
-            g.text(this.font, xp, px + PANEL_W - 10 - this.font.width(xp), py + 8, KleinTheme.CYAN, true);
+            g.drawString(this.font, xp, px + PANEL_W - 10 - this.font.width(xp), py + 8, KleinTheme.CYAN, true);
         }
 
         int total = ClientUpgradeData.totalLevels();
@@ -244,11 +243,11 @@ public class UpgradeScreen extends Screen {
             g.fill(barX + filled - 1, barY, barX + filled, barY + 3, KleinTheme.CYAN);
         }
         Component progress = Component.translatable("gui.zuoyanmod.upgrade.progress", total, max);
-        g.text(this.font, progress, px + TALENT_X + TALENT_W - this.font.width(progress), py + 19,
+        g.drawString(this.font, progress, px + TALENT_X + TALENT_W - this.font.width(progress), py + 19,
                 total >= max ? KleinTheme.GOLD : KleinTheme.TEXT_DIM, false);
     }
 
-    private void drawStatRow(GuiGraphicsExtractor g, int index, int x, int y, int w, int h, boolean hovered) {
+    private void drawStatRow(GuiGraphics g, int index, int x, int y, int w, int h, boolean hovered) {
         UpgradeType type = UpgradeType.VALUES[index];
         int level = ClientUpgradeData.level(index);
         boolean maxed = level >= UpgradeType.MAX_LEVEL;
@@ -261,10 +260,10 @@ public class UpgradeScreen extends Screen {
         }
 
         // 行 1：名称 + Lv
-        g.text(this.font, Component.translatable(type.nameKey()), x + 2, y + 2,
+        g.drawString(this.font, Component.translatable(type.nameKey()), x + 2, y + 2,
                 maxed ? KleinTheme.GOLD : KleinTheme.TEXT, false);
         Component lv = Component.translatable("gui.zuoyanmod.upgrade.level", level);
-        g.text(this.font, lv, x + w - 2 - this.font.width(lv), y + 2, KleinTheme.TEXT_DIM, false);
+        g.drawString(this.font, lv, x + w - 2 - this.font.width(lv), y + 2, KleinTheme.TEXT_DIM, false);
 
         // 行 2：10 段进度格 + 花费/状态
         int pipY = y + 13;
@@ -290,10 +289,10 @@ public class UpgradeScreen extends Screen {
             status = Component.translatable("gui.zuoyanmod.upgrade.cost", cost);
             statusColor = KleinTheme.TEXT_WARN;
         }
-        g.text(this.font, status, x + w - 2 - this.font.width(status), pipY - 1, statusColor, false);
+        g.drawString(this.font, status, x + w - 2 - this.font.width(status), pipY - 1, statusColor, false);
     }
 
-    private void drawTalentCard(GuiGraphicsExtractor g, int index, int x, int y, int w, int h, boolean hovered) {
+    private void drawTalentCard(GuiGraphics g, int index, int x, int y, int w, int h, boolean hovered) {
         UltimateTalent talent = UltimateTalent.VALUES[index];
         boolean unlocked = ClientUpgradeData.allMaxed();
         UltimateTalent chosen = ClientUpgradeData.talent();
@@ -321,17 +320,17 @@ public class UpgradeScreen extends Screen {
         drawTalentGlyph(g, talent, x + 5, y + h / 2 - 4,
                 nameColor == KleinTheme.TEXT_FAINT ? KleinTheme.TEXT_FAINT : KleinTheme.CYAN);
         Component name = Component.translatable(talent.nameKey());
-        g.text(this.font, name, x + 20, y + h / 2 - 4, nameColor, false);
+        g.drawString(this.font, name, x + 20, y + h / 2 - 4, nameColor, false);
     }
 
     /**
      * 行内状态行（额外技能槽上方）：升级成败反馈 / 天赋两段确认提示。
      * 原先这里的"冷却剩余/Y 已就绪"常驻提示已删——就绪走 toast，查询按 Y。
      */
-    private void drawStatusLine(GuiGraphicsExtractor g, int px, int py) {
+    private void drawStatusLine(GuiGraphics g, int px, int py) {
         int y = py + STATUS_Y;
         if (this.statusText != null && Util.getMillis() < this.statusUntilMs) {
-            g.text(this.font, this.statusText, px + PANEL_W / 2 - this.font.width(this.statusText) / 2, y,
+            g.drawString(this.font, this.statusText, px + PANEL_W / 2 - this.font.width(this.statusText) / 2, y,
                     this.statusColor, false);
             return;
         }
@@ -340,7 +339,7 @@ public class UpgradeScreen extends Screen {
         if (pendingTalent != null) {
             Component confirm = Component.translatable("gui.zuoyanmod.upgrade.confirm_hint",
                     Component.translatable(pendingTalent.nameKey()));
-            g.text(this.font, confirm, px + PANEL_W / 2 - this.font.width(confirm) / 2, y,
+            g.drawString(this.font, confirm, px + PANEL_W / 2 - this.font.width(confirm) / 2, y,
                     KleinTheme.GOLD, false);
         }
     }
@@ -349,7 +348,7 @@ public class UpgradeScreen extends Screen {
      * 「额外技能」槽位的背景 UI（技能本体未设计）。做成技能栏格子的观感：
      * 深色井 + 描边 + 顶部亮线，左侧一枚四芒星图标，右侧"敬请期待"。
      */
-    private void drawExtraSkillSlot(GuiGraphicsExtractor g, int x, int y, int w, int h, boolean hovered) {
+    private void drawExtraSkillSlot(GuiGraphics g, int x, int y, int w, int h, boolean hovered) {
         g.fill(x, y, x + w, y + h, withAlpha(KleinTheme.PANEL_DEEP, 0.92F));
         g.outline(x, y, w, h, hovered ? KleinTheme.BORDER_BRIGHT : KleinTheme.BORDER);
         g.fill(x + 1, y + 1, x + w - 1, y + 2,
@@ -365,15 +364,15 @@ public class UpgradeScreen extends Screen {
         g.fill(cx - 1, cy - 1, cx + 2, cy + 2, hovered ? KleinTheme.GOLD : KleinTheme.CYAN);
 
         Component name = Component.translatable("gui.zuoyanmod.upgrade.extra_skill");
-        g.text(this.font, name, x + 18, y + (h - 8) / 2,
+        g.drawString(this.font, name, x + 18, y + (h - 8) / 2,
                 hovered ? KleinTheme.TEXT : KleinTheme.TEXT_DIM, false);
         Component hint = Component.translatable("gui.zuoyanmod.upgrade.extra_skill_hint");
-        g.text(this.font, hint, x + w - 3 - this.font.width(hint), y + (h - 8) / 2,
+        g.drawString(this.font, hint, x + w - 3 - this.font.width(hint), y + (h - 8) / 2,
                 KleinTheme.TEXT_FAINT, false);
     }
 
     /** 四枚 8×8 几何小图标，全 fill 画，不依赖字形覆盖（❄/⚛ 这类字符在中文字体下没有保证）。 */
-    private void drawTalentGlyph(GuiGraphicsExtractor g, UltimateTalent talent, int x, int y, int color) {
+    private void drawTalentGlyph(GuiGraphics g, UltimateTalent talent, int x, int y, int color) {
         switch (talent) {
             case GRAPPLE_ABSOLUTE_ZERO -> {
                 // 向下箭头 + 底部小方（"拽到身边"）：箭杆 + 两撇 + 落点
@@ -408,7 +407,7 @@ public class UpgradeScreen extends Screen {
 
     // ===== tooltip 内容 =====
 
-    private @Nullable List<Component> statTooltip(int index) {
+    private List<Component> statTooltip(int index) {
         UpgradeType type = UpgradeType.VALUES[index];
         int level = ClientUpgradeData.level(index);
         List<Component> lines = new java.util.ArrayList<>(List.of(
@@ -424,7 +423,7 @@ public class UpgradeScreen extends Screen {
         return lines;
     }
 
-    private @Nullable List<Component> talentTooltip(int index) {
+    private List<Component> talentTooltip(int index) {
         UltimateTalent talent = UltimateTalent.VALUES[index];
         boolean unlocked = ClientUpgradeData.allMaxed();
         UltimateTalent chosen = ClientUpgradeData.talent();
@@ -531,7 +530,7 @@ public class UpgradeScreen extends Screen {
         return KleinTheme.withAlpha(argb, alpha);
     }
 
-    private @Nullable Player minecraftPlayer() {
+    private Player minecraftPlayer() {
         return net.minecraft.client.Minecraft.getInstance().player;
     }
 

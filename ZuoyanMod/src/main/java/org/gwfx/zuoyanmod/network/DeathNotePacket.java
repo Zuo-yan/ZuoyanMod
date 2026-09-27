@@ -6,7 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,7 +22,7 @@ public record DeathNotePacket(String targetName, int durationSeconds) implements
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static final Type<DeathNotePacket> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "death_note"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "death_note"));
 
     public static final StreamCodec<ByteBuf, DeathNotePacket> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, DeathNotePacket::targetName,

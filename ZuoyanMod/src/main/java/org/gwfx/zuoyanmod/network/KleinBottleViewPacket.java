@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.gwfx.zuoyanmod.Zuoyanmod;
@@ -36,7 +36,7 @@ public record KleinBottleViewPacket(String search, int scrollRow) implements Cus
     public static final int MAX_SEARCH_LENGTH = 64;
 
     public static final Type<KleinBottleViewPacket> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "klein_bottle_view"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "klein_bottle_view"));
 
     public static final StreamCodec<ByteBuf, KleinBottleViewPacket> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.stringUtf8(MAX_SEARCH_LENGTH), KleinBottleViewPacket::search,

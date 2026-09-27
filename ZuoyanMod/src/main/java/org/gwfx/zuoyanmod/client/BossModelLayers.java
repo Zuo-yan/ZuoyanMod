@@ -8,7 +8,7 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 
 /**
@@ -27,10 +27,10 @@ import org.gwfx.zuoyanmod.Zuoyanmod;
 public final class BossModelLayers {
 
     public static final ModelLayerLocation VOID_MONARCH_BODY = new ModelLayerLocation(
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "void_monarch"), "main");
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "void_monarch"), "main");
 
     public static final ModelLayerLocation VOID_GUARD_BODY = new ModelLayerLocation(
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "void_guard"), "main");
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "void_guard"), "main");
 
     private BossModelLayers() {}
 

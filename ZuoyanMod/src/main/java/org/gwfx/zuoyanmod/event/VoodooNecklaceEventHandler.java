@@ -33,7 +33,7 @@ public class VoodooNecklaceEventHandler {
             MobEffects.POISON,
             MobEffects.HUNGER,
             MobEffects.WEAKNESS,
-            MobEffects.SLOWNESS
+            MobEffects.MOVEMENT_SLOWDOWN
     };
 
     private static final Random RANDOM = new Random();
@@ -57,7 +57,7 @@ public class VoodooNecklaceEventHandler {
                         LivingEntity target = event.getEntity();
                         float maxHealth = target.getMaxHealth();
                         if (target.level() instanceof ServerLevel serverLevel) {
-                            target.hurtServer(serverLevel, event.getSource(), maxHealth);
+                            target.hurt(event.getSource(), maxHealth);
                         }
 
                         ModToastPacket.send(attacker, Component.translatable("message.zuoyanmod.voodoo_necklace.instakill", negativeEffectCount, Math.round(instaKillChance * 100)));

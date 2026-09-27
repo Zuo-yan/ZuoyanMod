@@ -1,24 +1,24 @@
 package org.gwfx.zuoyanmod.entity;
 
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -33,8 +33,6 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 
@@ -69,14 +67,14 @@ public class VoidMonarchEntity extends Monster {
     private static final double BARRAGE_RANGE = 24.0D;
 
     /** 狂暴加成的属性修饰符 ID（永久修饰符随实体 NBT 存档，不会重复叠加） */
-    private static final Identifier ENRAGE_DAMAGE_ID =
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "void_monarch_enrage_damage");
-    private static final Identifier ENRAGE_SPEED_ID =
-            Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "void_monarch_enrage_speed");
+    private static final ResourceLocation ENRAGE_DAMAGE_ID =
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "void_monarch_enrage_damage");
+    private static final ResourceLocation ENRAGE_SPEED_ID =
+            ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "void_monarch_enrage_speed");
 
     /** Boss 血条：紫红色、10 段刻度。沉眠时隐藏，觉醒后浮现。 */
     private final ServerBossEvent bossEvent = new ServerBossEvent(
-            Mth.createInsecureUUID(this.random), this.getDisplayName(),
+            this.getDisplayName(),
             BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.NOTCHED_10);
 
     /** 是否已从沉眠中觉醒 */
@@ -143,11 +141,11 @@ public class VoidMonarchEntity extends Monster {
 
     /** 沉眠时无敌——否则玩家隔墙射箭能把 Boss 磨死，觉醒演出就没了意义。 */
     @Override
-    public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
+    public boolean hurt(DamageSource source, float damage) {
         if (!this.awakened && !source.is(net.minecraft.world.damagesource.DamageTypes.GENERIC_KILL)) {
             return false;
         }
-        return super.hurtServer(level, source, damage);
+        return super.hurt(source, damage);
     }
 
     @Override
@@ -221,15 +219,14 @@ public class VoidMonarchEntity extends Monster {
             double angle = (Math.PI * 2.0D / 3.0D) * i + this.random.nextDouble();
             double x = this.getX() + Math.cos(angle) * 4.0D;
             double z = this.getZ() + Math.sin(angle) * 4.0D;
-            VoidGuardEntity guard = EntityRegistry.VOID_GUARD.get()
-                    .create(this.level(), EntitySpawnReason.MOB_SUMMONED);
+            VoidGuardEntity guard = EntityRegistry.VOID_GUARD.get().create(this.level());
             if (guard == null) {
                 continue;
             }
             guard.setPos(x, this.getY(), z);
             guard.setYRot(this.getYRot());
             guard.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(guard.blockPosition()),
-                    EntitySpawnReason.MOB_SUMMONED, null);
+                    MobSpawnType.MOB_SUMMONED, null);
             guard.setTarget(this.getTarget());
             serverLevel.addFreshEntity(guard);
             serverLevel.sendParticles(ParticleTypes.PORTAL, x, this.getY() + 1.0D, z,
@@ -241,9 +238,9 @@ public class VoidMonarchEntity extends Monster {
         this.playSound(SoundEvents.RAVAGER_ROAR, 3.0F, 1.2F);
         // 永久修饰符会随 NBT 存档，enraged 标记保证只在进入狂暴时加一次
         this.getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(
-                new AttributeModifier(ENRAGE_DAMAGE_ID, 20.0D, AttributeModifier.Operation.ADD_VALUE));
+                new AttributeModifier(ENRAGE_DAMAGE_ID, 20.0D, AttributeModifier.Operation.ADDITION));
         this.getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(
-                new AttributeModifier(ENRAGE_SPEED_ID, 0.20D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+                new AttributeModifier(ENRAGE_SPEED_ID, 0.20D, AttributeModifier.Operation.MULTIPLY_TOTAL));
         if (this.level() instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE,
                     this.getX(), this.getY() + this.getBbHeight() * 0.5D, this.getZ(),
@@ -253,14 +250,14 @@ public class VoidMonarchEntity extends Monster {
 
     /** 近战横扫：主目标吃满 100，站在目标身边的生物被剑气波及。 */
     @Override
-    public boolean doHurtTarget(ServerLevel level, Entity target) {
-        boolean hit = super.doHurtTarget(level, target);
-        if (hit) {
+    public boolean doHurtTarget(Entity target) {
+        boolean hit = super.doHurtTarget(target);
+        if (hit && this.level() instanceof ServerLevel serverLevel) {
             AABB sweepBox = target.getBoundingBox().inflate(SWEEP_RADIUS);
-            List<LivingEntity> bystanders = level.getEntitiesOfClass(LivingEntity.class, sweepBox,
+            List<LivingEntity> bystanders = serverLevel.getEntitiesOfClass(LivingEntity.class, sweepBox,
                     e -> e != this && e != target && e.isAlive() && !this.isAlliedTo(e));
             for (LivingEntity bystander : bystanders) {
-                bystander.hurtServer(level, this.damageSources().mobAttack(this), SWEEP_DAMAGE);
+                bystander.hurt(this.damageSources().mobAttack(this), SWEEP_DAMAGE);
             }
         }
         return hit;
@@ -293,7 +290,7 @@ public class VoidMonarchEntity extends Monster {
     // ------------------------------------------------------------------
 
     @Override
-    protected void addAdditionalSaveData(ValueOutput tag) {
+    protected void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putBoolean("Awakened", this.awakened);
         tag.putBoolean("SummonedGuards", this.summonedGuards);
@@ -301,11 +298,11 @@ public class VoidMonarchEntity extends Monster {
     }
 
     @Override
-    protected void readAdditionalSaveData(ValueInput tag) {
+    protected void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-        this.awakened = tag.getBooleanOr("Awakened", false);
-        this.summonedGuards = tag.getBooleanOr("SummonedGuards", false);
-        this.enraged = tag.getBooleanOr("Enraged", false);
+        this.awakened = tag.getBoolean("Awakened");
+        this.summonedGuards = tag.getBoolean("SummonedGuards");
+        this.enraged = tag.getBoolean("Enraged");
         if (this.hasCustomName()) {
             this.bossEvent.setName(this.getDisplayName());
         }

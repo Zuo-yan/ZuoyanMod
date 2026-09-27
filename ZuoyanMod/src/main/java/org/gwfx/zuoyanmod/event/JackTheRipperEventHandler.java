@@ -1,6 +1,6 @@
 package org.gwfx.zuoyanmod.event;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -22,8 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
 public class JackTheRipperEventHandler {
 
-    private static final Identifier DAMAGE_MODIFIER = Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "jack_damage");
-    private static final Identifier ATTACK_SPEED_MODIFIER = Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "jack_attack_speed");
+    private static final ResourceLocation DAMAGE_MODIFIER = ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "jack_damage");
+    private static final ResourceLocation ATTACK_SPEED_MODIFIER = ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "jack_attack_speed");
 
     private static final Map<UUID, Integer> STACK_COUNTS = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> INVISIBILITY_END_TIME = new ConcurrentHashMap<>();
@@ -100,13 +100,13 @@ public class JackTheRipperEventHandler {
         if (player.getAttribute(Attributes.ATTACK_DAMAGE) != null) {
             player.getAttribute(Attributes.ATTACK_DAMAGE).removeModifier(DAMAGE_MODIFIER);
             player.getAttribute(Attributes.ATTACK_DAMAGE).addTransientModifier(
-                    new AttributeModifier(DAMAGE_MODIFIER, multiplier, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)
+                    new AttributeModifier(DAMAGE_MODIFIER, multiplier, AttributeModifier.Operation.MULTIPLY_TOTAL)
             );
         }
         if (player.getAttribute(Attributes.ATTACK_SPEED) != null) {
             player.getAttribute(Attributes.ATTACK_SPEED).removeModifier(ATTACK_SPEED_MODIFIER);
             player.getAttribute(Attributes.ATTACK_SPEED).addTransientModifier(
-                    new AttributeModifier(ATTACK_SPEED_MODIFIER, multiplier, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)
+                    new AttributeModifier(ATTACK_SPEED_MODIFIER, multiplier, AttributeModifier.Operation.MULTIPLY_TOTAL)
             );
         }
     }

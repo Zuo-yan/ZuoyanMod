@@ -2,16 +2,19 @@ package org.gwfx.zuoyanmod.item;
 
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import net.neoforged.neoforge.attachment.IAttachmentSerializer;
@@ -79,8 +82,7 @@ public class FourDimensionalSpace {
 
     /**
      * 一条条目：模板（count 恒为 1）+ 总量。
-     * 可序列化，所以带一个 Codec——{@code ValueOutput} 只有 {@code putIntArray}、没有 long 数组，
-     * 用 Codec 存成结构化列表比"拆高低位塞两个 int 数组"干净得多。
+     * 可序列化，所以带一个 Codec——用 Codec 存成结构化列表，比"拆高低位塞两个 int 数组"干净得多。
      */
     public record Entry(ItemStack template, long total) {
         public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -99,18 +101,19 @@ public class FourDimensionalSpace {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<FourDimensionalSpace>> ATTACHMENT =
             ATTACHMENTS.register("four_dimensional_space", () -> AttachmentType
                     .builder(FourDimensionalSpace::new)
-                    .serialize(new IAttachmentSerializer<FourDimensionalSpace>() {
+                    .serialize(new IAttachmentSerializer<CompoundTag, FourDimensionalSpace>() {
                         @Override
-                        public FourDimensionalSpace read(IAttachmentHolder holder, ValueInput input) {
+                        public FourDimensionalSpace read(IAttachmentHolder holder, CompoundTag tag, HolderLookup.Provider registries) {
                             FourDimensionalSpace space = new FourDimensionalSpace();
-                            space.deserialize(input);
+                            space.deserialize(tag, registries);
                             return space;
                         }
 
                         @Override
-                        public boolean write(FourDimensionalSpace attachment, ValueOutput output) {
-                            attachment.serialize(output);
-                            return true;
+                        public CompoundTag write(FourDimensionalSpace attachment, HolderLookup.Provider registries) {
+                            CompoundTag tag = new CompoundTag();
+                            attachment.serialize(tag, registries);
+                            return tag;
                         }
                     })
                     .copyOnDeath()
@@ -282,7 +285,7 @@ public class FourDimensionalSpace {
             if (e.isEmpty()) {
                 continue;
             }
-            Identifier id = BuiltInRegistries.ITEM.getKey(e.template().getItem());
+            ResourceLocation id = BuiltInRegistries.ITEM.getKey(e.template().getItem());
             String haystack = (e.template().getHoverName().getString() + " " + id).toLowerCase(Locale.ROOT);
             if (!modFilters.isEmpty() && !matchesMod(id, modFilters)) {
                 continue;
@@ -311,7 +314,7 @@ public class FourDimensionalSpace {
      * 玩家顺手就把「@模组」三个字原样敲进去了，结果自然是零匹配。
      * 现在提示改成「@模组id」，同时这里放宽到前缀 + 显示名，敲个大概也能中。
      */
-    private static boolean matchesMod(Identifier id, List<String> filters) {
+    private static boolean matchesMod(ResourceLocation id, List<String> filters) {
         String namespace = id.getNamespace();
         String displayName = null;
         for (String filter : filters) {
@@ -346,7 +349,7 @@ public class FourDimensionalSpace {
                     i -> entries.get(i).template().getHoverName().getString(),
                     Comparator.naturalOrder());
             case COUNT -> Comparator.comparingLong(i -> entries.get(i).total());
-            // 注册名排序用注册表的数字 id：同模组的东西天然连在一起，也不用每次比较都取 Identifier
+            // 注册名排序用注册表的数字 id：同模组的东西天然连在一起，也不用每次比较都取 ResourceLocation
             case REGISTRY -> Comparator.comparingInt(i -> BuiltInRegistries.ITEM.getId(entries.get(i).template().getItem()));
             case RECENT -> Comparator.comparingInt(i -> i);
         };
@@ -473,28 +476,45 @@ public class FourDimensionalSpace {
 
     // ===== 持久化 =====
 
-    public void serialize(ValueOutput output) {
-        output.store("Entries", Entry.CODEC.listOf(), entries);
-        output.putString("SortMode", sortMode.name());
-        output.putBoolean("SortDescending", descending);
-        output.putString("Search", search);
-        furnace.serialize(output.child("Furnace"));
+    /** 条目列表的编解码：NBT 上下文由注册表 Provider 提供（组件序列化要用） */
+    private static Codec<List<Entry>> entriesCodec() {
+        return Entry.CODEC.listOf();
     }
 
-    public void deserialize(ValueInput input) {
+    private static com.mojang.serialization.DynamicOps<Tag> nbtContext(HolderLookup.Provider registries) {
+        return registries.createSerializationContext(NbtOps.INSTANCE);
+    }
+
+    public void serialize(CompoundTag tag, HolderLookup.Provider registries) {
+        DataResult<Tag> encoded = entriesCodec().encodeStart(nbtContext(registries), entries);
+        encoded.result().ifPresent(listTag -> tag.put("Entries", listTag));
+        tag.putString("SortMode", sortMode.name());
+        tag.putBoolean("SortDescending", descending);
+        tag.putString("Search", search);
+        CompoundTag furnaceTag = new CompoundTag();
+        furnace.serialize(furnaceTag, registries);
+        tag.put("Furnace", furnaceTag);
+    }
+
+    public void deserialize(CompoundTag tag, HolderLookup.Provider registries) {
         entries.clear();
-        for (Entry e : input.read("Entries", Entry.CODEC.listOf()).orElse(List.of())) {
-            if (!e.isEmpty()) {
-                entries.add(e);
-            }
+        Tag entriesTag = tag.get("Entries");
+        if (entriesTag != null) {
+            entriesCodec().parse(nbtContext(registries), entriesTag).result().ifPresent(list -> {
+                for (Entry e : list) {
+                    if (!e.isEmpty()) {
+                        entries.add(e);
+                    }
+                }
+            });
         }
-        migrateLegacyItems(input);
+        migrateLegacyItems(tag, registries);
 
-        furnace.deserialize(input.childOrEmpty("Furnace"));
+        furnace.deserialize(tag.getCompound("Furnace"), registries);
 
-        descending = input.getBooleanOr("SortDescending", false);
-        search = input.getStringOr("Search", "");
-        String mode = input.getStringOr("SortMode", SortMode.RECENT.name());
+        descending = tag.getBoolean("SortDescending");
+        search = tag.getString("Search");
+        String mode = tag.contains("SortMode") ? tag.getString("SortMode") : SortMode.RECENT.name();
         sortMode = SortMode.NAME;
         for (SortMode candidate : SortMode.VALUES) {
             if (candidate.name().equals(mode)) {
@@ -510,9 +530,14 @@ public class FourDimensionalSpace {
      * 同一种东西可能散在几十条里。这里把它们按种类并起来，
      * 免得玩家升级模组之后一仓库东西全没了。
      */
-    private void migrateLegacyItems(ValueInput input) {
-        List<ItemStack> legacy = input.read("Items", ItemStack.CODEC.listOf()).orElse(List.of());
+    private void migrateLegacyItems(CompoundTag tag, HolderLookup.Provider registries) {
+        Tag itemsTag = tag.get("Items");
+        if (itemsTag == null) {
+            return;
+        }
         boolean any = false;
+        List<ItemStack> legacy = ItemStack.CODEC.listOf().parse(nbtContext(registries), itemsTag)
+                .result().orElse(List.of());
         for (ItemStack stack : legacy) {
             if (!stack.isEmpty()) {
                 insert(stack);

@@ -31,8 +31,8 @@ public class WanHuiRingEventHandler {
             MobEffects.POISON,
             MobEffects.HUNGER,
             MobEffects.WEAKNESS,
-            MobEffects.SLOWNESS,
-            MobEffects.MINING_FATIGUE
+            MobEffects.MOVEMENT_SLOWDOWN,
+            MobEffects.DIG_SLOWDOWN
     };
 
     private static final int REQUIRED_EFFECT_COUNT = 3;

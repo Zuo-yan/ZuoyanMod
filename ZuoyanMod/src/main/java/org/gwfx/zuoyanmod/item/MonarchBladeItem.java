@@ -2,16 +2,15 @@ package org.gwfx.zuoyanmod.item;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 
-import java.util.function.Consumer;
+import java.util.List;
 
 /**
  * 湮灭君王之刃：湮灭君主的必掉武器。
@@ -29,7 +28,7 @@ public class MonarchBladeItem extends Item {
     /** 与数据包 tags/entity_type/bosses.json 对应的实体类型标签 */
     private static final TagKey<net.minecraft.world.entity.EntityType<?>> BOSSES_TAG =
             TagKey.create(net.minecraft.core.registries.Registries.ENTITY_TYPE,
-                    Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "bosses"));
+                    ResourceLocation.fromNamespaceAndPath(Zuoyanmod.MODID, "bosses"));
 
     public MonarchBladeItem(Properties properties) {
         super(properties);
@@ -43,16 +42,15 @@ public class MonarchBladeItem extends Item {
                 && BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(target.getType()).is(BOSSES_TAG)) {
             float bonus = (float) (attacker.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)
                     * BOSS_BONUS_FRACTION);
-            target.hurtServer(serverLevel, attacker.damageSources().magic(), bonus);
+            target.hurt(attacker.damageSources().magic(), bonus);
         }
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.translatable("item.zuoyanmod.monarch_blade.desc1"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.monarch_blade.desc2"));
-        tooltip.accept(Component.translatable("item.zuoyanmod.monarch_blade.desc3"));
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        tooltip.add(Component.translatable("item.zuoyanmod.monarch_blade.desc1"));
+        tooltip.add(Component.translatable("item.zuoyanmod.monarch_blade.desc2"));
+        tooltip.add(Component.translatable("item.zuoyanmod.monarch_blade.desc3"));
     }
 }
