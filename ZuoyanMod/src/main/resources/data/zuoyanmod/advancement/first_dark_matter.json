@@ -1,0 +1,28 @@
+{
+  "parent": "zuoyanmod:chain_dark",
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipes": [
+          "zuoyanmod:dark_matter_from_particles"
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:dark_matter"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.first_dark_matter.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.first_dark_matter.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

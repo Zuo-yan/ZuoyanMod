@@ -27,20 +27,25 @@ public class HerculesBowItem extends BowItem {
 
     public static final String BLESSING_TAG = "HerculesBlessing";
 
+    /**
+     * 四项赐福。这里存的是 <b>lang 键</b>而不是中文名 —— 原因是 displayName 只用于显示，
+     * 而存档里记的是 {@link #name()}（枚举名 ARTEMIS 等），两者本就解耦，
+     * 所以把显示文案抽到 lang 既不影响旧存档，也能让英文语言下正常显示英文名。
+     */
     public enum BlessingType {
-        ARTEMIS("猎神·阿尔忒弥斯"),
-        HELIOS("太阳神·赫利俄斯"),
-        CERBERUS("地狱三头犬·刻耳柏洛斯"),
-        HIPPOLYTA("亚马逊女王·希波吕忒");
+        ARTEMIS("item.zuoyanmod.hercules_bow.blessing.artemis"),
+        HELIOS("item.zuoyanmod.hercules_bow.blessing.helios"),
+        CERBERUS("item.zuoyanmod.hercules_bow.blessing.cerberus"),
+        HIPPOLYTA("item.zuoyanmod.hercules_bow.blessing.hippolyta");
 
-        private final String displayName;
+        private final String translationKey;
 
-        BlessingType(String displayName) {
-            this.displayName = displayName;
+        BlessingType(String translationKey) {
+            this.translationKey = translationKey;
         }
 
-        public String getDisplayName() {
-            return displayName;
+        public String getTranslationKey() {
+            return translationKey;
         }
     }
 
@@ -158,41 +163,41 @@ public class HerculesBowItem extends BowItem {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§6赫拉克勒斯之弓"));
-        tooltip.accept(Component.literal("§7赫拉克勒斯十二试炼的神圣遗物"));
-        tooltip.accept(Component.literal("§7弓中蕴含无穷光灵，无需箭矢即可射出光灵箭"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.desc1"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.desc2"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.desc3"));
 
         BlessingType blessing = getBlessingType(stack);
         if (blessing != null) {
             tooltip.accept(Component.literal(""));
-            tooltip.accept(Component.literal("§e赐福效果:"));
+            tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.blessing_header"));
             switch (blessing) {
                 case ARTEMIS:
-                    tooltip.accept(Component.literal("§a猎神·阿尔忒弥斯赐福"));
-                    tooltip.accept(Component.literal("§7远程攻击必定暴击"));
-                    tooltip.accept(Component.literal("§7暴击时额外提升伤害"));
-                    tooltip.accept(Component.literal("§7拉弓蓄力速度翻倍"));
+                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.artemis.title"));
+                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.artemis.desc1"));
+                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.artemis.desc2"));
+                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.artemis.desc3"));
                     break;
                 case HELIOS:
-                    tooltip.accept(Component.literal("§c太阳神·赫利俄斯赐福"));
-                    tooltip.accept(Component.literal("§7攻击完全忽略敌方护甲"));
-                    tooltip.accept(Component.literal("§7命中目标后将其点燃，并持续燃烧"));
+                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.helios.title"));
+                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.helios.desc1"));
+                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.helios.desc2"));
                     break;
                 case CERBERUS:
-                    tooltip.accept(Component.literal("§5地狱三头犬·刻耳柏洛斯赐福"));
-                    tooltip.accept(Component.literal("§7命中时召唤三只猎犬撕咬目标"));
-                    tooltip.accept(Component.literal("§7持续20秒"));
+                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.cerberus.title"));
+                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.cerberus.desc1"));
+                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.cerberus.desc2"));
                     break;
                 case HIPPOLYTA:
-                    tooltip.accept(Component.literal("§d亚马逊女王·希波吕忒赐福"));
-                    tooltip.accept(Component.literal("§7额外造成目标已损生命值25%的伤害"));
+                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.hippolyta.title"));
+                    tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.hippolyta.desc1"));
                     break;
             }
         } else {
-            tooltip.accept(Component.literal("§7赐福效果待激活..."));
+            tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.blessing_pending"));
         }
 
         tooltip.accept(Component.literal(""));
-        tooltip.accept(Component.literal("§7首次获取时随机赋予一项永久性赐福"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.hercules_bow.desc4"));
     }
 }

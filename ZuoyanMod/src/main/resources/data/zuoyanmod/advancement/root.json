@@ -1,0 +1,30 @@
+{
+  "criteria": {
+    "first_violet_gold": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "zuoyanmod:violet_gold_ingot"
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:violet_gold_ingot"
+    },
+    "background": "zuoyanmod:gui/advancements/background",
+    "title": {
+      "translate": "advancements.zuoyanmod.root.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.root.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

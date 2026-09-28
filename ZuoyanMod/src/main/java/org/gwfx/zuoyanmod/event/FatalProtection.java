@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 /**
  * 致命伤害保护的共享仲裁器。
@@ -102,7 +103,7 @@ public final class FatalProtection {
             ResourceKey<Level> dimensionKey = ResourceKey.create(Registries.DIMENSION, Identifier.parse(dimensionId));
             ServerLevel target = server.getLevel(dimensionKey);
             if (target == null) {
-                player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§7空间锚点所在的维度不可用"));
+                ModToastPacket.send(player, net.minecraft.network.chat.Component.translatable("message.zuoyanmod.space_anchor.dimension_unavailable"));
                 return false;
             }
             // 骑乘状态下传送会丢载具，先解除

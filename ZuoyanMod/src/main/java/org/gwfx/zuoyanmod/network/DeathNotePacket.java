@@ -15,6 +15,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.effect.EffectRegistry;
 import org.slf4j.Logger;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 public record DeathNotePacket(String targetName, int durationSeconds) implements CustomPacketPayload {
 
@@ -40,25 +41,27 @@ public record DeathNotePacket(String targetName, int durationSeconds) implements
             if (!(sender.level() instanceof ServerLevel serverLevel)) return;
             MinecraftServer server = serverLevel.getServer();
             if (server == null) {
-                sender.sendSystemMessage(Component.literal("§c服务器信息不可用"));
+                ModToastPacket.send(sender, Component.translatable("message.zuoyanmod.death_note.server_unavailable"));
                 return;
             }
             ServerPlayer target = server.getPlayerList().getPlayerByName(packet.targetName());
             if (target == null) {
-                sender.sendSystemMessage(Component.literal("§c未找到目标玩家：" + packet.targetName()));
+                ModToastPacket.send(sender, Component.translatable("message.zuoyanmod.death_note.target_not_found", packet.targetName()));
                 return;
             }
             int durationTicks = Math.max(1, packet.durationSeconds()) * 20;
+            // 死亡笔记的"处刑"就是给目标挂这个定时必死效果：写下名字不立刻生效，
+            // 中间的倒计时才是这个道具的全部内容（也给目标留了自救的窗口）。
             target.addEffect(new MobEffectInstance(
-                    EffectRegistry.MAMBA_FORCE_DEFENSE,
+                    EffectRegistry.HEART_PARALYSIS,
                     durationTicks,
                     0,
                     false,
                     true,
                     true
             ));
-            sender.sendSystemMessage(Component.literal("§a已写入死亡笔记：" + target.getName().getString() + "，剩余" + packet.durationSeconds() + "秒"));
-            target.sendSystemMessage(Component.literal("§4你已被写入死亡笔记，心脏麻痹倒计时开始"));
+            ModToastPacket.send(sender, Component.translatable("message.zuoyanmod.death_note.written", target.getName().getString(), packet.durationSeconds()));
+            ModToastPacket.send(target, Component.translatable("message.zuoyanmod.death_note.victim_notice"));
             LOGGER.info("[DeathNote] {} wrote {} for {} seconds", sender.getName().getString(), target.getName().getString(), packet.durationSeconds());
         });
     }

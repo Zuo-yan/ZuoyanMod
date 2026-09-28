@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "zuoyanmod:item/iron_universal_tool"
+  }
+}

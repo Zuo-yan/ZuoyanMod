@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "zuoyanmod:grass_portal_frame"
+        }
+      ],
+      "rolls": 1
+    }
+  ],
+  "random_sequence": "zuoyanmod:blocks/grass_portal_frame"
+}

@@ -16,6 +16,7 @@ import org.gwfx.zuoyanmod.util.AccessoryChecks;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
 public class VoodooNecklaceEventHandler {
@@ -59,9 +60,7 @@ public class VoodooNecklaceEventHandler {
                             target.hurtServer(serverLevel, event.getSource(), maxHealth);
                         }
 
-                        attacker.sendSystemMessage(
-                                Component.literal("§5§l千厄噬魂之坠 §7- 秒杀触发! 当前负面效果数: §c" + negativeEffectCount + " §7| 秒杀概率: §e" + Math.round(instaKillChance * 100) + "%")
-                        );
+                        ModToastPacket.send(attacker, Component.translatable("message.zuoyanmod.voodoo_necklace.instakill", negativeEffectCount, Math.round(instaKillChance * 100)));
                     } finally {
                         IS_INSTA_KILLING.remove(attacker.getUUID());
                     }
@@ -78,9 +77,7 @@ public class VoodooNecklaceEventHandler {
                     @SuppressWarnings("unchecked")
                     var randomEffect = NEGATIVE_EFFECTS[RANDOM.nextInt(NEGATIVE_EFFECTS.length)];
                     victim.addEffect(new MobEffectInstance(randomEffect, EFFECT_DURATION_TICKS, 0));
-                    victim.sendSystemMessage(
-                            Component.literal("§5§l千厄噬魂之坠 §7- 获得负面效果")
-                    );
+                    ModToastPacket.send(victim, Component.translatable("message.zuoyanmod.voodoo_necklace.gain_effect"));
                 }
             }
         }

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " P ",
+    "AHW",
+    " X "
+  ],
+  "key": {
+    "P": "minecraft:copper_pickaxe",
+    "A": "minecraft:copper_axe",
+    "H": "minecraft:copper_hoe",
+    "W": "minecraft:copper_sword",
+    "X": "minecraft:copper_shovel"
+  },
+  "result": {
+    "id": "zuoyanmod:copper_universal_tool",
+    "count": 1
+  }
+}

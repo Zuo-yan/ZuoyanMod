@@ -101,6 +101,29 @@ public final class BlockRegistry {
             BLOCK_ENTITY_TYPES.register("micro_hadron_collider",
                     () -> new BlockEntityType<>(MicroHadronColliderBlockEntity::new, Set.of(MICRO_HADRON_COLLIDER.get())));
 
+    // ===== 草原传送门（门框用专属方块避免与原版黑曜石下界门冲突；点燃入口见 GrassPortalEventHandler） =====
+    public static final DeferredBlock<Block> GRASS_PORTAL_FRAME = BLOCKS.registerBlock(
+            "grass_portal_frame",
+            Block::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.PLANT)
+                    .strength(3.0F, 1200.0F)
+                    .sound(SoundType.GRASS)
+    );
+
+    public static final DeferredBlock<GrassPortalBlock> GRASS_PORTAL = BLOCKS.registerBlock(
+            "grass_portal",
+            GrassPortalBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.PLANT)
+                    .noCollision()
+                    .strength(-1.0F)
+                    .sound(SoundType.GLASS)
+                    .lightLevel(state -> 11)
+                    .pushReaction(PushReaction.IMMOVEABLE)
+                    .noLootTable()
+    );
+
     private BlockRegistry() {}
 
     public static void register(IEventBus modBus) {

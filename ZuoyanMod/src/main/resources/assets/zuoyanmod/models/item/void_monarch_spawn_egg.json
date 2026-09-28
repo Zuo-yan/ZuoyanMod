@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "zuoyanmod:item/void_monarch_spawn_egg"
+  }
+}

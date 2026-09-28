@@ -1,0 +1,28 @@
+{
+  "parent": "zuoyanmod:discovery",
+  "criteria": {
+    "drank": {
+      "trigger": "minecraft:consume_item",
+      "conditions": {
+        "item": {
+          "items": "zuoyanmod:chocolate_crisp"
+        }
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:chocolate_crisp"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.chocolate_crisp.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.chocolate_crisp.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

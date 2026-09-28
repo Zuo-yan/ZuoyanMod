@@ -65,13 +65,14 @@ public class MicroHadronColliderScreen extends AbstractContainerScreen<MicroHadr
         String status;
         int color;
         if (!menu.isPowered()) {
-            status = "§7未充能 · 接红石信号";
+            status = Component.translatable("gui.zuoyanmod.collider.status.unpowered").getString();
             color = 0xFF7A6E96;
         } else if (menu.getProgress() > 0) {
-            status = "对撞中 " + menu.getProgress() * 100 / menu.getDuration() + "%";
+            status = Component.translatable("gui.zuoyanmod.collider.status.colliding",
+                    menu.getProgress() * 100 / menu.getDuration()).getString();
             color = 0xFF3FD9C8;
         } else {
-            status = "已充能 · 待投料";
+            status = Component.translatable("gui.zuoyanmod.collider.status.charged").getString();
             color = 0xFF6FE3D4;
         }
         graphics.text(font, status, TEX_W - 9 - font.width(status), titleLabelY, color, false);

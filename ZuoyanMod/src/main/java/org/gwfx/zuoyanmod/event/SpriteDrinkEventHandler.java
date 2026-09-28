@@ -11,6 +11,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.gwfx.zuoyanmod.Zuoyanmod;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
 public final class SpriteDrinkEventHandler {
@@ -31,7 +32,7 @@ public final class SpriteDrinkEventHandler {
         long endTick = data.getLong("zuoyan_sprite_end_tick").orElse(0L);
         if (endTick > 0L && player.level().getGameTime() >= endTick) {
             clear(player);
-            player.sendSystemMessage(Component.literal("§7雪碧效果结束"));
+            ModToastPacket.send(player, Component.translatable("message.zuoyanmod.sprite_drink.ended"));
             return;
         }
 

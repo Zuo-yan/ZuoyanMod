@@ -1,0 +1,35 @@
+{
+  "parent": "zuoyanmod:discovery",
+  "criteria": {
+    "hit": {
+      "trigger": "minecraft:entity_hurt_player",
+      "conditions": {
+        "damage": {
+          "type": {
+            "tags": [
+              {
+                "id": "zuoyanmod:dark_matter",
+                "expected": true
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:dark_matter"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.dark_matter_erosion.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.dark_matter_erosion.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

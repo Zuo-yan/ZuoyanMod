@@ -1,0 +1,211 @@
+{
+  "//comment": "因果律手枪 3D 模型 v2：13 元素（滑套/枪管/前准星/照门/框架/握把/弹匣底/护圈/能量槽/顶脊/击锤）。贴图 32x32 渐变式，8 个 UV 区（金属渐变/能量绿/防滑纹/黑件）。",
+  "textures": {
+    "pistol": "zuoyanmod:item/causality_pistol_3d",
+    "particle": "#pistol"
+  },
+  "elements": [
+    {
+      "//": "滑套主体：west/east=块1金属渐变+能量线, up=块2浅灰渐变+绿脊线, down=块6暗部, north/south=块5枪管灰",
+      "from": [2.5, 8, 6.5],
+      "to": [13, 10.8, 9.5],
+      "faces": {
+        "north": {"uv": [0, 4, 4, 8], "texture": "#pistol"},
+        "south": {"uv": [0, 4, 4, 8], "texture": "#pistol"},
+        "east":  {"uv": [0, 0, 4, 4], "texture": "#pistol"},
+        "west":  {"uv": [0, 0, 4, 4], "texture": "#pistol"},
+        "up":    {"uv": [4, 0, 8, 4], "texture": "#pistol"},
+        "down":  {"uv": [4, 4, 8, 8], "texture": "#pistol"}
+      }
+    },
+    {
+      "//": "枪管（伸出于滑套前端）：侧面块5金属渐变, 枪口面north=块4绿色发光",
+      "from": [13, 8.4, 7.15],
+      "to": [14.8, 10.4, 8.85],
+      "faces": {
+        "north": {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "south": {"uv": [0, 4, 4, 8], "texture": "#pistol"},
+        "east":  {"uv": [0, 4, 4, 8], "texture": "#pistol"},
+        "west":  {"uv": [0, 4, 4, 8], "texture": "#pistol"},
+        "up":    {"uv": [0, 4, 4, 8], "texture": "#pistol"},
+        "down":  {"uv": [0, 4, 4, 8], "texture": "#pistol"}
+      }
+    },
+    {
+      "//": "前准星",
+      "from": [13.6, 10.8, 7.6],
+      "to": [14.4, 11.7, 8.4],
+      "faces": {
+        "north": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "south": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "east":  {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "west":  {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "up":    {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "down":  {"uv": [12, 4, 16, 8], "texture": "#pistol"}
+      }
+    },
+    {
+      "//": "照门（后准星）",
+      "from": [2.8, 10.8, 7.3],
+      "to": [3.9, 11.4, 8.7],
+      "faces": {
+        "north": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "south": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "east":  {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "west":  {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "up":    {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "down":  {"uv": [12, 4, 16, 8], "texture": "#pistol"}
+      }
+    },
+    {
+      "//": "框架（滑套与护圈之间的机匣）：侧面块7浅灰渐变",
+      "from": [3, 7.1, 6.8],
+      "to": [11, 8, 9.2],
+      "faces": {
+        "north": {"uv": [0, 4, 4, 8], "texture": "#pistol"},
+        "south": {"uv": [0, 4, 4, 8], "texture": "#pistol"},
+        "east":  {"uv": [8, 4, 12, 8], "texture": "#pistol"},
+        "west":  {"uv": [8, 4, 12, 8], "texture": "#pistol"},
+        "up":    {"uv": [4, 4, 8, 8], "texture": "#pistol"},
+        "down":  {"uv": [4, 4, 8, 8], "texture": "#pistol"}
+      }
+    },
+    {
+      "//": "握把：west/east=块3深色防滑斜纹, north/south=块8黑, up=块7, down接弹匣底",
+      "from": [3.6, 2, 6.8],
+      "to": [6.1, 7.1, 9.2],
+      "faces": {
+        "north": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "south": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "east":  {"uv": [8, 0, 12, 4], "texture": "#pistol"},
+        "west":  {"uv": [8, 0, 12, 4], "texture": "#pistol"},
+        "up":    {"uv": [8, 4, 12, 8], "texture": "#pistol"},
+        "down":  {"uv": [4, 4, 8, 8], "texture": "#pistol"}
+      }
+    },
+    {
+      "//": "弹匣底盖（比握把稍宽，真枪特征）",
+      "from": [3.4, 1.4, 6.9],
+      "to": [6.3, 2, 9.1],
+      "faces": {
+        "north": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "south": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "east":  {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "west":  {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "up":    {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "down":  {"uv": [4, 4, 8, 8], "texture": "#pistol"}
+      }
+    },
+    {
+      "//": "扳机护圈底板",
+      "from": [6.8, 5.2, 7.3],
+      "to": [9.4, 5.7, 8.7],
+      "faces": {
+        "north": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "south": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "east":  {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "west":  {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "up":    {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "down":  {"uv": [12, 4, 16, 8], "texture": "#pistol"}
+      }
+    },
+    {
+      "//": "扳机护圈前柱（与握把围成 C 形）",
+      "from": [9, 5.7, 7.3],
+      "to": [9.4, 7.1, 8.7],
+      "faces": {
+        "north": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "south": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "east":  {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "west":  {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "up":    {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "down":  {"uv": [12, 4, 16, 8], "texture": "#pistol"}
+      }
+    },
+    {
+      "//": "能量槽西侧面（绿色发光条）",
+      "from": [4.5, 8.5, 6.3],
+      "to": [11.5, 10.3, 6.5],
+      "faces": {
+        "west":  {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "up":    {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "down":  {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "north": {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "south": {"uv": [12, 0, 16, 4], "texture": "#pistol"}
+      }
+    },
+    {
+      "//": "能量槽东侧面（绿色发光条）",
+      "from": [4.5, 8.5, 9.5],
+      "to": [11.5, 10.3, 9.7],
+      "faces": {
+        "east":  {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "up":    {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "down":  {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "north": {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "south": {"uv": [12, 0, 16, 4], "texture": "#pistol"}
+      }
+    },
+    {
+      "//": "滑套顶部能量脊（发光条）",
+      "from": [5.5, 10.8, 7.7],
+      "to": [10.5, 11, 8.3],
+      "faces": {
+        "up":    {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "north": {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "south": {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "east":  {"uv": [12, 0, 16, 4], "texture": "#pistol"},
+        "west":  {"uv": [12, 0, 16, 4], "texture": "#pistol"}
+      }
+    },
+    {
+      "//": "击锤（枪尾小凸块）",
+      "from": [2, 9.8, 7.7],
+      "to": [2.5, 11, 8.3],
+      "faces": {
+        "north": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "south": {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "east":  {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "west":  {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "up":    {"uv": [12, 4, 16, 8], "texture": "#pistol"},
+        "down":  {"uv": [12, 4, 16, 8], "texture": "#pistol"}
+      }
+    }
+  ],
+  "gui_light": "front",
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [0, 90, 0],
+      "translation": [0, 3, 1],
+      "scale": [0.55, 0.55, 0.55]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [0, -90, 0],
+      "translation": [0, 3, 1],
+      "scale": [0.55, 0.55, 0.55]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 90, 0],
+      "translation": [4, 2, 0],
+      "scale": [0.6, 0.6, 0.6]
+    },
+    "firstperson_lefthand": {
+      "rotation": [0, -90, 0],
+      "translation": [-4, 2, 0],
+      "scale": [0.6, 0.6, 0.6]
+    },
+    "gui": {
+      "rotation": [0, 130, 0],
+      "translation": [0, 1, 0],
+      "scale": [0.75, 0.75, 0.75]
+    },
+    "ground": {
+      "translation": [0, 1, 0],
+      "scale": [0.5, 0.5, 0.5]
+    },
+    "fixed": {
+      "rotation": [0, 90, 0],
+      "scale": [0.6, 0.6, 0.6]
+    }
+  }
+}

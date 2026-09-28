@@ -1,0 +1,28 @@
+{
+  "parent": "zuoyanmod:root",
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipes": [
+          "zuoyanmod:beiming_blade"
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:beiming_blade"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.beiming_blade.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.beiming_blade.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

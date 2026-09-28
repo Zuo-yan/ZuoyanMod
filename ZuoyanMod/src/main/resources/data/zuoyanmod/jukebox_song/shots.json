@@ -1,0 +1,8 @@
+{
+  "comparator_output": 1,
+  "description": {
+    "translate": "jukebox_song.zuoyanmod.shots"
+  },
+  "length_in_seconds": 191.6,
+  "sound_event": "zuoyanmod:music_disc.shots"
+}

@@ -1,0 +1,28 @@
+{
+  "parent": "zuoyanmod:chain_dark",
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipes": [
+          "zuoyanmod:absolute_zero"
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:absolute_zero"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.absolute_zero.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.absolute_zero.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "comparator_output": 3,
+  "description": {
+    "translate": "jukebox_song.zuoyanmod.castle"
+  },
+  "length_in_seconds": 187.0,
+  "sound_event": "zuoyanmod:music_disc.castle"
+}

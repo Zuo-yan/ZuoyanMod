@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " P ",
+    "AHW",
+    " X "
+  ],
+  "key": {
+    "P": "minecraft:diamond_pickaxe",
+    "A": "minecraft:diamond_axe",
+    "H": "minecraft:diamond_hoe",
+    "W": "minecraft:diamond_sword",
+    "X": "minecraft:diamond_shovel"
+  },
+  "result": {
+    "id": "zuoyanmod:diamond_universal_tool",
+    "count": 1
+  }
+}

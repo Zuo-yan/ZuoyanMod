@@ -1,0 +1,28 @@
+{
+  "parent": "zuoyanmod:chain_antimatter",
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipes": [
+          "zuoyanmod:micro_hadron_collider"
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:micro_hadron_collider"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.micro_hadron_collider.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.micro_hadron_collider.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

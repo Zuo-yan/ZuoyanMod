@@ -77,9 +77,9 @@ public final class AccessoryChecks {
      */
     public static void appendEquipHint(Consumer<Component> tooltip) {
         if (isCuriosLoaded()) {
-            tooltip.accept(Component.literal("§e§o需佩戴在饰品栏生效"));
+            tooltip.accept(Component.translatable("tooltip.zuoyanmod.accessory.need_equipped"));
         } else {
-            tooltip.accept(Component.literal("§e§o放入背包即生效"));
+            tooltip.accept(Component.translatable("tooltip.zuoyanmod.accessory.inventory_ok"));
         }
     }
 }

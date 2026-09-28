@@ -1,0 +1,10 @@
+{
+  "type": "zuoyanmod:micro_collision",
+  "ingredient_a": "minecraft:heavy_core",
+  "ingredient_b": "zuoyanmod:dark_matter",
+  "result": {
+    "id": "zuoyanmod:primordial_black_hole",
+    "count": 1
+  },
+  "duration": 400
+}

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 /**
  * 「对称破缺」产生的真空衰变泡（玩家看到的就是一个黑洞）。服务端权威，两段式：
@@ -84,7 +85,7 @@ public final class VacuumDecayBlackHoleManager {
                 SoundEvents.WARDEN_SONIC_CHARGE, SoundSource.PLAYERS, 0.8F, 0.6F);
         level.sendParticles(ParticleTypes.REVERSE_PORTAL,
                 center.x, center.y, center.z, 80, 3.0D, 3.0D, 3.0D, 0.6D);
-        caster.sendSystemMessage(Component.literal("§d对称破缺 §7- 真空衰变泡展开 §8(5s)"));
+        ModToastPacket.send(caster, Component.translatable("message.zuoyanmod.vacuum_decay.bubble_start"));
     }
 
     // ===== 每 tick 维持 =====
@@ -170,7 +171,7 @@ public final class VacuumDecayBlackHoleManager {
         level.sendParticles(ParticleTypes.REVERSE_PORTAL, center.x, center.y, center.z, 60, 2.0D, 2.0D, 2.0D, 0.9D);
 
         if (caster != null) {
-            caster.sendSystemMessage(Component.literal("§d对称破缺 §7- 真空衰变泡坍缩"));
+            ModToastPacket.send(caster, Component.translatable("message.zuoyanmod.vacuum_decay.bubble_collapse"));
         }
     }
 

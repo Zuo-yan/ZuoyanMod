@@ -1,6 +1,7 @@
 package org.gwfx.zuoyanmod.world;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -43,7 +44,11 @@ public final class RealmTransitionManager {
         OVERWORLD_POSITIONS.put(player.getUUID(), Position.capture(player));
         Position destination = REALM_POSITIONS.get(player.getUUID());
         if (destination == null) {
-            destination = new Position(RealmDimensions.REALM_KEY, 0.5D, 12.0D, 0.5D, player.getYRot(), player.getXRot());
+            // 首次进入：出生点高度由维度生成器算，改层高不用动代码
+            BlockPos spawn = RealmDimensions.spawnPos(realm);
+            destination = new Position(RealmDimensions.REALM_KEY,
+                    spawn.getX() + 0.5D, spawn.getY(), spawn.getZ() + 0.5D,
+                    player.getYRot(), player.getXRot());
         }
         teleport(player, realm, destination);
     }

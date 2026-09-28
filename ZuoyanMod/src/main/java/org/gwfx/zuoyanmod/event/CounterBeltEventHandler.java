@@ -16,6 +16,7 @@ import org.gwfx.zuoyanmod.util.AccessoryChecks;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
 public class CounterBeltEventHandler {
@@ -49,9 +50,7 @@ public class CounterBeltEventHandler {
                     target.hurtServer(serverLevel, event.getSource(), counterDamage);
                 }
 
-                attacker.sendSystemMessage(
-                        Component.literal("§6§l反击腰带 §7- 「几曾识干戈」激活! 对目标造成 §c" + Math.round(counterDamage) + " §7点伤害")
-                );
+                ModToastPacket.send(attacker, Component.translatable("message.zuoyanmod.counter_belt.triggered", Math.round(counterDamage)));
             } finally {
                 IS_COUNTERING.remove(attacker.getUUID());
             }

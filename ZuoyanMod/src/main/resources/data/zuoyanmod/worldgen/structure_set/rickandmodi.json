@@ -1,0 +1,15 @@
+{
+  "structures": [
+    {
+      "structure": "zuoyanmod:rickandmodi",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 64,
+    "separation": 51,
+    "spread_type": "linear",
+    "salt": 20260923
+  }
+}

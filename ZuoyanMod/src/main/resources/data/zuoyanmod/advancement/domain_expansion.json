@@ -1,0 +1,28 @@
+{
+  "parent": "zuoyanmod:chain_dark",
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipes": [
+          "zuoyanmod:domain_expansion"
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:domain_expansion"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.domain_expansion.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.domain_expansion.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

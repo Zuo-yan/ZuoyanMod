@@ -18,8 +18,8 @@ public class DarkMatterParticleItem extends Item {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
                                 Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§5暗物质粒子"));
-        tooltip.accept(Component.literal("§7虚空共振泵在末地悬空处共振的产物"));
-        tooltip.accept(Component.literal("§79 个可聚合成 1 个暗物质"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.dark_matter_particle.desc1"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.dark_matter_particle.desc2"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.dark_matter_particle.desc3"));
     }
 }

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " P ",
+    "AHW",
+    " X "
+  ],
+  "key": {
+    "P": "minecraft:wooden_pickaxe",
+    "A": "minecraft:wooden_axe",
+    "H": "minecraft:wooden_hoe",
+    "W": "minecraft:wooden_sword",
+    "X": "minecraft:wooden_shovel"
+  },
+  "result": {
+    "id": "zuoyanmod:wooden_universal_tool",
+    "count": 1
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "type": "zuoyanmod:monarch_citadel",
+  "biomes": "#zuoyanmod:has_structure/monarch_citadel",
+  "step": "surface_structures",
+  "terrain_adaptation": "none",
+  "spawn_overrides": {}
+}

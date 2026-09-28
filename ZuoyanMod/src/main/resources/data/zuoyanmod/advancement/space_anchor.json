@@ -1,0 +1,28 @@
+{
+  "parent": "zuoyanmod:chain_dark",
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipes": [
+          "zuoyanmod:space_anchor"
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:space_anchor"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.space_anchor.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.space_anchor.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

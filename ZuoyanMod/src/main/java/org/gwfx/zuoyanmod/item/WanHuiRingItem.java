@@ -19,14 +19,14 @@ public class WanHuiRingItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§d万晦转生之环"));
-        tooltip.accept(Component.literal("§7当拥有任意三项负面效果时"));
-        tooltip.accept(Component.literal("§7触发「百战无伤」效果"));
-        tooltip.accept(Component.literal("§7负面效果: 失明、反胃、中毒、饥饿、虚弱、缓慢、挖掘疲劳"));
-        tooltip.accept(Component.literal("§7清除所有效果并获得再战天荒"));
-        tooltip.accept(Component.literal("§7再战天荒: §a+50%攻击力 §e+30%移动速度"));
-        tooltip.accept(Component.literal("§7再战天荒持续时间: §630秒"));
-        tooltip.accept(Component.literal("§7冷却时间: §c60秒"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.wan_hui_ring.desc1"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.wan_hui_ring.desc2"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.wan_hui_ring.desc3"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.wan_hui_ring.desc4"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.wan_hui_ring.desc5"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.wan_hui_ring.desc6"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.wan_hui_ring.desc7"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.wan_hui_ring.desc8"));
         AccessoryChecks.appendEquipHint(tooltip);
     }
 }

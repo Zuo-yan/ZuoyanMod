@@ -11,11 +11,14 @@ public class EffectRegistry {
     public static final DeferredRegister<MobEffect> EFFECTS =
             DeferredRegister.create(Registries.MOB_EFFECT, Zuoyanmod.MODID);
 
-    public static final DeferredHolder<MobEffect, MambaForceDefenseEffect> MAMBA_FORCE_DEFENSE =
-            EFFECTS.register("mamba_force_defense", MambaForceDefenseEffect::new);
+    // 注册 id 仍然沿用 mamba_* ：它是对外契约（旧存档里保存的效果、玩家的 /effect 命令、
+    // 以及 lang 键 effect.zuoyanmod.mamba_force_* 都是按 id 取的），改名等于让旧存档里的效果失效。
+    // 所以名字只改 Java 侧：类名按真实行为取，id 保持不动。
+    public static final DeferredHolder<MobEffect, HeartParalysisEffect> HEART_PARALYSIS =
+            EFFECTS.register("mamba_force_defense", HeartParalysisEffect::new);
 
-    public static final DeferredHolder<MobEffect, MobEffect> MAMBA_FORCE_ATTACK =
-            EFFECTS.register("mamba_force_attack", MambaForceAttackEffect::new);
+    public static final DeferredHolder<MobEffect, InstantKillEffect> INSTANT_KILL =
+            EFFECTS.register("mamba_force_attack", InstantKillEffect::new);
 
     public static final DeferredHolder<MobEffect, MobEffect> FIGHT_AGAIN =
             EFFECTS.register("fight_again", FightAgainEffect::new);

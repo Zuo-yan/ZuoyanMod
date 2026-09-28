@@ -1,7 +1,6 @@
 package org.gwfx.zuoyanmod;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -14,7 +13,6 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import org.gwfx.zuoyanmod.block.BlockRegistry;
-import org.gwfx.zuoyanmod.client.VoidResonancePumpScreen;
 import org.gwfx.zuoyanmod.menu.MenuRegistry;
 import org.gwfx.zuoyanmod.effect.EffectRegistry;
 import org.gwfx.zuoyanmod.fluid.FluidRegistry;
@@ -38,10 +36,19 @@ public class Zuoyanmod {
         // 注册方块、物品系统与创造栏
         FluidRegistry.register(modEventBus);
         BlockRegistry.register(modEventBus);
+        // 生物实体类型先于物品注册：刷怪蛋的 ENTITY_DATA 组件要引用 EntityType
+        org.gwfx.zuoyanmod.entity.EntityRegistry.register(modEventBus);
+        // 自定义 DataComponent 先于物品注册：物品默认组件要引用组件类型（当前无自定义组件，保留注册管线）
+        org.gwfx.zuoyanmod.item.ComponentRegistry.register(modEventBus);
         ItemRegistry.register(modEventBus);
         MenuRegistry.register(modEventBus);
         org.gwfx.zuoyanmod.recipe.RecipeRegistry.register(modEventBus);
+        org.gwfx.zuoyanmod.worldgen.WorldgenRegistry.register(modEventBus);
+        // "多此一举"成就的自定义触发器（草原传送门点燃时调用，见 GrassPortalEventHandler）
+        org.gwfx.zuoyanmod.advancement.GrassPortalTrigger.TRIGGERS.register(modEventBus);
         org.gwfx.zuoyanmod.item.FourDimensionalSpace.ATTACHMENTS.register(modEventBus);
+        // 经验升级档案（基础能力等级 / 终极天赋 / 冷却）
+        org.gwfx.zuoyanmod.upgrade.UpgradeData.ATTACHMENTS.register(modEventBus);
         CreativeTabRegistry.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
@@ -68,16 +75,48 @@ public class Zuoyanmod {
     public static class ClientModEvents {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
-            LOGGER.info("ZuoyanMod client setup complete. User: {}", Minecraft.getInstance().getUser().getName());
+            LOGGER.info("ZuoyanMod client setup complete. User: {}", net.minecraft.client.Minecraft.getInstance().getUser().getName());
         }
 
         @SubscribeEvent
         public static void onRegisterMenuScreens(net.neoforged.neoforge.client.event.RegisterMenuScreensEvent event) {
-            event.register(MenuRegistry.VOID_RESONANCE_PUMP_MENU.get(), VoidResonancePumpScreen::new);
+            event.register(MenuRegistry.VOID_RESONANCE_PUMP_MENU.get(),
+                    org.gwfx.zuoyanmod.client.VoidResonancePumpScreen::new);
             event.register(MenuRegistry.KLEIN_BOTTLE_MENU.get(),
                     org.gwfx.zuoyanmod.client.KleinBottleScreen::new);
             event.register(MenuRegistry.MICRO_HADRON_COLLIDER_MENU.get(),
                     org.gwfx.zuoyanmod.client.MicroHadronColliderScreen::new);
+        }
+
+        @SubscribeEvent
+        public static void onRegisterRenderers(net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.RICK.get(),
+                    org.gwfx.zuoyanmod.client.RickRenderer::new);
+            // 因果律子弹：自定义 billboard 渲染器，绿色能量球贴图，始终正对摄像机
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.CAUSALITY_BULLET.get(),
+                    org.gwfx.zuoyanmod.client.CausalityBulletRenderer::new);
+            // 原始黑洞：billboard 黑盘 + energySwirl 涡流，无模型，纯几何自绘
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.PRIMORDIAL_BLACK_HOLE.get(),
+                    org.gwfx.zuoyanmod.client.PrimordialBlackHoleRenderer::new);
+            // 湮灭君主：人形放大 1.8 倍 + 金冠模型层
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.VOID_MONARCH.get(),
+                    org.gwfx.zuoyanmod.client.VoidMonarchRenderer::new);
+            // 湮灭侍卫：普通人形，暗甲皮肤
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.VOID_GUARD.get(),
+                    org.gwfx.zuoyanmod.client.VoidGuardRenderer::new);
+            // 暗物质螺栓：暗紫能量球 billboard
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.VOID_BOLT.get(),
+                    org.gwfx.zuoyanmod.client.VoidBoltRenderer::new);
+        }
+
+        @SubscribeEvent
+        public static void onRegisterLayerDefinitions(net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterLayerDefinitions event) {
+            event.registerLayerDefinition(org.gwfx.zuoyanmod.client.RickModelLayers.RICK_BODY,
+                    org.gwfx.zuoyanmod.client.RickModelLayers::createBodyLayer);
+            event.registerLayerDefinition(org.gwfx.zuoyanmod.client.BossModelLayers.VOID_MONARCH_BODY,
+                    org.gwfx.zuoyanmod.client.BossModelLayers::createMonarchBodyLayer);
+            event.registerLayerDefinition(org.gwfx.zuoyanmod.client.BossModelLayers.VOID_GUARD_BODY,
+                    org.gwfx.zuoyanmod.client.BossModelLayers::createGuardBodyLayer);
         }
     }
 }

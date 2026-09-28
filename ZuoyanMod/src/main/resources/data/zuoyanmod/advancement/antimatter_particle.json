@@ -1,0 +1,30 @@
+{
+  "parent": "zuoyanmod:chain_antimatter",
+  "criteria": {
+    "first_particle": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "zuoyanmod:antimatter_particle"
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:antimatter_particle"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.antimatter_particle.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.antimatter_particle.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

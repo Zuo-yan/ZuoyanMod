@@ -14,6 +14,7 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 import org.gwfx.zuoyanmod.item.ItemRegistry;
 import org.gwfx.zuoyanmod.util.AccessoryChecks;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 @EventBusSubscriber(modid = Zuoyanmod.MODID)
 public final class MingDaoSiMingEventHandler {
@@ -70,7 +71,7 @@ public final class MingDaoSiMingEventHandler {
         tag.putLong("zuoyan_mingdao_cooldown_until", player.level().getGameTime() + 120L * 20L);
         mingDaoStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
-        player.sendSystemMessage(Component.literal("§6名刀司命触发，抵挡了致命伤害！"));
+        ModToastPacket.send(player, Component.translatable("message.zuoyanmod.ming_dao.blocked_fatal"));
     }
 
     private static ItemStack getMingDaoSiMingStack(Player player) {

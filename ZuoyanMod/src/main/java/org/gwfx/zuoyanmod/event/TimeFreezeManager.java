@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.gwfx.zuoyanmod.network.ModToastPacket;
 
 /**
  * 玻色-爱因斯坦凝聚场（绝对零度的技能本体）。服务端权威，释放瞬间一次性完成两件事：
@@ -137,9 +138,9 @@ public final class TimeFreezeManager {
         level.playSound(null, center, SoundEvents.PLAYER_HURT_FREEZE, SoundSource.PLAYERS, 1.0F, 0.6F);
         spawnFrostRing(level, center);
 
-        caster.sendSystemMessage(Component.literal("§b绝对零度 §7- 玻色-爱因斯坦凝聚展开 §8(15s)"));
+        ModToastPacket.send(caster, Component.translatable("message.zuoyanmod.absolute_zero.field_start"));
         if (liquefied > 0) {
-            caster.sendSystemMessage(Component.literal("§7相变：§d" + liquefied + " §7个暗物质坍缩为超流体"));
+            ModToastPacket.send(caster, Component.translatable("message.zuoyanmod.absolute_zero.phase_change", liquefied));
         }
     }
 

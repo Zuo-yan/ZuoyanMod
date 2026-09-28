@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:enchanted_golden_apple",
+    "minecraft:sweet_berries",
+    "minecraft:sugar",
+    "minecraft:sugar"
+  ],
+  "result": {
+    "id": "zuoyanmod:chocolate_crisp",
+    "count": 2
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "parent": "zuoyanmod:chain_antimatter",
+  "criteria": {
+    "got_core": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "zuoyanmod:singularity_core"
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "zuoyanmod:singularity_core"
+    },
+    "title": {
+      "translate": "advancements.zuoyanmod.singularity_core.title"
+    },
+    "description": {
+      "translate": "advancements.zuoyanmod.singularity_core.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

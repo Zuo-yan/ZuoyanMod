@@ -19,10 +19,10 @@ public class CounterBeltItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.literal("§6反击腰带"));
-        tooltip.accept(Component.literal("§7当单次伤害≤0.9时"));
-        tooltip.accept(Component.literal("§7激活「几曾识干戈」"));
-        tooltip.accept(Component.literal("§7对目标造成99%最大生命值伤害"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.counter_belt.desc1"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.counter_belt.desc2"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.counter_belt.desc3"));
+        tooltip.accept(Component.translatable("item.zuoyanmod.counter_belt.desc4"));
         AccessoryChecks.appendEquipHint(tooltip);
     }
 }

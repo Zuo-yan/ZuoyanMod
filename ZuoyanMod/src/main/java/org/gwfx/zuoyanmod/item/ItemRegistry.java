@@ -17,6 +17,8 @@ import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SmithingTemplateItem;
+import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.component.Weapon;
@@ -30,6 +32,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.gwfx.zuoyanmod.Zuoyanmod;
+import org.gwfx.zuoyanmod.entity.EntityRegistry;
+import org.gwfx.zuoyanmod.sound.SoundRegistry;
 import org.gwfx.zuoyanmod.fluid.FluidRegistry;
 import org.gwfx.zuoyanmod.block.BlockRegistry;
 
@@ -78,9 +82,9 @@ public final class ItemRegistry {
     );
 
     // ===== 消耗与功能道具 =====
-    public static final DeferredItem<IceTeaItem> ICE_TEA = ITEMS.registerItem(
-            "ice_tea",
-            IceTeaItem::new,
+    public static final DeferredItem<ChocolateCrispItem> CHOCOLATE_CRISP = ITEMS.registerItem(
+            "chocolate_crisp",
+            ChocolateCrispItem::new,
             props -> props.stacksTo(16).food(
                     new FoodProperties.Builder()
                             .nutrition(3)
@@ -125,6 +129,51 @@ public final class ItemRegistry {
             BeimingBlade::new,
             // 剑类武器：攻击力 33（1 基础 + 32）、攻速 3（4 基础 - 1）、攻击距离正常
             props -> swordComponents(props.stacksTo(1).attributes(swordAttributes(32.0F, -1.0F)))
+    );
+
+    // ===== 万能工具（镐·斧·铲·锄·剑 五合一，数值取自对应 ToolMaterial，攻击取同材质斧） =====
+    public static final DeferredItem<UniversalToolItem> WOODEN_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "wooden_universal_tool",
+            UniversalToolItem::new,
+            props -> UniversalToolItem.properties(ToolMaterial.WOOD, 6.0F, -3.2F)
+    );
+
+    public static final DeferredItem<UniversalToolItem> STONE_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "stone_universal_tool",
+            UniversalToolItem::new,
+            props -> UniversalToolItem.properties(ToolMaterial.STONE, 7.0F, -3.2F)
+    );
+
+    public static final DeferredItem<UniversalToolItem> COPPER_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "copper_universal_tool",
+            UniversalToolItem::new,
+            // 原版铜斧基线：伤害 7.0、攻速 -3.2（26.x 新增的铜质工具档，介于石与铁之间）
+            props -> UniversalToolItem.properties(ToolMaterial.COPPER, 7.0F, -3.2F)
+    );
+
+    public static final DeferredItem<UniversalToolItem> GOLDEN_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "golden_universal_tool",
+            UniversalToolItem::new,
+            props -> UniversalToolItem.properties(ToolMaterial.GOLD, 6.0F, -3.0F)
+    );
+
+    public static final DeferredItem<UniversalToolItem> IRON_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "iron_universal_tool",
+            UniversalToolItem::new,
+            props -> UniversalToolItem.properties(ToolMaterial.IRON, 6.0F, -3.1F)
+    );
+
+    public static final DeferredItem<UniversalToolItem> DIAMOND_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "diamond_universal_tool",
+            UniversalToolItem::new,
+            props -> UniversalToolItem.properties(ToolMaterial.DIAMOND, 5.0F, -3.0F)
+    );
+
+    public static final DeferredItem<UniversalToolItem> NETHERITE_UNIVERSAL_TOOL = ITEMS.registerItem(
+            "netherite_universal_tool",
+            UniversalToolItem::new,
+            // 下界合金同原版：防火不掉落（岩浆里烧不坏）
+            props -> UniversalToolItem.properties(ToolMaterial.NETHERITE, 5.0F, -3.0F).fireResistant()
     );
 
     // ===== 阶段三新武器 =====
@@ -250,6 +299,13 @@ public final class ItemRegistry {
             props -> props.rarity(Rarity.RARE)
     );
 
+    // ===== 反物质子弹（因果律手枪的专用弹药：生存模式每发消耗 1 枚） =====
+    public static final DeferredItem<Item> ANTIMATTER_BULLET = ITEMS.registerItem(
+            "antimatter_bullet",
+            Item::new,
+            props -> props.rarity(Rarity.UNCOMMON)
+    );
+
     // ===== 虚空共振泵方块物品（使用条件说明） =====
     public static final DeferredItem<BlockItem> VOID_RESONANCE_PUMP_ITEM = ITEMS.registerItem(
             "void_resonance_pump",
@@ -269,6 +325,26 @@ public final class ItemRegistry {
             "singularity_core",
             Item::new,
             props -> props.rarity(Rarity.RARE)
+    );
+
+    // ===== 原始黑洞（对撞产物：沉重核心 + 暗物质；右键释放一个 10 秒的黑洞）=====
+    // 继承 DescribedItem 是为了保留描述行机制；使用规则与具体数值见 PrimordialBlackHoleItem。
+    public static final DeferredItem<DescribedItem> PRIMORDIAL_BLACK_HOLE = ITEMS.registerItem(
+            "primordial_black_hole",
+            props -> new PrimordialBlackHoleItem(props,
+                    "item.zuoyanmod.primordial_black_hole.desc1",
+                    "item.zuoyanmod.primordial_black_hole.desc2",
+                    "item.zuoyanmod.primordial_black_hole.desc3"),
+            props -> props.rarity(Rarity.EPIC)
+    );
+
+    // ===== 天赋重置卷轴（右键清空已选终极天赋，可重新选择；基础加点不受影响）=====
+    public static final DeferredItem<TalentResetItem> TALENT_RESET_SCROLL = ITEMS.registerItem(
+            "talent_reset_scroll",
+            props -> new TalentResetItem(props,
+                    "item.zuoyanmod.talent_reset_scroll.desc1",
+                    "item.zuoyanmod.talent_reset_scroll.desc2"),
+            props -> props.stacksTo(16).rarity(Rarity.RARE)
     );
 
     // ===== 超流体暗物质（原「暗物质桶」，仅显示名变更，注册 id 保持 dark_matter_bucket） =====
@@ -310,6 +386,13 @@ public final class ItemRegistry {
                             .build()))
     );
 
+    // ===== 因果律手枪（规则级武器：平行宇宙同位体；反物质子弹供弹） =====
+    public static final DeferredItem<CausalityPistolItem> CAUSALITY_PISTOL = ITEMS.registerItem(
+            "causality_pistol",
+            CausalityPistolItem::new,
+            props -> props.stacksTo(1).rarity(Rarity.EPIC)
+    );
+
     // ===== 克莱因瓶（随身存储终端 + 内置工作台 / 无燃料熔炉） =====
     public static final DeferredItem<KleinBottleItem> KLEIN_BOTTLE = ITEMS.registerItem(
             "klein_bottle",
@@ -335,6 +418,78 @@ public final class ItemRegistry {
 
     public static final DeferredItem<BlockItem> VIOLET_GOLD_BLOCK_ITEM = ITEMS.registerSimpleBlockItem(
             "violet_gold_block", BlockRegistry.VIOLET_GOLD_BLOCK
+    );
+
+    // ===== 草原传送门（门框 + 传送门本体）方块物品 =====
+    // 草原门框：描述里写明"打火石点燃"的开启方式（点燃入口见 GrassPortalEventHandler）。
+    // registerItem 默认显示名走 item. 前缀，必须 useBlockDescriptionPrefix() 让它复用
+    // 方块的 block.zuoyanmod.grass_portal_frame 键（与 registerSimpleBlockItem 行为一致），
+    // 否则游戏里物品名会显示成未翻译的 item.zuoyanmod.grass_portal_frame。
+    public static final DeferredItem<BlockItem> GRASS_PORTAL_FRAME_ITEM = ITEMS.registerItem(
+            "grass_portal_frame",
+            props -> new DescriptionBlockItem(BlockRegistry.GRASS_PORTAL_FRAME.get(), props,
+                    "block.zuoyanmod.grass_portal_frame.desc1"),
+            Item.Properties::useBlockDescriptionPrefix
+    );
+
+    public static final DeferredItem<BlockItem> GRASS_PORTAL_ITEM = ITEMS.registerSimpleBlockItem(
+            "grass_portal", BlockRegistry.GRASS_PORTAL
+    );
+
+    // ===== 生物刷怪蛋 =====
+    // 26.3 里 SpawnEggItem 不再自带"我对应哪个实体"的字段，
+    // 信息全部落在 ENTITY_DATA 组件上，所以必须用 Properties#spawnEgg 来构造，
+    // 否则物品放下去不知道要生成什么（getType 返回 null，右键直接 FAIL）。
+    public static final DeferredItem<SpawnEggItem> RICK_SPAWN_EGG = ITEMS.registerItem(
+            "rick_spawn_egg",
+            SpawnEggItem::new,
+            props -> props.spawnEgg(EntityRegistry.RICK.get())
+    );
+
+    public static final DeferredItem<SpawnEggItem> VOID_MONARCH_SPAWN_EGG = ITEMS.registerItem(
+            "void_monarch_spawn_egg",
+            SpawnEggItem::new,
+            props -> props.spawnEgg(EntityRegistry.VOID_MONARCH.get())
+    );
+
+    public static final DeferredItem<SpawnEggItem> VOID_GUARD_SPAWN_EGG = ITEMS.registerItem(
+            "void_guard_spawn_egg",
+            SpawnEggItem::new,
+            props -> props.spawnEgg(EntityRegistry.VOID_GUARD.get())
+    );
+
+    // ===== 湮灭君王之刃（湮灭君主必掉武器：攻击 35、攻速 2.4、对 Boss 标签目标追加魔法伤害） =====
+    public static final DeferredItem<MonarchBladeItem> MONARCH_BLADE = ITEMS.registerItem(
+            "monarch_blade",
+            MonarchBladeItem::new,
+            // 攻击力 35（1 基础 + 34）、攻速 2.4（4 基础 - 1.6）：重剑手感
+            props -> swordComponents(props.stacksTo(1).rarity(Rarity.EPIC)
+                    .attributes(swordAttributes(34.0F, -1.6F)))
+    );
+
+
+    // ===== 音乐唱片（三首外部曲子，放进唱片机即可播放）=====
+    // 26.x 已没有 RecordItem：唱片 = 普通 Item 挂 JUKEBOX_PLAYABLE 组件，
+    // 曲目元数据（时长 / 比较器输出 / 描述）在 data/zuoyanmod/jukebox_song/*.json。
+    // jukeboxPlayable 用 delayedComponent 延迟解析，注册期不触碰点歌注册表，
+    // 但如果对应 json 缺失，物品首次实例化会直接抛异常——两个文件必须成对存在。
+    // stacksTo(1)：唱片机一次只收 1 张，原版唱片同样是 1。
+    public static final DeferredItem<Item> MUSIC_DISC_SHOTS = ITEMS.registerItem(
+            "music_disc_shots",
+            Item::new,
+            props -> props.stacksTo(1).rarity(Rarity.RARE).jukeboxPlayable(SoundRegistry.SONG_SHOTS)
+    );
+
+    public static final DeferredItem<Item> MUSIC_DISC_NIGHT_DANCER = ITEMS.registerItem(
+            "music_disc_night_dancer",
+            Item::new,
+            props -> props.stacksTo(1).rarity(Rarity.RARE).jukeboxPlayable(SoundRegistry.SONG_NIGHT_DANCER)
+    );
+
+    public static final DeferredItem<Item> MUSIC_DISC_CASTLE = ITEMS.registerItem(
+            "music_disc_castle",
+            Item::new,
+            props -> props.stacksTo(1).rarity(Rarity.RARE).jukeboxPlayable(SoundRegistry.SONG_CASTLE)
     );
 
     private ItemRegistry() {}
