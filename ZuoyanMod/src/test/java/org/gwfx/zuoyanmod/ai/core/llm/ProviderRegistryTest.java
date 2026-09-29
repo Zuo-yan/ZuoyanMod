@@ -23,52 +23,39 @@ class ProviderRegistryTest {
 
     @Test
     void recognizesKnownIdsCaseInsensitively() {
-        assertTrue(ProviderRegistry.isKnown("ollama"));
-        assertTrue(ProviderRegistry.isKnown("  Ollama  "));
         assertTrue(ProviderRegistry.isKnown("openai-compatible"));
-        assertTrue(ProviderRegistry.isKnown("mock"));
+        assertTrue(ProviderRegistry.isKnown("  OpenAI-Compatible  "));
+        assertTrue(ProviderRegistry.isKnown("anthropic"));
+        assertTrue(ProviderRegistry.isKnown("  Anthropic  "));
+        assertFalse(ProviderRegistry.isKnown("mock"));
+        assertFalse(ProviderRegistry.isKnown("ollama"));
         assertFalse(ProviderRegistry.isKnown("gemini"));
         assertFalse(ProviderRegistry.isKnown(""));
         assertFalse(ProviderRegistry.isKnown(null));
     }
 
     @Test
-    void fallsBackToMockForUnknownOrBlankIds() {
-        assertEquals(MockLlmProvider.ID, ProviderRegistry.normalizeId("gemini"));
-        assertEquals(MockLlmProvider.ID, ProviderRegistry.normalizeId(""));
-        assertEquals(MockLlmProvider.ID, ProviderRegistry.normalizeId(null));
-        assertEquals(OllamaProvider.ID, ProviderRegistry.normalizeId("OLLAMA"));
+    void fallsBackToOpenAiCompatibleForUnknownOrBlankIds() {
+        assertEquals(OpenAiCompatibleProvider.ID, ProviderRegistry.normalizeId("gemini"));
+        assertEquals(OpenAiCompatibleProvider.ID, ProviderRegistry.normalizeId(""));
+        assertEquals(OpenAiCompatibleProvider.ID, ProviderRegistry.normalizeId(null));
+        assertEquals(AnthropicProvider.ID, ProviderRegistry.normalizeId("ANTHROPIC"));
     }
 
     @Test
     void knownIdsAreStableAndComplete() {
-        // 这个列表会直接展示给用户（/ai provider 的合法取值、/ai status 的说明），
-        // 顺序固定，且必须与 isKnown 保持一致
-        assertEquals(java.util.List.of("mock", "openai-compatible", "ollama"), ProviderRegistry.knownIds());
+        assertEquals(java.util.List.of("openai-compatible", "anthropic"), ProviderRegistry.knownIds());
         for (String id : ProviderRegistry.knownIds()) {
             assertTrue(ProviderRegistry.isKnown(id), id + " 应被 isKnown 认可");
         }
     }
 
     @Test
-    void createsMockProviderForUnknownIdInsteadOfThrowing() {
+    void createsFallbackProviderForUnknownIdInsteadOfThrowing() {
         ProviderRegistry registry = new ProviderRegistry(NOOP_TRANSPORT);
 
-        // 配置里的错别字不该让服务端起不来，也不该抛给玩家
-        assertInstanceOf(MockLlmProvider.class, registry.create("gemini", settings()));
+        assertInstanceOf(OpenAiCompatibleProvider.class, registry.create("gemini", settings()));
         assertInstanceOf(OpenAiCompatibleProvider.class, registry.create("openai-compatible", settings()));
-        assertInstanceOf(OllamaProvider.class, registry.create("ollama", settings()));
-    }
-
-    @Test
-    void mockProviderEchoesWithoutNetwork() {
-        MockLlmProvider provider = new MockLlmProvider();
-
-        ChatResponse response = provider.chat(new ChatRequest(
-                "m", "上下文", java.util.List.of(ChatMessage.user("附近有没有宝箱")), 0.7D, 10)).join();
-
-        assertEquals(MockLlmProvider.ID, provider.id());
-        assertTrue(response.text().contains("附近有没有宝箱"));
-        assertTrue(response.text().contains("mock"));
+        assertInstanceOf(AnthropicProvider.class, registry.create("anthropic", settings()));
     }
 }

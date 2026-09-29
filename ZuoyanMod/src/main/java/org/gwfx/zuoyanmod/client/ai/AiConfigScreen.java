@@ -71,9 +71,10 @@ public class AiConfigScreen extends AiConfigFormScreen {
 
         // 来源与文件路径合成一行：既省一行留给配置项，也避免长路径单独成行时溢出到右列
         String file = snapshot.keyFilePath().isEmpty() ? "" : snapshot.keyFilePath();
+        String displayFile = compactPath(file, 220);
         drawDimLine(graphics, Component.translatable(
                 file.isEmpty() ? "ai.zuoyanmod.gui.key_source" : "ai.zuoyanmod.gui.key_source_file",
-                Component.translatable(keySourceKey(snapshot.keySource())), file), y);
+                Component.translatable(keySourceKey(snapshot.keySource())), displayFile), y);
         y += LINE_H;
 
         if (readOnly()) {
@@ -114,6 +115,19 @@ public class AiConfigScreen extends AiConfigFormScreen {
         box.addFormatter((text, offset) -> FormattedCharSequence.forward("*".repeat(text.length()), Style.EMPTY));
         this.apiKeyBox = box;
         return addEditable(box);
+    }
+
+    private String compactPath(String path, int maxPixelWidth) {
+        if (path == null || path.isEmpty() || this.font.width(path) <= maxPixelWidth) {
+            return path;
+        }
+        int len = path.length();
+        int head = 14;
+        int tail = 22;
+        if (len <= head + tail + 3) {
+            return path;
+        }
+        return path.substring(0, head) + "..." + path.substring(len - tail);
     }
 
     private static String keySourceKey(String source) {

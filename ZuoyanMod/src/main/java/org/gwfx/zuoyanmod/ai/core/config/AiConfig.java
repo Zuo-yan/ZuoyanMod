@@ -136,7 +136,7 @@ public record AiConfig(
     }
 
     /**
-     * 实际生效的 Provider id（未知值回退 {@code mock}）。
+     * 实际生效的 Provider 协议 id（未知值回退 {@code openai-compatible}）。
      *
      * <p>与 {@link #provider()} 分开保留：{@code /ai status} 需要同时显示
      * 「你填的是什么」和「实际用的是什么」，否则用户拼错 provider 时会一脸茫然。
@@ -152,7 +152,7 @@ public record AiConfig(
      * 因此这里不强制，真需要时由服务端返回 401 再提示。
      */
     public boolean requiresApiKey() {
-        return "openai-compatible".equals(effectiveProvider());
+        return "openai-compatible".equals(effectiveProvider()) || "anthropic".equals(effectiveProvider());
     }
 
     /** 模型名为空时无法发请求，调用方应先提示用户配置。 */

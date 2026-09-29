@@ -28,6 +28,10 @@ class AiLangKeysTest {
     /** 界面直接引用的键（不经字段表），改了界面就容易忘，所以在这里钉住。 */
     private static final List<String> SCREEN_KEYS = List.of(
             "ai.zuoyanmod.gui.title",
+            "ai.zuoyanmod.gui.test_connection",
+            "ai.zuoyanmod.gui.testing",
+            "ai.zuoyanmod.gui.test_success",
+            "ai.zuoyanmod.gui.test_failed",
             "ai.zuoyanmod.gui.loading",
             "ai.zuoyanmod.gui.on",
             "ai.zuoyanmod.gui.off",

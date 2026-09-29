@@ -127,12 +127,11 @@ public class Config {
 
     private static final ModConfigSpec.ConfigValue<String> AI_PROVIDER = BUILDER
             .comment("""
-                    Provider 类型，可选：
-                      mock               本地回显，不联网、零成本（默认，避免未配密钥就误触计费接口）
-                      openai-compatible  OpenAI 及所有兼容端点（DeepSeek / 通义千问 / 智谱 GLM / LM Studio 等）
-                      ollama             Ollama 原生 /api/chat
-                    填未知值会回退到 mock，可用 /ai status 查看实际生效的 Provider。""")
-            .define("ai.provider", "mock");
+                    接口协议类型，可选：
+                        openai-compatible  OpenAI 兼容端点（DeepSeek / 通义千问 / 智谱 GLM / GPT 等）
+                        anthropic          Anthropic Messages 端点（Claude 系列）
+                      填未知值会回退到 openai-compatible，可用 /ai status 查看实际生效的协议。""")
+            .define("ai.provider", "openai-compatible");
 
     private static final ModConfigSpec.ConfigValue<String> AI_BASE_URL = BUILDER
             .comment("""
@@ -407,7 +406,7 @@ public class Config {
     public static boolean aiEnabled = true;
     /** AI 管理门槛（0~4，默认 3=管理员）。判定见 {@code ai.AiPermissions}，每次判定现读，改配置无需重启。 */
     public static int aiPermissionAdminLevel = 3;
-    public static String aiProvider = "mock";
+    public static String aiProvider = "openai-compatible";
     public static String aiBaseUrl = "https://api.openai.com/v1";
     public static String aiModel = "";
     public static double aiTemperature = 0.7D;

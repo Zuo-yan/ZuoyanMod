@@ -94,6 +94,10 @@ abstract class AiConfigFormScreen extends Screen {
     private boolean awaitingResult;
     /** 本次打开是否只读（无管理权限）。子类据此把"应用"按钮也置灰。 */
     private boolean readOnly;
+    private static final int TEST_BTN_W = 60;
+    private Button testButton;
+    private boolean testingConnection;
+    private AiConfigClientData.TestResult lastTestResult;
     private Component status = Component.empty();
 
     // ===== 布局（init 与渲染共用同一份坐标）=====
@@ -183,6 +187,7 @@ abstract class AiConfigFormScreen extends Screen {
             pageRows.get(i).factory().create(rowX(i), rowY(i));
         }
 
+        AiConfigClientData.setTestResultListener(this::onTestResult);
         buildPageNav();
         buildBottomBar(this.height - 26);
 
@@ -337,7 +342,8 @@ abstract class AiConfigFormScreen extends Screen {
         } else if (!snapshot.error().isEmpty()) {
             this.status = Component.translatable(snapshot.error());
         } else if (!snapshot.fieldErrors().isEmpty()) {
-            this.status = Component.translatable("ai.zuoyanmod.gui.status.rejected");
+            // 字段错误由 drawStatus 专门绘制红字，此处清空避免重复绘制两行相同警告
+            this.status = Component.empty();
         } else if (snapshot.adjusted()) {
             this.status = Component.translatable("ai.zuoyanmod.gui.status.adjusted");
         } else {
@@ -443,10 +449,19 @@ abstract class AiConfigFormScreen extends Screen {
         if (this.status.getString().isEmpty()) {
             return;
         }
+        if (!this.fieldErrors.isEmpty() &&
+                this.status.getString().equals(Component.translatable("ai.zuoyanmod.gui.status.rejected").getString())) {
+            return;
+        }
         graphics.text(this.font, this.status, this.leftX, y, COLOR_STATUS);
     }
 
     @Override
+    public void onClose() {
+        AiConfigClientData.setTestResultListener(null);
+        super.onClose();
+    }
+
     public boolean isPauseScreen() {
         // 单机下暂停会停掉集成服务端，我们的请求往返就永远回不来（见类注释）
         return false;
@@ -455,16 +470,65 @@ abstract class AiConfigFormScreen extends Screen {
     // ===== 翻页控件（右上角，与底部动作按钮分开）=====
 
     private void buildPageNav() {
-        if (this.pages.size() <= 1) {
-            return;
-        }
         int navY = 4;
         int rightEdge = this.rightX + COL_W;
-        addRenderableWidget(Button.builder(Component.literal("<"), b -> turnPage(-1))
-                .bounds(rightEdge - NAV_BUTTON_W * 2 - 4, navY, NAV_BUTTON_W, BUTTON_H).build());
-        addRenderableWidget(Button.builder(Component.literal(">"), b -> turnPage(1))
-                .bounds(rightEdge - NAV_BUTTON_W, navY, NAV_BUTTON_W, BUTTON_H).build());
+        int testX;
+        if (this.pages.size() > 1) {
+            addRenderableWidget(Button.builder(Component.literal("<"), b -> turnPage(-1))
+                    .bounds(rightEdge - NAV_BUTTON_W * 2 - 4, navY, NAV_BUTTON_W, BUTTON_H).build());
+            addRenderableWidget(Button.builder(Component.literal(">"), b -> turnPage(1))
+                    .bounds(rightEdge - NAV_BUTTON_W, navY, NAV_BUTTON_W, BUTTON_H).build());
+            Component pageText = Component.translatable("ai.zuoyanmod.gui.page", this.pageIndex + 1, this.pages.size());
+            int textW = this.font.width(pageText);
+            testX = rightEdge - (NAV_BUTTON_W * 2 + 4 + 8 + textW + 10) - TEST_BTN_W;
+        } else {
+            testX = rightEdge - TEST_BTN_W;
+        }
+        Component btnText = Component.translatable(this.testingConnection ? "ai.zuoyanmod.gui.testing" : "ai.zuoyanmod.gui.test_connection");
+        this.testButton = Button.builder(btnText, b -> testConnection())
+                .bounds(testX, navY, TEST_BTN_W, BUTTON_H).build();
+        this.testButton.active = !this.testingConnection && !this.readOnly;
+        if (this.lastTestResult != null) {
+            this.testButton.setTooltip(Tooltip.create(Component.literal(
+                    (this.lastTestResult.success() ? "✓ " : "✕ ") + this.lastTestResult.message())));
+        }
+        addRenderableWidget(this.testButton);
     }
+
+    private void testConnection() {
+        this.testingConnection = true;
+        if (this.testButton != null) {
+            this.testButton.active = false;
+            this.testButton.setMessage(Component.translatable("ai.zuoyanmod.gui.testing"));
+        }
+        this.status = Component.translatable("ai.zuoyanmod.gui.testing");
+        JsonObject raw = new JsonObject();
+        for (AiConfigFields.Field field : fields()) {
+            String text = this.form.get(field.key());
+            if (text != null) {
+                raw.addProperty(field.key(), text);
+            }
+        }
+        appendExtraPayload(raw);
+        PacketHandler.sendTestAiConnection(raw.toString());
+    }
+
+    private void onTestResult(AiConfigClientData.TestResult result) {
+        this.testingConnection = false;
+        this.lastTestResult = result;
+        if (this.testButton != null) {
+            this.testButton.active = !this.readOnly;
+            this.testButton.setMessage(Component.translatable("ai.zuoyanmod.gui.test_connection"));
+            this.testButton.setTooltip(Tooltip.create(Component.literal(
+                    (result.success() ? "✓ " : "✕ ") + result.message())));
+        }
+        if (result.success()) {
+            this.status = Component.translatable("ai.zuoyanmod.gui.test_success", result.latencyMs());
+        } else {
+            this.status = Component.translatable("ai.zuoyanmod.gui.test_failed", result.message());
+        }
+    }
+
 
     /** 页码文字与翻页按钮一起画在右上角。 */
     private void drawPageIndicator(GuiGraphicsExtractor graphics) {
@@ -521,7 +585,10 @@ abstract class AiConfigFormScreen extends Screen {
 
     /** 造一个双向绑定到某字段的输入框（输入即写回表单，翻页也不丢）。 */
     protected EditBox fieldBox(int x, int y, int maxLength, AiConfigFields.Field field) {
-        return boundBox(x, y, maxLength, formOf(field.key()), text -> setForm(field.key(), text));
+        return boundBox(x, y, maxLength, formOf(field.key()), text -> {
+            setForm(field.key(), text);
+            this.fieldErrors.remove(field.key());
+        });
     }
 
     /** 造一个不绑定字段的输入框（例如一次性输入的 API Key）。 */
@@ -544,7 +611,7 @@ abstract class AiConfigFormScreen extends Screen {
 
     private String currentProvider() {
         String current = formOf(AiConfigEdits.KEY_PROVIDER);
-        return current.isEmpty() ? "mock" : current;
+        return current.isEmpty() ? org.gwfx.zuoyanmod.ai.core.llm.OpenAiCompatibleProvider.ID : current;
     }
 
     private static String nextProvider(String current) {

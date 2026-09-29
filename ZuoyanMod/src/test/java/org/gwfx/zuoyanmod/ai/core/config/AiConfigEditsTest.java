@@ -314,7 +314,7 @@ class AiConfigEditsTest {
     void everyFieldHasATextProjection() {
         // 表里加了行却忘了在 textOf 里补投影，会在打开界面时炸；这里遍历全表把它测出来
         AiConfig config = new AiConfig(
-                true, "mock", "https://api.example.com/v1", "m", 0.7D, 1024, java.time.Duration.ofSeconds(60), 1,
+                true, "openai-compatible", "https://api.example.com/v1", "m", 0.7D, 1024, java.time.Duration.ofSeconds(60), 1,
                 "p", false, "ai:", 200, 10, 3, 4,
                 16, 8, 16, 5, true, 32, 300, 8, 20, 8000,
                 true, 4, 10, 32768, 120, true, 4, 2, false, false, 4096, 64);

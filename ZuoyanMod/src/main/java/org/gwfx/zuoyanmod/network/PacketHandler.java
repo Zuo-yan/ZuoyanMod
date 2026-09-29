@@ -116,6 +116,17 @@ public final class PacketHandler {
                 org.gwfx.zuoyanmod.ai.net.AiConfigSyncPacket.STREAM_CODEC,
                 org.gwfx.zuoyanmod.ai.net.AiConfigSyncPacket::handle
         );
+        // AI 连通性测试
+        registrar.playToServer(
+                org.gwfx.zuoyanmod.ai.net.AiTestConnectionPacket.TYPE,
+                org.gwfx.zuoyanmod.ai.net.AiTestConnectionPacket.STREAM_CODEC,
+                org.gwfx.zuoyanmod.ai.net.AiTestConnectionPacket::handle
+        );
+        registrar.playToClient(
+                org.gwfx.zuoyanmod.ai.net.AiTestConnectionResultPacket.TYPE,
+                org.gwfx.zuoyanmod.ai.net.AiTestConnectionResultPacket.STREAM_CODEC,
+                org.gwfx.zuoyanmod.ai.net.AiTestConnectionResultPacket::handle
+        );
         LOGGER.info("[Network] Successfully registered payload handlers");
     }
 
@@ -191,6 +202,15 @@ public final class PacketHandler {
      * <p>内容是一个 JSON 字符串（字段集定义在 {@code ai.core.config.AiConfigEdits}）。
      * 这里只做长度上限保护，<b>真正的校验在服务端</b> —— 客户端说了不算。
      */
+    /** AI 配置界面：测试连接 */
+    public static void sendTestAiConnection(String json) {
+        String payload = json == null ? "{}" : json;
+        if (payload.length() > 4096) {
+            payload = "{}";
+        }
+        sendToServer(new org.gwfx.zuoyanmod.ai.net.AiTestConnectionPacket(payload));
+    }
+
     public static void sendUpdateAiConfig(String json) {
         String payload = json == null ? "{}" : json;
         if (payload.length() > org.gwfx.zuoyanmod.ai.net.AiConfigSyncPacket.MAX_JSON_CHARS) {

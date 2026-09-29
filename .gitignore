@@ -17,8 +17,11 @@ ZuoyanMod/.eclipse/
 /mcsrc/
 
 # Gradle
-.gradle/
-build/
+/.gradle/
+/ZuoyanMod/.gradle/
+# ⚠️ 前导斜杠不能省！不带锚点的 build/ 会误伤源码目录 src/.../ai/build 和 ai/core/build
+/build/
+/ZuoyanMod/build/
 
 # maven-publish 任务发布到项目目录内的本地仓库
 repo/

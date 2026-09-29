@@ -136,6 +136,10 @@ public final class AiRuntime {
         return this.redactor;
     }
 
+    public ProviderRegistry providers() {
+        return this.providers;
+    }
+
     public AiChatService chatService() {
         return this.chatService;
     }

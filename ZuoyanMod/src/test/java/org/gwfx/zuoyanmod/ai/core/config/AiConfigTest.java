@@ -21,7 +21,7 @@ class AiConfigTest {
     }
 
     private static AiConfig defaultConfig() {
-        return config("mock", "https://api.openai.com/v1", 0.7D, 1024, Duration.ofSeconds(60), 1, "gpt-x");
+        return config("openai-compatible", "https://api.openai.com/v1", 0.7D, 1024, Duration.ofSeconds(60), 1, "gpt-x");
     }
 
     // ===== baseUrl 归一化 =====
@@ -31,7 +31,7 @@ class AiConfigTest {
         assertEquals("https://api.example.com/v1",
                 config("openai-compatible", "https://api.example.com/v1/", 0.7D, 1, Duration.ofSeconds(1), 0, "m").baseUrl());
         assertEquals("http://localhost:11434",
-                config("ollama", "http://localhost:11434///", 0.7D, 1, Duration.ofSeconds(1), 0, "m").baseUrl());
+                config("anthropic", "http://localhost:11434///", 0.7D, 1, Duration.ofSeconds(1), 0, "m").baseUrl());
         assertEquals("https://api.example.com/v1",
                 config("openai-compatible", "  https://api.example.com/v1  ", 0.7D, 1, Duration.ofSeconds(1), 0, "m").baseUrl());
     }
@@ -47,7 +47,7 @@ class AiConfigTest {
 
     @Test
     void clampsNumericRanges() {
-        AiConfig out = config("mock", "x", 5.0D, 999_999, Duration.ofSeconds(99_999), 99, "m");
+        AiConfig out = config("openai-compatible", "x", 5.0D, 999_999, Duration.ofSeconds(99_999), 99, "m");
 
         assertEquals(2.0D, out.temperature(), 1e-9);
         assertEquals(32768, out.maxTokens());
@@ -57,7 +57,7 @@ class AiConfigTest {
 
     @Test
     void clampsLowerBounds() {
-        AiConfig out = config("mock", "x", -1.0D, 0, Duration.ofMillis(1), -3, "m");
+        AiConfig out = config("openai-compatible", "x", -1.0D, 0, Duration.ofMillis(1), -3, "m");
 
         assertEquals(0.0D, out.temperature(), 1e-9);
         assertEquals(1, out.maxTokens());
@@ -67,13 +67,13 @@ class AiConfigTest {
 
     @Test
     void fallsBackToMinTimeoutOnNull() {
-        assertEquals(AiConfig.MIN_TIMEOUT, config("mock", "x", 0.7D, 1, null, 0, "m").timeout());
+        assertEquals(AiConfig.MIN_TIMEOUT, config("openai-compatible", "x", 0.7D, 1, null, 0, "m").timeout());
     }
 
     @Test
     void clampsReplyAndHistoryBounds() {
         AiConfig out = new AiConfig(
-                true, "mock", "x", "m", 0.7D, 100, Duration.ofSeconds(30), 1,
+                true, "openai-compatible", "x", "m", 0.7D, 100, Duration.ofSeconds(30), 1,
                 "p", false, "ai:", 1, 0, -5, 0,
                 0, -1, 0, -1, true, 0, -1, -1, 0, 0,
                 true, 0, 0, 0, 0, true, 4, 2, false, false, 4096, 64);
@@ -101,7 +101,7 @@ class AiConfigTest {
     @Test
     void clampsToolUpperBounds() {
         AiConfig out = new AiConfig(
-                true, "mock", "x", "m", 0.7D, 100, Duration.ofSeconds(30), 1,
+                true, "openai-compatible", "x", "m", 0.7D, 100, Duration.ofSeconds(30), 1,
                 "p", false, "ai:", 200, 10, 3, 4,
                 16, 8, 16, 5, true, 32, 300, 8, 20, 8000,
                 true, 999, 999, Integer.MAX_VALUE, 9999, false, 4, 2, false, false, 4096, 64);
@@ -115,7 +115,7 @@ class AiConfigTest {
     @Test
     void keepsToolCallingToggleAsIs() {
         AiConfig out = new AiConfig(
-                true, "mock", "x", "m", 0.7D, 100, Duration.ofSeconds(30), 1,
+                true, "openai-compatible", "x", "m", 0.7D, 100, Duration.ofSeconds(30), 1,
                 "p", false, "ai:", 200, 10, 3, 4,
                 16, 8, 16, 5, true, 32, 300, 8, 20, 8000,
                 false, 4, 10, 32768, 120, true, 4, 2, false, false, 4096, 64);
@@ -126,11 +126,11 @@ class AiConfigTest {
     @Test
     void keepsContainerReadToggleAsIs() {
         // 容器可读是玩家自己拍的板（默认开），AiConfig 只负责如实传递，不做任何"更安全"的改写
-        AiConfig on = config("mock", "x", 0.7D, 1, Duration.ofSeconds(1), 0, "m");
+        AiConfig on = config("openai-compatible", "x", 0.7D, 1, Duration.ofSeconds(1), 0, "m");
         assertTrue(on.containersReadContents());
 
         AiConfig off = new AiConfig(
-                true, "mock", "x", "m", 0.7D, 100, Duration.ofSeconds(30), 1,
+                true, "openai-compatible", "x", "m", 0.7D, 100, Duration.ofSeconds(30), 1,
                 "p", false, "ai:", 200, 10, 3, 4,
                 16, 8, 16, 5, true, 32, 300, 8, 20, 8000,
                 true, 4, 10, 32768, 120, false, 4, 2, false, false, 4096, 64);
@@ -144,30 +144,29 @@ class AiConfigTest {
         AiConfig out = config("Gemini", "x", 0.7D, 1, Duration.ofSeconds(1), 0, "m");
 
         // 实际生效 mock，但配置值原样保留，便于 /ai status 告诉用户「你填的是什么」
-        assertEquals("mock", out.effectiveProvider());
+        assertEquals("openai-compatible", out.effectiveProvider());
         assertEquals("Gemini", out.provider());
     }
 
     @Test
     void effectiveProviderNormalizesCase() {
-        assertEquals("ollama", config("  OLLAMA ", "x", 0.7D, 1, Duration.ofSeconds(1), 0, "m").effectiveProvider());
+        assertEquals("anthropic", config("  Anthropic ", "x", 0.7D, 1, Duration.ofSeconds(1), 0, "m").effectiveProvider());
     }
 
     @Test
-    void onlyOpenAiCompatibleRequiresApiKey() {
+    void openAiAndAnthropicRequireApiKey() {
         assertTrue(config("openai-compatible", "x", 0.7D, 1, Duration.ofSeconds(1), 0, "m").requiresApiKey());
-        assertFalse(config("ollama", "x", 0.7D, 1, Duration.ofSeconds(1), 0, "m").requiresApiKey());
-        assertFalse(config("mock", "x", 0.7D, 1, Duration.ofSeconds(1), 0, "m").requiresApiKey());
+        assertTrue(config("anthropic", "x", 0.7D, 1, Duration.ofSeconds(1), 0, "m").requiresApiKey());
     }
 
     @Test
     void blankProviderFallsBackToMockWithoutWarning() {
-        assertEquals("mock", config("   ", "x", 0.7D, 1, Duration.ofSeconds(1), 0, "m").effectiveProvider());
+        assertEquals("openai-compatible", config("   ", "x", 0.7D, 1, Duration.ofSeconds(1), 0, "m").effectiveProvider());
     }
 
     @Test
     void hasModelReflectsBlankInput() {
         assertTrue(defaultConfig().hasModel());
-        assertFalse(config("mock", "x", 0.7D, 1, Duration.ofSeconds(1), 0, "   ").hasModel());
+        assertFalse(config("openai-compatible", "x", 0.7D, 1, Duration.ofSeconds(1), 0, "   ").hasModel());
     }
 }
