@@ -1,0 +1,87 @@
+# WorkBuddy
+.workbuddy/
+
+# 生成工具脚本（美术资源/代码为程序生成，脚本仅在本机留存，不进仓库）
+*.py
+/ZuoyanMod/tools/
+/tools/Extract.java
+
+# 项目根目录的预览图
+/*_preview.png
+/klein_terminal_mock.png
+
+# Gradle 生成的运行配置
+ZuoyanMod/.eclipse/
+
+# 第三方参考源码（Minecraft 反编译源码 + Curios / JEI 稀疏克隆，仅本机查阅，不进仓库）
+/mcsrc/
+
+# Gradle
+.gradle/
+build/
+
+# maven-publish 任务发布到项目目录内的本地仓库
+repo/
+
+# IDE - Eclipse
+bin/
+.settings/
+.metadata/
+.classpath
+.project
+.annotationprocessing
+
+# IDE - IntelliJ IDEA
+.idea/
+out/
+*.ipr
+*.iws
+*.iml
+
+# IDE - VS Code
+.vscode/
+
+# Java
+hs_err_*.log
+replay_*.log
+
+# Minecraft 运行目录（客户端/服务端测试生成的世界、日志、缓存）
+run/
+runs/
+logs/
+
+# 操作系统
+Thumbs.db
+.DS_Store
+
+# ===== ↑ 以上同步自 .gitignore（「从 .gitignore 同步」只重写以上部分）=====
+.git/
+.hg/
+.svn/
+node_modules/
+bower_components/
+jspm_packages/
+__pycache__/
+site-packages/
+venv/
+coverage/
+htmlcov/
+lcov-report/
+cmakefiles/
+cmake-build-*/
+bazel-*/
+pods/
+deriveddata/
+storybook-static/
+playwright-report/
+test-results/
+allure-results/
+allure-report/
+cdk.out/
+*.egg-info/
+*.dist-info/
+eggs/
+pip-wheel-metadata/
+wheels/
+# ----- ↑ 以上为 ZCode 默认排除规则（自定义规则请写在本行下方，不会被同步/恢复改动）-----
+# 自定义规则写在下方（本行提示可删除）
