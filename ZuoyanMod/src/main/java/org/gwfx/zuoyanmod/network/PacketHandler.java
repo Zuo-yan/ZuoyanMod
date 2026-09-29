@@ -94,6 +94,28 @@ public final class PacketHandler {
                 UpgradeSyncPacket.STREAM_CODEC,
                 UpgradeSyncPacket::handle
         );
+        // AI 聊天：服务端把回复分页下发（只读展示，不需要客户端回传）
+        registrar.playToClient(
+                org.gwfx.zuoyanmod.ai.net.AiChatReplyPacket.TYPE,
+                org.gwfx.zuoyanmod.ai.net.AiChatReplyPacket.STREAM_CODEC,
+                org.gwfx.zuoyanmod.ai.net.AiChatReplyPacket::handle
+        );
+        // AI 图形化配置：打开界面请求快照 → 提交修改 → 服务端回权威快照
+        registrar.playToServer(
+                org.gwfx.zuoyanmod.ai.net.RequestAiConfigPacket.TYPE,
+                org.gwfx.zuoyanmod.ai.net.RequestAiConfigPacket.STREAM_CODEC,
+                org.gwfx.zuoyanmod.ai.net.RequestAiConfigPacket::handle
+        );
+        registrar.playToServer(
+                org.gwfx.zuoyanmod.ai.net.AiConfigUpdatePacket.TYPE,
+                org.gwfx.zuoyanmod.ai.net.AiConfigUpdatePacket.STREAM_CODEC,
+                org.gwfx.zuoyanmod.ai.net.AiConfigUpdatePacket::handle
+        );
+        registrar.playToClient(
+                org.gwfx.zuoyanmod.ai.net.AiConfigSyncPacket.TYPE,
+                org.gwfx.zuoyanmod.ai.net.AiConfigSyncPacket.STREAM_CODEC,
+                org.gwfx.zuoyanmod.ai.net.AiConfigSyncPacket::handle
+        );
         LOGGER.info("[Network] Successfully registered payload handlers");
     }
 
@@ -156,6 +178,25 @@ public final class PacketHandler {
     /** 打开升级界面时：请求一份档案快照 */
     public static void sendRequestUpgradeSync() {
         sendToServer(new RequestUpgradeSyncPacket());
+    }
+
+    /** 打开 AI 配置界面时：请求一份配置快照（服务端立刻回，否则界面第一次打开是空白） */
+    public static void sendRequestAiConfig() {
+        sendToServer(new org.gwfx.zuoyanmod.ai.net.RequestAiConfigPacket());
+    }
+
+    /**
+     * AI 配置界面：提交一次修改。
+     *
+     * <p>内容是一个 JSON 字符串（字段集定义在 {@code ai.core.config.AiConfigEdits}）。
+     * 这里只做长度上限保护，<b>真正的校验在服务端</b> —— 客户端说了不算。
+     */
+    public static void sendUpdateAiConfig(String json) {
+        String payload = json == null ? "{}" : json;
+        if (payload.length() > org.gwfx.zuoyanmod.ai.net.AiConfigSyncPacket.MAX_JSON_CHARS) {
+            payload = "{}";
+        }
+        sendToServer(new org.gwfx.zuoyanmod.ai.net.AiConfigUpdatePacket(payload));
     }
 
     private static void sendToServer(CustomPacketPayload payload) {

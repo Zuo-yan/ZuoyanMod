@@ -122,6 +122,29 @@ dependencies {
     // 运行时由玩家自行安装；未安装 Curios 时饰品走"放背包生效"逻辑。
     compileOnly "curse.maven:curios-309927:8945239"
     runtimeOnly "curse.maven:curios-309927:8945239"
+
+    // JUnit 5：仅 test 作用域，不进发布产物。
+    // 用来验证 ai.core（零 MC 依赖层）的纯逻辑：报文拼装/解析、脱敏、分页、历史裁剪、
+    // 以及「ai.core 里不许出现 net.minecraft」的自检。
+    // ⚠️ 首次解析这几个依赖需要联网；解析过一次后仍可 ./gradlew test --offline。
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Gson：ai.core 的 Provider 用它拼/解报文，而 MC 及其库只挂在 compileOnly 上、
+    // 不会传递到 testCompileClasspath，所以测试必须单独声明一份。
+    // 版本与 MC 26.3 的严格约束一致（见 ./gradlew dependencies 的 compileClasspath），
+    // 避免测试期与运行期出现两份不同的 Gson。
+    testImplementation 'com.google.code.gson:gson:2.14.0'
+}
+
+// 纯 JVM 单测：不依赖 NeoForge 的反编译 / 数据生成等重型准备任务，
+// 因此 ./gradlew test 能独立、快速地跑起来。
+tasks.named('test') {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+    }
 }
 
 // 展开元数据替换属性

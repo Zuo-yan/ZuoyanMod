@@ -49,6 +49,13 @@ replay_*.log
 run/
 runs/
 logs/
+# 正式环境（独立服务端）的运行目录：AI 密钥文件 config/zuoyanmod/ai-secret.dat 落在这里，
+# 必须显式忽略。
+# ⚠️ 前导斜杠不能省！gitignore 里不带锚点的 `config/` 会匹配**任意层级**的同名目录，
+# 结果把源码目录 src/main/java/.../ai/core/config/ 整块忽略了 —— 已经因此漏提交过
+# AiConfig.java，导致干净检出根本编译不过。这里锚定到根目录，再显式补上工程目录下的那份。
+/config/
+/ZuoyanMod/config/
 
 # 操作系统
 Thumbs.db
