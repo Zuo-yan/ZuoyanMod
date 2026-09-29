@@ -1,6 +1,10 @@
 # WorkBuddy
 .workbuddy/
 
+# ZCode（本地会话计划等工具产物）
+.zcode/
+.zcodeignore
+
 # 生成工具脚本（美术资源/代码为程序生成，脚本仅在本机留存，不进仓库）
 *.py
 /ZuoyanMod/tools/
