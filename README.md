@@ -1,6 +1,6 @@
 # ZuoyanMod
 
-一个以「虚空 / 绝对零度 / 领域展开」等机制为核心的 Minecraft 整合型模组，并内置一个**可选的 AI 助手**。
+包含核心机制模组 `ZuoyanMod` 以及独立的 AI 助手模组 `AI-Assisted`。
 
 | 项 | 值 |
 |---|---|
@@ -18,7 +18,7 @@
 
 开发环境：见 `ZuoyanMod/` 下的 Gradle 工程，`./gradlew runClient` 起客户端、`./gradlew build` 构建。
 
-## AI 助手（可选，默认全部关闭）
+## 独立 AI 助手模组（AI-Assisted）
 
 接**你自己的**大模型密钥，在游戏里中文问答，并让它读游戏状态。
 
@@ -27,7 +27,7 @@
 3. **把 `ai.maxTokens` 调到 2048~4096** —— 默认 1024 够聊天，但装不下"建造蓝图"这类长输出，会表现为「模型返回了空回复」
 4. 聊天里说 `ai:<问题>`（需先开 `ai.chatPrefixEnabled`），或直接用 `/ai chat <问题>`
 
-它能做的事、会外发什么、两档"动手"能力（提议执行指令 / 按蓝图建造）各自的门禁与确认流程、排错表，全部写在 **[docs/ai.md](docs/ai.md)**。
+它能做的事、会外发什么、两档"动手"能力（提议执行指令 / 按蓝图建造）各自的门禁与确认流程、排错表，全部写在 **[AI-Assisted/docs/ai.md](AI-Assisted/docs/ai.md)**。
 
 要点先说：密钥加密存在 `config/zuoyanmod/ai-secret.dat`，**永不写进 TOML、永不进日志、永不下发客户端**；任何"改世界"的动作都**默认关闭**且**必须你在游戏内确认**；`/ai undo` 可撤销最近一次 AI 建造。
 
@@ -37,7 +37,7 @@
 
 | 文档 | 内容 |
 |---|---|
-| [docs/ai.md](docs/ai.md) | **AI 助手**：配置、命令、只读工具、危险级能力、隐私边界、排错 |
+| [AI-Assisted/docs/ai.md](AI-Assisted/docs/ai.md) | **AI 助手**：配置、命令、只读工具、危险级能力、隐私边界、排错 |
 | [docs/absolute_zero.md](docs/absolute_zero.md) | 绝对零度 |
 | [docs/vacuum_decay.md](docs/vacuum_decay.md) | 真空衰变 |
 | [docs/void_resonance_pump.md](docs/void_resonance_pump.md) | 虚空共振泵 |

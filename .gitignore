@@ -63,3 +63,6 @@ logs/
 # 操作系统
 Thumbs.db
 .DS_Store
+
+# 独立 AI 模组项目
+AI-Assisted/
