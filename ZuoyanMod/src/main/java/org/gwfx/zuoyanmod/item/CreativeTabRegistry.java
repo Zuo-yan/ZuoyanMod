@@ -108,6 +108,7 @@ public final class CreativeTabRegistry {
                         output.accept(ItemRegistry.RICK_SPAWN_EGG.get());
                         output.accept(ItemRegistry.VOID_MONARCH_SPAWN_EGG.get());
                         output.accept(ItemRegistry.VOID_GUARD_SPAWN_EGG.get());
+                        output.accept(ItemRegistry.SUPER_ELECTRIC_GATLING_PEA_CARD.get());
                     }).build());
 
     private CreativeTabRegistry() {}

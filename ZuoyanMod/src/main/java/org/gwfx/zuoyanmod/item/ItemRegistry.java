@@ -458,6 +458,14 @@ public final class ItemRegistry {
             props -> props.spawnEgg(EntityRegistry.VOID_GUARD.get())
     );
 
+    // 超级电能机枪豌豆卡牌：PvZ Heroes 卡牌外观（见 item 模型贴图），
+    // 底层仍是 SpawnEggItem——右键方格部署豌豆的机制与普通刷怪蛋一致。
+    public static final DeferredItem<SpawnEggItem> SUPER_ELECTRIC_GATLING_PEA_CARD = ITEMS.registerItem(
+            "super_electric_gatling_pea_card",
+            SpawnEggItem::new,
+            props -> props.spawnEgg(EntityRegistry.SUPER_ELECTRIC_GATLING_PEA.get())
+    );
+
     // ===== 湮灭君王之刃（湮灭君主必掉武器：攻击 35、攻速 2.4、对 Boss 标签目标追加魔法伤害） =====
     public static final DeferredItem<MonarchBladeItem> MONARCH_BLADE = ITEMS.registerItem(
             "monarch_blade",

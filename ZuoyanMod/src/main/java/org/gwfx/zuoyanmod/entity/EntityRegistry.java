@@ -136,6 +136,31 @@ public final class EntityRegistry {
                             .updateInterval(2)
             );
 
+    /** 超级电能机枪豌豆：高速射击并连锁电击僵尸/怪物的植物战力。 */
+    public static final DeferredHolder<EntityType<?>, EntityType<SuperElectricGatlingPeaEntity>> SUPER_ELECTRIC_GATLING_PEA =
+            ENTITY_TYPES.registerEntityType(
+                    "super_electric_gatling_pea",
+                    SuperElectricGatlingPeaEntity::new,
+                    MobCategory.CREATURE,
+                    builder -> builder
+                            .sized(0.7F, 1.3F)
+                            .eyeHeight(1.0F)
+                            .clientTrackingRange(10)
+            );
+
+    /** 电能豌豆子弹：极速电浆子弹，带连锁闪电。 */
+    public static final DeferredHolder<EntityType<?>, EntityType<ElectroPeaBulletEntity>> ELECTRO_PEA_BULLET =
+            ENTITY_TYPES.registerEntityType(
+                    "electro_pea_bullet",
+                    ElectroPeaBulletEntity::new,
+                    MobCategory.MISC,
+                    builder -> builder
+                            .sized(0.4F, 0.4F)
+                            .eyeHeight(0.2F)
+                            .clientTrackingRange(8)
+                            .updateInterval(1)
+            );
+
     private EntityRegistry() {}
 
     /**
@@ -149,6 +174,7 @@ public final class EntityRegistry {
         event.put(RICK.get(), RickEntity.createAttributes().build());
         event.put(VOID_MONARCH.get(), VoidMonarchEntity.createAttributes().build());
         event.put(VOID_GUARD.get(), VoidGuardEntity.createAttributes().build());
+        event.put(SUPER_ELECTRIC_GATLING_PEA.get(), SuperElectricGatlingPeaEntity.createAttributes().build());
     }
 
     public static void register(IEventBus modBus) {

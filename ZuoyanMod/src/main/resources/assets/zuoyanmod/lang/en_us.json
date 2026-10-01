@@ -470,5 +470,10 @@
   "gui.zuoyanmod.upgrade.talent_cooldown": "§8Cooldown: %ss",
   "gui.zuoyanmod.upgrade.extra_skill": "Extra Skill",
   "gui.zuoyanmod.upgrade.extra_skill_hint": "Coming Soon",
-  "gui.zuoyanmod.upgrade.extra_skill_locked": "§eThe extra skill is not yet available"
+  "gui.zuoyanmod.upgrade.extra_skill_locked": "§eThe extra skill is not yet available",
+  "entity.zuoyanmod.super_electric_gatling_pea": "Super Electric Gatling Pea",
+  "entity.zuoyanmod.electro_pea_bullet": "Electro Pea Bullet",
+  "item.zuoyanmod.super_electric_gatling_pea_card": "Super Electric Gatling Pea Card",
+  "subtitles.entity.super_electric_gatling_pea.shoot": "Super Electro Gatling Pea shoots",
+  "subtitles.entity.super_electric_gatling_pea.ult": "Super Electro Gatling Pea storms"
 }

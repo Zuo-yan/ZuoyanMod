@@ -1,7 +1,7 @@
 {
   "itemGroup.zuoyanmod": "过往浮现",
   "key.category.zuoyanmod.zuoyan": "过往浮现",
-  "key.zuoyanmod.toggle_realm": "进入领域展开",
+  "key.zuoyanmod.toggle_realm": "进入超平坦世界",
   "key.zuoyanmod.open_upgrade": "打开升级界面",
   "key.zuoyanmod.ultimate": "触发终极天赋",
   "gui.zuoyanmod.upgrade.title": "能力升华",
@@ -470,5 +470,10 @@
   "gui.zuoyanmod.upgrade.talent_cooldown": "§8冷却时间:%s 秒",
   "gui.zuoyanmod.upgrade.extra_skill": "额外技能",
   "gui.zuoyanmod.upgrade.extra_skill_hint": "敬请期待",
-  "gui.zuoyanmod.upgrade.extra_skill_locked": "§e额外技能尚未开放,敬请期待"
+  "gui.zuoyanmod.upgrade.extra_skill_locked": "§e额外技能尚未开放,敬请期待",
+  "entity.zuoyanmod.super_electric_gatling_pea": "超级电能机枪豌豆",
+  "entity.zuoyanmod.electro_pea_bullet": "电能豌豆",
+  "item.zuoyanmod.super_electric_gatling_pea_card": "超级电能机枪豌豆卡牌",
+  "subtitles.entity.super_electric_gatling_pea.shoot": "超级电能机枪射击",
+  "subtitles.entity.super_electric_gatling_pea.ult": "超级电能机枪：雷霆风暴大招！"
 }

@@ -34,21 +34,9 @@ public final class BossModelLayers {
 
     private BossModelLayers() {}
 
-    /** 湮灭君主：标准人形 + 金冠环 + 冠前宝石。 */
+    /** 湮灭君主：高精立体独立骨骼（含披风、金冠、虚空光轮双翼与内置湮灭君王之刃）。 */
     public static LayerDefinition createMonarchBodyLayer() {
-        MeshDefinition mesh = HumanoidModel.createMesh(CubeDeformation.NONE, 0.0F);
-        PartDefinition root = mesh.getRoot();
-        root.getChild("head").addOrReplaceChild("crown",
-                CubeListBuilder.create()
-                        .texOffs(32, 0)
-                        .addBox(-4.0F, -9.5F, -4.0F, 8.0F, 2.0F, 8.0F, CubeDeformation.NONE),
-                PartPose.ZERO);
-        root.getChild("head").addOrReplaceChild("gem",
-                CubeListBuilder.create()
-                        .texOffs(56, 10)
-                        .addBox(-1.0F, -9.9F, -5.2F, 2.0F, 2.0F, 2.0F, CubeDeformation.NONE),
-                PartPose.ZERO);
-        return LayerDefinition.create(mesh, 64, 64);
+        return VoidMonarchModel.createBodyLayer();
     }
 
     /** 湮灭侍卫：普通 64x64 人形层，与瑞克同款。 */
