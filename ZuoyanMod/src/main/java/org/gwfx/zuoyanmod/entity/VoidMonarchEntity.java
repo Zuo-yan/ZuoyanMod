@@ -4,6 +4,9 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
@@ -15,6 +18,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
@@ -23,8 +27,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.MoveTowardsRestrictionGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
@@ -38,37 +42,57 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import org.gwfx.zuoyanmod.Zuoyanmod;
 
+import java.util.EnumSet;
 import java.util.List;
 
 /**
  * 湮灭君主：湮灭王座遗迹的守关 Boss。
  *
- * <p>战斗设计（数值刻意拉高，参照系：凋灵 300 血 / Rick 攻击 42）：
+ * <p>战斗与动画设计：
  * <ul>
- *   <li><b>沉眠</b>——随遗迹生成时坐在王座上：不动、不受伤害、每秒回 5 血；
- *       玩家靠近王座 6 格才觉醒（标题演出 + 音效 + Boss 血条浮现），
- *       这是与暮色森林（Boss 直接站着等）和 WDA（没有 Boss）的差异化机制；</li>
- *   <li><b>挥砍</b>——近战 100 点，命中时对目标周围 4 格内的其他生物横扫 50 点；</li>
- *   <li><b>召唤</b>——血量低于 60% 召唤 3 名湮灭侍卫（只触发一次）；</li>
- *   <li><b>弹幕</b>——周期性向目标发射暗物质螺栓（每发 40 点），狂暴后加密；</li>
- *   <li><b>狂暴</b>——血量低于 30% 时攻击 +20（共 120）、移速 +20%。</li>
+ *   <li><b>王座沉眠</b>——随遗迹生成端坐王座：免伤、回血；玩家靠近 6 格触发 3 秒霸体觉醒演出；</li>
+ *   <li><b>近战挥斩</b>——手持湮灭君王之刃：普通阶段单手大范围横扫，二阶段追加狂暴双手跃起重劈；</li>
+ *   <li><b>狂暴蜕变</b>——血量低于 30% 激活二阶段：展开背部虚空光轮双翼并怒吼，强化攻速移速；</li>
+ *   <li><b>死亡跪地</b>——生命归零后进入 3 秒单膝下跪忏悔虚弱演出，大剑脱手插入地面并化作虚空粒子消散。</li>
  * </ul>
  */
 public class VoidMonarchEntity extends Monster {
+
+    private static final EntityDataAccessor<Boolean> DATA_AWAKENED =
+            SynchedEntityData.defineId(VoidMonarchEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> DATA_AWAKENING =
+            SynchedEntityData.defineId(VoidMonarchEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> DATA_ENRAGED =
+            SynchedEntityData.defineId(VoidMonarchEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Byte> DATA_ATTACK_STATE =
+            SynchedEntityData.defineId(VoidMonarchEntity.class, EntityDataSerializers.BYTE);
+    private static final EntityDataAccessor<Boolean> DATA_IS_DYING =
+            SynchedEntityData.defineId(VoidMonarchEntity.class, EntityDataSerializers.BOOLEAN);
+
+    // 客户端关键帧动画控制器
+    public final AnimationState sitAnimationState = new AnimationState();
+    public final AnimationState awakenAnimationState = new AnimationState();
+    public final AnimationState idleAnimationState = new AnimationState();
+    public final AnimationState walkAnimationState = new AnimationState();
+    public final AnimationState attackHorizontalAnimationState = new AnimationState();
+    public final AnimationState attackOverheadAnimationState = new AnimationState();
+    public final AnimationState phase2AnimationState = new AnimationState();
+    public final AnimationState deathAnimationState = new AnimationState();
+    public final AnimationState attackBarrageAnimationState = new AnimationState();
 
     /** 触发觉醒的玩家接近半径（格） */
     private static final double AWAKEN_RADIUS = 6.0D;
     /** 横扫半径与伤害 */
     private static final double SWEEP_RADIUS = 4.0D;
     private static final float SWEEP_DAMAGE = 50.0F;
-    /** 沉眠时每 tick 回复的血量（20 tick/s → 5 血/s） */
+    /** 沉眠时每 tick 回复的血量（20 tick/s -> 5 血/s） */
     private static final float DORMANT_HEAL_PER_TICK = 0.25F;
     /** 弹幕 Goal 的基础冷却（tick），狂暴减半 */
     private static final int BARRAGE_COOLDOWN = 120;
     private static final int BARRAGE_COUNT = 4;
     private static final double BARRAGE_RANGE = 24.0D;
 
-    /** 狂暴加成的属性修饰符 ID（永久修饰符随实体 NBT 存档，不会重复叠加） */
+    /** 狂暴加成的属性修饰符 ID */
     private static final Identifier ENRAGE_DAMAGE_ID =
             Identifier.fromNamespaceAndPath(Zuoyanmod.MODID, "void_monarch_enrage_damage");
     private static final Identifier ENRAGE_SPEED_ID =
@@ -79,22 +103,51 @@ public class VoidMonarchEntity extends Monster {
             Mth.createInsecureUUID(this.random), this.getDisplayName(),
             BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.NOTCHED_10);
 
-    /** 是否已从沉眠中觉醒 */
-    private boolean awakened;
-    /** 是否已召唤过侍卫（每场战斗只召唤一轮） */
+    /** 是否已召唤过侍卫 */
     private boolean summonedGuards;
-    /** 是否已进入狂暴 */
-    private boolean enraged;
-
-    public boolean isEnraged() {
-        return this.enraged;
-    }
+    /** 起身霸体倒计时（tick） */
+    private int awakeningTicks = 0;
+    /** 狂暴咆哮动画计时 */
+    private int phase2RoarTicks = 0;
+    /** 弹幕施法动画计时（0.7s 处释放 volley，1.3s 收势） */
+    private int barrageCastTicks = 0;
+    /** 弹幕 Goal 冷却 */
+    private int cooldownUntil;
 
     public VoidMonarchEntity(EntityType<? extends VoidMonarchEntity> type, Level level) {
         super(type, level);
-        // 结构生成的 Boss 不能随距离消失，否则玩家走远再回来 Boss 就没了
         this.setPersistenceRequired();
         this.xpReward = 500;
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_AWAKENED, false);
+        builder.define(DATA_AWAKENING, false);
+        builder.define(DATA_ENRAGED, false);
+        builder.define(DATA_ATTACK_STATE, (byte) 0);
+        builder.define(DATA_IS_DYING, false);
+    }
+
+    public boolean isAwakened() {
+        return this.entityData.get(DATA_AWAKENED);
+    }
+
+    public boolean isAwakening() {
+        return this.entityData.get(DATA_AWAKENING);
+    }
+
+    public boolean isEnraged() {
+        return this.entityData.get(DATA_ENRAGED);
+    }
+
+    public byte getAttackState() {
+        return this.entityData.get(DATA_ATTACK_STATE);
+    }
+
+    public boolean isDying() {
+        return this.entityData.get(DATA_IS_DYING);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -112,39 +165,30 @@ public class VoidMonarchEntity extends Monster {
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.0D, true));
+        this.goalSelector.addGoal(2, new MonarchBladeAttackGoal());
+        this.goalSelector.addGoal(4, new BarrageGoal());
         this.goalSelector.addGoal(6, new MoveTowardsRestrictionGoal(this, 1.0D));
         this.goalSelector.addGoal(7, new RandomStrollGoal(this, 0.6D));
         this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 12.0F));
         this.goalSelector.addGoal(9, new RandomLookAroundGoal(this));
-        this.goalSelector.addGoal(4, new BarrageGoal());
+
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
-    // ------------------------------------------------------------------
-    // 沉眠 / 觉醒
-    // ------------------------------------------------------------------
-
-    public boolean isAwakened() {
-        return this.awakened;
-    }
-
-    /** 沉眠时完全不挪动（同原版睡觉生物的 isImmobile 用法）。 */
     @Override
     protected boolean isImmobile() {
-        return !this.awakened || super.isImmobile();
+        return !isAwakened() || isAwakening() || isDying() || super.isImmobile();
     }
 
     @Override
     public boolean isPushable() {
-        return this.awakened && super.isPushable();
+        return isAwakened() && !isAwakening() && !isDying() && super.isPushable();
     }
 
-    /** 沉眠时无敌——否则玩家隔墙射箭能把 Boss 磨死，觉醒演出就没了意义。 */
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
-        if (!this.awakened && !source.is(net.minecraft.world.damagesource.DamageTypes.GENERIC_KILL)) {
+        if ((!isAwakened() || isAwakening() || isDying()) && !source.is(DamageTypes.GENERIC_KILL)) {
             return false;
         }
         return super.hurtServer(level, source, damage);
@@ -153,11 +197,13 @@ public class VoidMonarchEntity extends Monster {
     @Override
     public void tick() {
         super.tick();
+
         if (this.level().isClientSide()) {
+            updateClientAnimations();
             return;
         }
-        if (!this.awakened) {
-            // 沉眠回血 + 每 10 tick 扫一次附近玩家
+
+        if (!isAwakened()) {
             if (this.getHealth() < this.getMaxHealth()) {
                 this.heal(DORMANT_HEAL_PER_TICK);
             }
@@ -167,17 +213,108 @@ public class VoidMonarchEntity extends Monster {
                     awaken();
                 }
             }
+            return;
+        }
+
+        if (this.awakeningTicks > 0) {
+            this.awakeningTicks--;
+            if (this.awakeningTicks == 0) {
+                this.entityData.set(DATA_AWAKENING, false);
+            }
+        }
+
+        if (this.phase2RoarTicks > 0) {
+            this.phase2RoarTicks--;
+            if (this.phase2RoarTicks == 0 && this.getAttackState() == 3) {
+                this.entityData.set(DATA_ATTACK_STATE, (byte) 0);
+            }
+        }
+
+        if (this.barrageCastTicks > 0) {
+            this.barrageCastTicks--;
+            if (this.barrageCastTicks == 14 && this.getTarget() != null) {
+                fireBarrage();
+            }
+            if (this.barrageCastTicks == 0 && this.getAttackState() == 4) {
+                this.entityData.set(DATA_ATTACK_STATE, (byte) 0);
+            }
+        }
+    }
+
+    private void updateClientAnimations() {
+        if (isDying()) {
+            this.deathAnimationState.startIfStopped(this.tickCount);
+            this.sitAnimationState.stop();
+            this.awakenAnimationState.stop();
+            this.idleAnimationState.stop();
+            this.walkAnimationState.stop();
+            this.attackHorizontalAnimationState.stop();
+            this.attackOverheadAnimationState.stop();
+            this.phase2AnimationState.stop();
+            this.attackBarrageAnimationState.stop();
+            return;
+        }
+
+        if (!isAwakened()) {
+            this.sitAnimationState.startIfStopped(this.tickCount);
+            this.awakenAnimationState.stop();
+            this.idleAnimationState.stop();
+            this.walkAnimationState.stop();
+            return;
+        }
+
+        if (isAwakening()) {
+            this.awakenAnimationState.startIfStopped(this.tickCount);
+            this.sitAnimationState.stop();
+            this.idleAnimationState.stop();
+            return;
+        }
+
+        this.sitAnimationState.stop();
+        this.awakenAnimationState.stop();
+        this.idleAnimationState.startIfStopped(this.tickCount);
+
+        if (this.getDeltaMovement().horizontalDistanceSqr() > 0.0008D) {
+            this.walkAnimationState.startIfStopped(this.tickCount);
+        } else {
+            this.walkAnimationState.stop();
+        }
+
+        byte atk = getAttackState();
+        if (atk == 1) {
+            this.attackHorizontalAnimationState.startIfStopped(this.tickCount);
+        } else {
+            this.attackHorizontalAnimationState.stop();
+        }
+
+        if (atk == 2) {
+            this.attackOverheadAnimationState.startIfStopped(this.tickCount);
+        } else {
+            this.attackOverheadAnimationState.stop();
+        }
+
+        if (atk == 3) {
+            this.phase2AnimationState.startIfStopped(this.tickCount);
+        } else {
+            this.phase2AnimationState.stop();
+        }
+
+        if (atk == 4) {
+            this.attackBarrageAnimationState.startIfStopped(this.tickCount);
+        } else {
+            this.attackBarrageAnimationState.stop();
         }
     }
 
     private void awaken() {
-        this.awakened = true;
+        this.entityData.set(DATA_AWAKENED, true);
+        this.entityData.set(DATA_AWAKENING, true);
+        this.awakeningTicks = 60;
+        this.cooldownUntil = this.tickCount + 80;
         this.bossEvent.setVisible(true);
-        // 觉醒演出后给玩家 3 秒喘息，弹幕不会立刻砸脸
-        this.cooldownUntil = this.tickCount + 60;
+
         this.playSound(SoundEvents.WITHER_SPAWN, 3.0F, 0.7F);
         if (this.level() instanceof ServerLevel serverLevel) {
-            // 全维度广播标题（Boss 遗迹值得一点仪式感）
             for (ServerPlayer player : serverLevel.players()) {
                 player.connection.send(new ClientboundSetTitlesAnimationPacket(10, 70, 20));
                 player.connection.send(new ClientboundSetTitleTextPacket(
@@ -185,18 +322,14 @@ public class VoidMonarchEntity extends Monster {
             }
             serverLevel.sendParticles(ParticleTypes.PORTAL,
                     this.getX(), this.getY() + this.getBbHeight() * 0.5D, this.getZ(),
-                    120, 1.2D, 1.6D, 1.2D, 0.6D);
+                    150, 1.5D, 1.8D, 1.5D, 0.8D);
         }
     }
-
-    // ------------------------------------------------------------------
-    // 阶段机制
-    // ------------------------------------------------------------------
 
     @Override
     public void aiStep() {
         super.aiStep();
-        if (this.level().isClientSide() || !this.awakened) {
+        if (this.level().isClientSide() || !isAwakened() || isAwakening() || isDying()) {
             return;
         }
         this.bossEvent.setProgress(this.getHealth() / this.getMaxHealth());
@@ -206,8 +339,7 @@ public class VoidMonarchEntity extends Monster {
             this.summonedGuards = true;
             summonGuards();
         }
-        if (!this.enraged && healthFraction < 0.3F) {
-            this.enraged = true;
+        if (!isEnraged() && healthFraction < 0.3F) {
             applyEnrage();
         }
     }
@@ -238,20 +370,28 @@ public class VoidMonarchEntity extends Monster {
     }
 
     private void applyEnrage() {
-        this.playSound(SoundEvents.RAVAGER_ROAR, 3.0F, 1.2F);
-        // 永久修饰符会随 NBT 存档，enraged 标记保证只在进入狂暴时加一次
+        this.entityData.set(DATA_ENRAGED, true);
+        this.entityData.set(DATA_ATTACK_STATE, (byte) 3);
+        this.phase2RoarTicks = 40;
+
+        this.playSound(SoundEvents.RAVAGER_ROAR, 3.5F, 0.9F);
+        this.playSound(SoundEvents.WITHER_SPAWN, 2.5F, 1.2F);
+
         this.getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(
                 new AttributeModifier(ENRAGE_DAMAGE_ID, 20.0D, AttributeModifier.Operation.ADD_VALUE));
         this.getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(
                 new AttributeModifier(ENRAGE_SPEED_ID, 0.20D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+
         if (this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.PORTAL,
+                    this.getX(), this.getY() + 1.5D, this.getZ(),
+                    120, 1.2D, 1.8D, 1.2D, 0.8D);
             serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE,
-                    this.getX(), this.getY() + this.getBbHeight() * 0.5D, this.getZ(),
+                    this.getX(), this.getY() + 1.5D, this.getZ(),
                     80, 1.0D, 1.4D, 1.0D, 0.1D);
         }
     }
 
-    /** 近战横扫：主目标吃满 100，站在目标身边的生物被剑气波及。 */
     @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
         boolean hit = super.doHurtTarget(level, target);
@@ -265,10 +405,6 @@ public class VoidMonarchEntity extends Monster {
         }
         return hit;
     }
-
-    // ------------------------------------------------------------------
-    // Boss 血条生命周期
-    // ------------------------------------------------------------------
 
     @Override
     public void startSeenByPlayer(ServerPlayer player) {
@@ -284,42 +420,62 @@ public class VoidMonarchEntity extends Monster {
 
     @Override
     public void die(DamageSource source) {
-        super.die(source);
+        this.entityData.set(DATA_IS_DYING, true);
+        this.entityData.set(DATA_ATTACK_STATE, (byte) 0);
         this.bossEvent.setProgress(0.0F);
+        this.setTarget(null);
+        super.die(source);
     }
 
-    // ------------------------------------------------------------------
-    // 存档
-    // ------------------------------------------------------------------
+    @Override
+    protected void tickDeath() {
+        this.deathTime++;
+        if (this.level() instanceof ServerLevel serverLevel) {
+            if (this.deathTime % 2 == 0) {
+                serverLevel.sendParticles(ParticleTypes.PORTAL,
+                        this.getX() + (this.random.nextDouble() - 0.5D) * 1.5D,
+                        this.getY() + this.random.nextDouble() * 2.5D,
+                        this.getZ() + (this.random.nextDouble() - 0.5D) * 1.5D,
+                        15, 0.4D, 0.6D, 0.4D, 0.1D);
+            }
+            if (this.deathTime == 20) {
+                this.playSound(SoundEvents.WITHER_HURT, 3.0F, 0.5F);
+            }
+            if (this.deathTime >= 60 && !this.isRemoved()) {
+                serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL,
+                        this.getX(), this.getY() + 1.2D, this.getZ(),
+                        200, 1.5D, 1.8D, 1.5D, 0.3D);
+                this.level().broadcastEntityEvent(this, (byte) 60);
+                this.remove(RemovalReason.KILLED);
+            }
+        }
+    }
 
     @Override
     protected void addAdditionalSaveData(ValueOutput tag) {
         super.addAdditionalSaveData(tag);
-        tag.putBoolean("Awakened", this.awakened);
+        tag.putBoolean("Awakened", isAwakened());
         tag.putBoolean("SummonedGuards", this.summonedGuards);
-        tag.putBoolean("Enraged", this.enraged);
+        tag.putBoolean("Enraged", isEnraged());
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        this.awakened = tag.getBooleanOr("Awakened", false);
+        boolean aw = tag.getBooleanOr("Awakened", false);
+        this.entityData.set(DATA_AWAKENED, aw);
         this.summonedGuards = tag.getBooleanOr("SummonedGuards", false);
-        this.enraged = tag.getBooleanOr("Enraged", false);
+        boolean en = tag.getBooleanOr("Enraged", false);
+        this.entityData.set(DATA_ENRAGED, en);
         if (this.hasCustomName()) {
             this.bossEvent.setName(this.getDisplayName());
         }
-        // 觉醒状态随存档恢复：读档后血条立即对在场玩家可见
-        this.bossEvent.setVisible(this.awakened);
+        this.bossEvent.setVisible(aw);
     }
-
-    // ------------------------------------------------------------------
-    // 音效
-    // ------------------------------------------------------------------
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return this.awakened ? SoundEvents.WITHER_AMBIENT : null;
+        return isAwakened() && !isDying() ? SoundEvents.WITHER_AMBIENT : null;
     }
 
     @Override
@@ -332,24 +488,97 @@ public class VoidMonarchEntity extends Monster {
         return SoundEvents.WITHER_DEATH;
     }
 
-    // ------------------------------------------------------------------
-    // 弹幕 Goal
-    // ------------------------------------------------------------------
+    private class MonarchBladeAttackGoal extends Goal {
+        private int attackTicks = 0;
+        private int cooldown = 0;
+        private byte chosenType = 1;
 
-    /**
-     * 暗物质弹幕：对着目标扇形发射暗物质螺栓。
-     * 沉眠时永不触发；狂暴后冷却减半、弹数翻倍。
-     */
-    private class BarrageGoal extends net.minecraft.world.entity.ai.goal.Goal {
-        private int cooldown;
-
-        BarrageGoal() {
-            this.setFlags(java.util.EnumSet.of(Flag.MOVE, Flag.LOOK));
+        public MonarchBladeAttackGoal() {
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
         }
 
         @Override
         public boolean canUse() {
-            if (!VoidMonarchEntity.this.awakened || VoidMonarchEntity.this.cooldownUntil > VoidMonarchEntity.this.tickCount) {
+            if (!VoidMonarchEntity.this.isAwakened() || VoidMonarchEntity.this.isAwakening() || VoidMonarchEntity.this.isDying()) {
+                return false;
+            }
+            // 二阶段纯施法者：君主之刃近战只在常态使用
+            if (VoidMonarchEntity.this.isEnraged()) {
+                return false;
+            }
+            if (VoidMonarchEntity.this.phase2RoarTicks > 0 || this.cooldown > 0) {
+                if (this.cooldown > 0) {
+                    this.cooldown--;
+                }
+                return false;
+            }
+            LivingEntity target = VoidMonarchEntity.this.getTarget();
+            if (target == null || !target.isAlive()) {
+                return false;
+            }
+            return VoidMonarchEntity.this.distanceToSqr(target) <= 25.0D;
+        }
+
+        @Override
+        public void start() {
+            this.attackTicks = 0;
+            if (VoidMonarchEntity.this.isEnraged() && VoidMonarchEntity.this.random.nextBoolean()) {
+                this.chosenType = 2;
+            } else {
+                this.chosenType = 1;
+            }
+            VoidMonarchEntity.this.entityData.set(DATA_ATTACK_STATE, this.chosenType);
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return this.attackTicks < (this.chosenType == 2 ? 24 : 20);
+        }
+
+        @Override
+        public void tick() {
+            LivingEntity target = VoidMonarchEntity.this.getTarget();
+            if (target != null) {
+                VoidMonarchEntity.this.getLookControl().setLookAt(target, 30.0F, 30.0F);
+            }
+
+            this.attackTicks++;
+
+            int hitFrame = (this.chosenType == 2) ? 11 : 8;
+            if (this.attackTicks == hitFrame && target != null) {
+                if (VoidMonarchEntity.this.distanceToSqr(target) <= 36.0D && VoidMonarchEntity.this.level() instanceof ServerLevel serverLevel) {
+                    if (this.chosenType == 2) {
+                        VoidMonarchEntity.this.doHurtTarget(serverLevel, target);
+                        target.hurtServer(serverLevel, VoidMonarchEntity.this.damageSources().mobAttack(VoidMonarchEntity.this), 40.0F);
+                        VoidMonarchEntity.this.playSound(SoundEvents.GENERIC_EXPLODE.value(), 1.5F, 1.2F);
+                        serverLevel.sendParticles(ParticleTypes.EXPLOSION, target.getX(), target.getY() + 0.2D, target.getZ(), 5, 0.5D, 0.2D, 0.5D, 0.05D);
+                    } else {
+                        VoidMonarchEntity.this.doHurtTarget(serverLevel, target);
+                        VoidMonarchEntity.this.playSound(SoundEvents.PLAYER_ATTACK_SWEEP, 2.0F, 0.8F);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void stop() {
+            VoidMonarchEntity.this.entityData.set(DATA_ATTACK_STATE, (byte) 0);
+            this.cooldown = VoidMonarchEntity.this.isEnraged() ? 8 : 16;
+        }
+    }
+
+    private class BarrageGoal extends Goal {
+        BarrageGoal() {
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        }
+
+        @Override
+        public boolean canUse() {
+            if (!VoidMonarchEntity.this.isAwakened() || VoidMonarchEntity.this.isAwakening() || VoidMonarchEntity.this.isDying()) {
+                return false;
+            }
+            if (VoidMonarchEntity.this.barrageCastTicks > 0
+                    || VoidMonarchEntity.this.cooldownUntil > VoidMonarchEntity.this.tickCount || VoidMonarchEntity.this.phase2RoarTicks > 0) {
                 return false;
             }
             LivingEntity target = VoidMonarchEntity.this.getTarget();
@@ -357,7 +586,7 @@ public class VoidMonarchEntity extends Monster {
                 return false;
             }
             double distSq = VoidMonarchEntity.this.distanceToSqr(target);
-            return distSq < BARRAGE_RANGE * BARRAGE_RANGE && distSq > 9.0D;
+            return distSq < BARRAGE_RANGE * BARRAGE_RANGE && distSq > 16.0D;
         }
 
         @Override
@@ -367,7 +596,9 @@ public class VoidMonarchEntity extends Monster {
 
         @Override
         public void start() {
-            fireBarrage();
+            // 起手施法动画（attackState 4），volley 由 tick 计时在 0.7s 处释放
+            VoidMonarchEntity.this.entityData.set(DATA_ATTACK_STATE, (byte) 4);
+            VoidMonarchEntity.this.barrageCastTicks = 26;
         }
 
         @Override
@@ -376,19 +607,15 @@ public class VoidMonarchEntity extends Monster {
         }
     }
 
-    /** Goal 结束后由 tick 推进冷却；字段挂在实体上方便存档期不需要持久化（数值级细节）。 */
-    private int cooldownUntil;
-
     private void fireBarrage() {
         LivingEntity target = this.getTarget();
         if (target == null || !(this.level() instanceof ServerLevel serverLevel)) {
             return;
         }
-        boolean enraged = this.enraged;
+        boolean enraged = isEnraged();
         int count = enraged ? BARRAGE_COUNT * 2 : BARRAGE_COUNT;
         for (int i = 0; i < count; i++) {
             VoidBoltEntity bolt = new VoidBoltEntity(this.level(), this);
-            // 目标位置加随机散布，形成弹幕而非激光
             double spread = enraged ? 2.5D : 1.5D;
             double tx = target.getX() + (this.random.nextDouble() - 0.5D) * spread * 2.0D;
             double ty = target.getY() + target.getBbHeight() * 0.5D + (this.random.nextDouble() - 0.5D) * spread;
@@ -396,7 +623,6 @@ public class VoidMonarchEntity extends Monster {
             double dx = tx - this.getX();
             double dy = ty - (this.getEyeY() - 0.3D);
             double dz = tz - this.getZ();
-            // shoot 内部对方向归一化后乘 velocity，这里只需给固定初速
             bolt.shoot(dx, dy, dz, 0.9F, 0.0F);
             serverLevel.addFreshEntity(bolt);
         }

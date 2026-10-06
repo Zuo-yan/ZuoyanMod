@@ -4,6 +4,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 
 import java.util.Optional;
 
@@ -27,5 +28,21 @@ public final class RegistryLookup {
     /** 注册表里是否存在该 ID 的物品（id 为 null 时返回 false） */
     public static boolean hasItem(Identifier id) {
         return id != null && BuiltInRegistries.ITEM.containsKey(id);
+    }
+
+    /** 适配 26.3：方块同理，返回解包后的 Block（T001-6 的蓝图校验与放置都要用） */
+    public static Optional<Block> block(Identifier id) {
+        return id == null ? Optional.empty() : BuiltInRegistries.BLOCK.get(id).map(Holder.Reference::value);
+    }
+
+    /** 注册表里是否存在该 ID 的方块。 */
+    public static boolean hasBlock(Identifier id) {
+        return id != null && BuiltInRegistries.BLOCK.containsKey(id);
+    }
+
+    /** 方块的注册 ID（形如 {@code minecraft:oak_planks}）；未注册时返回空串。 */
+    public static String blockId(Block block) {
+        Identifier id = block == null ? null : BuiltInRegistries.BLOCK.getKey(block);
+        return id == null ? "" : id.toString();
     }
 }

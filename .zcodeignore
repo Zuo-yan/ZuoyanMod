@@ -17,11 +17,8 @@ ZuoyanMod/.eclipse/
 /mcsrc/
 
 # Gradle
-/.gradle/
-/ZuoyanMod/.gradle/
-# ⚠️ 前导斜杠不能省！不带锚点的 build/ 会误伤源码目录 src/.../ai/build 和 ai/core/build
-/build/
-/ZuoyanMod/build/
+.gradle/
+build/
 
 # maven-publish 任务发布到项目目录内的本地仓库
 repo/
@@ -52,17 +49,39 @@ replay_*.log
 run/
 runs/
 logs/
-# 正式环境（独立服务端）的运行目录：AI 密钥文件 config/zuoyanmod/ai-secret.dat 落在这里，
-# 必须显式忽略。
-# ⚠️ 前导斜杠不能省！gitignore 里不带锚点的 `config/` 会匹配**任意层级**的同名目录，
-# 结果把源码目录 src/main/java/.../ai/core/config/ 整块忽略了 —— 已经因此漏提交过
-# AiConfig.java，导致干净检出根本编译不过。这里锚定到根目录，再显式补上工程目录下的那份。
-/config/
-/ZuoyanMod/config/
 
 # 操作系统
 Thumbs.db
 .DS_Store
 
-# 独立 AI 模组项目
-AI-Assisted/
+# ===== ↑ 以上同步自 .gitignore（「从 .gitignore 同步」只重写以上部分）=====
+.git/
+.hg/
+.svn/
+node_modules/
+bower_components/
+jspm_packages/
+__pycache__/
+site-packages/
+venv/
+coverage/
+htmlcov/
+lcov-report/
+cmakefiles/
+cmake-build-*/
+bazel-*/
+pods/
+deriveddata/
+storybook-static/
+playwright-report/
+test-results/
+allure-results/
+allure-report/
+cdk.out/
+*.egg-info/
+*.dist-info/
+eggs/
+pip-wheel-metadata/
+wheels/
+# ----- ↑ 以上为 ZCode 默认排除规则（自定义规则请写在本行下方，不会被同步/恢复改动）-----
+# 自定义规则写在下方（本行提示可删除）

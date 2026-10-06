@@ -55,5 +55,39 @@
         "stream": true
       }
     ]
+  },
+  "entity.super_electric_gatling_pea.shoot": {
+    "subtitle": "subtitles.entity.super_electric_gatling_pea.shoot",
+    "sounds": [
+      {
+        "name": "zuoyanmod:entity/super_electric_gatling_pea/shoot",
+        "volume": 0.9,
+        "pitch": 1.4,
+        "stream": false
+      },
+      {
+        "name": "zuoyanmod:entity/super_electric_gatling_pea/zap",
+        "volume": 0.8,
+        "pitch": 1.2,
+        "stream": false
+      }
+    ]
+  },
+  "entity.super_electric_gatling_pea.ult": {
+    "subtitle": "subtitles.entity.super_electric_gatling_pea.ult",
+    "sounds": [
+      {
+        "name": "zuoyanmod:entity/super_electric_gatling_pea/ult",
+        "volume": 1.2,
+        "pitch": 1.0,
+        "stream": false
+      },
+      {
+        "name": "zuoyanmod:entity/super_electric_gatling_pea/shoot",
+        "volume": 1.0,
+        "pitch": 1.6,
+        "stream": false
+      }
+    ]
   }
 }

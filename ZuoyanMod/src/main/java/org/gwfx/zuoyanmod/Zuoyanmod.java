@@ -107,6 +107,11 @@ public class Zuoyanmod {
             // 暗物质螺栓：暗紫能量球 billboard
             event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.VOID_BOLT.get(),
                     org.gwfx.zuoyanmod.client.VoidBoltRenderer::new);
+            // 超级电能机枪豌豆与电能豌豆子弹
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.SUPER_ELECTRIC_GATLING_PEA.get(),
+                    org.gwfx.zuoyanmod.client.SuperElectricGatlingPeaRenderer::new);
+            event.registerEntityRenderer(org.gwfx.zuoyanmod.entity.EntityRegistry.ELECTRO_PEA_BULLET.get(),
+                    org.gwfx.zuoyanmod.client.ElectroPeaBulletRenderer::new);
         }
 
         @SubscribeEvent
@@ -117,6 +122,10 @@ public class Zuoyanmod {
                     org.gwfx.zuoyanmod.client.BossModelLayers::createMonarchBodyLayer);
             event.registerLayerDefinition(org.gwfx.zuoyanmod.client.BossModelLayers.VOID_GUARD_BODY,
                     org.gwfx.zuoyanmod.client.BossModelLayers::createGuardBodyLayer);
+            event.registerLayerDefinition(org.gwfx.zuoyanmod.client.PeaModelLayers.SUPER_ELECTRIC_GATLING_PEA,
+                    org.gwfx.zuoyanmod.client.SuperElectricGatlingPeaModel::createBodyLayer);
+            event.registerLayerDefinition(org.gwfx.zuoyanmod.client.PeaModelLayers.ELECTRO_PEA_BULLET,
+                    org.gwfx.zuoyanmod.client.ElectroPeaBulletModel::createBodyLayer);
         }
     }
 }

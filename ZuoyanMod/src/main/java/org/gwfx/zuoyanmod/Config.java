@@ -8,7 +8,9 @@ import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.gwfx.zuoyanmod.platform.RegistryLookup;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -131,6 +133,10 @@ public class Config {
         return false;
     }
 
+    private static String normalize(String value) {
+        return value == null ? "" : value.strip();
+    }
+
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
         logDirtBlock = LOG_DIRT_BLOCK.get();
@@ -151,6 +157,7 @@ public class Config {
         upgradeUltimateCooldownMultiplier = UPGRADE_ULTIMATE_COOLDOWN_MULTIPLIER.get();
         upgradeGrappleRange = UPGRADE_GRAPPLE_RANGE.get();
         upgradeLaunchRadius = UPGRADE_LAUNCH_RADIUS.get();
+
 
         // 注册表按 ID 查询的返回类型随版本变化（26.3 是 Optional<Holder.Reference>），
         // 解包细节统一封装在 platform 适配层的 RegistryLookup 里
