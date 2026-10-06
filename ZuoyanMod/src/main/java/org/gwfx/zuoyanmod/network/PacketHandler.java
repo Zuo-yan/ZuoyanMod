@@ -84,6 +84,11 @@ public final class PacketHandler {
                 TriggerUltimatePacket.STREAM_CODEC,
                 TriggerUltimatePacket::handle
         );
+       registrar.playToServer(
+               CarriedPeaActionPacket.TYPE,
+               CarriedPeaActionPacket.STREAM_CODEC,
+               CarriedPeaActionPacket::handle
+       );
         registrar.playToServer(
                 RequestUpgradeSyncPacket.TYPE,
                 RequestUpgradeSyncPacket.STREAM_CODEC,
@@ -152,6 +157,11 @@ public final class PacketHandler {
     public static void sendTriggerUltimate() {
         sendToServer(new TriggerUltimatePacket());
     }
+
+   /** 玩家抱持超级电能机枪豌豆时的动作指令（射击 / 放下） */
+   public static void sendCarriedPeaAction(int action) {
+       sendToServer(new CarriedPeaActionPacket(action));
+   }
 
     /** 打开升级界面时：请求一份档案快照 */
     public static void sendRequestUpgradeSync() {

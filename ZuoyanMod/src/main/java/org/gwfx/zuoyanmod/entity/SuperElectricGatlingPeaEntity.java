@@ -14,7 +14,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
@@ -37,10 +36,10 @@ import java.util.EnumSet;
  * <p>
  * 特性：
  * <ul>
- *   <li>基础射击：每次进行高速 5 连发射击；</li>
- *   <li>35% 概率开大（大招）：爆发倾泻 24 发暴雨般的电浆风暴；</li>
+ *   <li>基础射击：每 0.7 秒（14 ticks）一瞬间射出 6 颗直线纵深弹链子弹（无散射）；</li>
+ *   <li>25% 概率开大（大招）：在 3.5 秒内极速倾泻将近 210 发扇形散射雷霆弹幕；</li>
  *   <li>定制音效：带有电击高能电离与电流滋滋声；</li>
- *   <li>右键抱起/按住右键连发：玩家抱在胸前可按住右键持续射击，同样具有 35% 开大陆续爆发机制；</li>
+ *   <li>右键抱起/按住右键连发：空手右键抱在胸前，按住右键持续射击，享受直线弹链与 210 发散射大招；</li>
  *   <li>Shift + 右键放下：安全放置回地面继续驻守。</li>
  * </ul>
  */
@@ -48,14 +47,14 @@ public class SuperElectricGatlingPeaEntity extends PathfinderMob {
 
     private static final EntityDataAccessor<Boolean> DATA_SHOOTING =
             SynchedEntityData.defineId(SuperElectricGatlingPeaEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> DATA_CARRIER_ID =
+            SynchedEntityData.defineId(SuperElectricGatlingPeaEntity.class, EntityDataSerializers.INT);
 
     public final AnimationState idleAnimationState = new AnimationState();
     public final AnimationState shootAnimationState = new AnimationState();
 
     public int shootCooldown = 0;
-    private int burstShotsRemaining = 0;
-    private int burstDelay = 0;
-    private boolean isUltBurst = false;
+    public int ultTicksRemaining = 0;
     private LivingEntity currentBurstTarget = null;
 
     public SuperElectricGatlingPeaEntity(EntityType<? extends SuperElectricGatlingPeaEntity> type, Level level) {
@@ -76,6 +75,7 @@ public class SuperElectricGatlingPeaEntity extends PathfinderMob {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_SHOOTING, false);
+        builder.define(DATA_CARRIER_ID, -1);
     }
 
     public boolean isShooting() {
@@ -84,6 +84,30 @@ public class SuperElectricGatlingPeaEntity extends PathfinderMob {
 
     public void setShooting(boolean shooting) {
         this.entityData.set(DATA_SHOOTING, shooting);
+    }
+
+    public boolean isCarried() {
+        return this.entityData.get(DATA_CARRIER_ID) >= 0;
+    }
+
+    public int getCarrierId() {
+        return this.entityData.get(DATA_CARRIER_ID);
+    }
+
+    public Player getCarrier() {
+        int id = getCarrierId();
+        if (id < 0) return null;
+        Entity entity = this.level().getEntity(id);
+        return entity instanceof Player player ? player : null;
+    }
+
+    public void startCarrying(Player player) {
+        this.entityData.set(DATA_CARRIER_ID, player.getId());
+        this.setDeltaMovement(Vec3.ZERO);
+    }
+
+    public void stopCarrying() {
+        this.entityData.set(DATA_CARRIER_ID, -1);
     }
 
     @Override
@@ -110,6 +134,33 @@ public class SuperElectricGatlingPeaEntity extends PathfinderMob {
     public void tick() {
         super.tick();
 
+        // 处理抱持跟随状态（客户端与服务端双向对齐）
+        if (this.isCarried()) {
+            Player carrier = getCarrier();
+            if (carrier == null || !carrier.isAlive() || carrier.isRemoved()) {
+                if (!this.level().isClientSide()) {
+                    stopCarrying();
+                }
+            } else {
+                this.setYRot(carrier.getYRot());
+                this.yRotO = carrier.getYRot();
+                this.setXRot(carrier.getXRot());
+                this.xRotO = carrier.getXRot();
+                this.yBodyRot = carrier.yBodyRot;
+                this.setYHeadRot(carrier.getYHeadRot());
+                this.yHeadRotO = carrier.yHeadRotO;
+
+                float yRot = carrier.getYRot();
+                Vec3 forward = Vec3.directionFromRotation(0, yRot);
+                double posX = carrier.getX() + forward.x * 0.45D;
+                double posY = carrier.getY() + 0.65D;
+                double posZ = carrier.getZ() + forward.z * 0.45D;
+                this.setPos(posX, posY, posZ);
+                this.setDeltaMovement(Vec3.ZERO);
+                this.fallDistance = 0.0F;
+            }
+        }
+
         // 客户端动画状态同步
         if (this.level().isClientSide()) {
             this.idleAnimationState.startIfStopped(this.tickCount);
@@ -124,54 +175,34 @@ public class SuperElectricGatlingPeaEntity extends PathfinderMob {
         }
     }
 
-    @Override
-    public void rideTick() {
-        super.rideTick();
-        // 被玩家抱着时，视角完全跟随玩家准心
-        if (this.getVehicle() instanceof LivingEntity vehicle) {
-            this.setYRot(vehicle.getYRot());
-            this.yRotO = vehicle.getYRot();
-            this.setXRot(vehicle.getXRot());
-            this.xRotO = vehicle.getXRot();
-            this.yBodyRot = vehicle.yBodyRot;
-            this.yHeadRot = vehicle.getYHeadRot();
-            this.yHeadRotO = vehicle.yHeadRotO;
-        }
-    }
-
-    @Override
-    public Vec3 getVehicleAttachmentPoint(Entity vehicle) {
-        // 当载具是玩家时，将自身定位于玩家胸前正前方（抱在手上）
-        if (vehicle instanceof Player player) {
-            float yRot = player.getYRot();
-            Vec3 forward = Vec3.directionFromRotation(0, yRot);
-            double targetY = player.getY() + 0.85D;
-            double offsetY = (player.getY() + player.getDimensions(Pose.STANDING).height()) - targetY;
-            return new Vec3(-forward.x * 0.45D, offsetY, -forward.z * 0.45D);
-        }
-        return super.getVehicleAttachmentPoint(vehicle);
-    }
-
     /**
      * 玩家右键互动：抱起或放下
      */
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (!this.level().isClientSide()) {
-            if (player.isShiftKeyDown()) {
-                // Shift + 右键：放下
-                if (this.isPassenger()) {
+        if (hand != InteractionHand.MAIN_HAND) {
+            return InteractionResult.PASS;
+        }
+
+        if (this.isCarried()) {
+            if (player.getId() == this.getCarrierId() && player.isShiftKeyDown()) {
+                if (!this.level().isClientSide()) {
                     putDown(player);
-                    return InteractionResult.SUCCESS;
                 }
-            } else {
-                // 普通右键：抱在手上
-                if (!this.isPassenger() && player.getPassengers().isEmpty()) {
-                    this.startRiding(player, true, true);
+               return InteractionResult.SUCCESS;
+            }
+            return InteractionResult.PASS;
+        }
+
+        // 主手空手右键抱在手上
+        if (player.getItemInHand(hand).isEmpty()) {
+            if (!player.isShiftKeyDown()) {
+                if (!this.level().isClientSide()) {
+                    startCarrying(player);
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.PLAYERS, 1.0F, 1.2F);
-                    return InteractionResult.SUCCESS;
                 }
+               return InteractionResult.SUCCESS;
             }
         }
         return super.mobInteract(player, hand);
@@ -181,35 +212,35 @@ public class SuperElectricGatlingPeaEntity extends PathfinderMob {
      * 安全将植物放置在玩家面前的地面上
      */
     public void putDown(Player player) {
-        this.stopRiding();
+        stopCarrying();
         Vec3 look = player.getLookAngle();
         Vec3 targetPos = player.position().add(look.x * 1.2D, 0.0D, look.z * 1.2D);
         this.setPos(targetPos.x, targetPos.y, targetPos.z);
         this.setYRot(player.getYRot());
         this.yRotO = player.getYRot();
+        this.setXRot(0.0F);
+        this.xRotO = 0.0F;
+        this.yBodyRot = player.getYRot();
+        this.setYHeadRot(player.getYRot());
+        this.setDeltaMovement(Vec3.ZERO);
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 SoundEvents.GRASS_PLACE, SoundSource.PLAYERS, 1.0F, 1.0F);
     }
 
     /**
-     * 玩家手持时右键连续发射高速电能豌豆（支持 35% 概率开大）
+     * 玩家手持时右键发射：每 0.7 秒（14 ticks）瞬间射出 6 颗直线纵深弹链子弹，25% 概率开大扫射 210 发
      */
     public void playerShoot(Player player) {
         if (this.level() instanceof ServerLevel serverLevel) {
-            if (this.shootCooldown <= 0) {
-                // 判断是否开大招（35% 概率）
-                boolean triggerUlt = this.random.nextFloat() < 0.35F;
+            if (this.shootCooldown <= 0 && this.ultTicksRemaining <= 0) {
+                boolean triggerUlt = this.random.nextFloat() < 0.25F;
                 if (triggerUlt) {
-                    this.isUltBurst = true;
-                    this.burstShotsRemaining = 24; // 大招倾泻 24 发
-                    this.burstDelay = 0;
-                    this.shootCooldown = 18; // 大招连射期间极速间隔
+                    this.ultTicksRemaining = 70; // 3.5 秒狂暴扫射（70 ticks * 3 发/tick = 210 发）
+                    this.shootCooldown = 70 + 14;
                     playUltSound(player.getX(), player.getY(), player.getZ(), SoundSource.PLAYERS);
                 } else {
-                    this.isUltBurst = false;
-                    this.burstShotsRemaining = 5; // 基础一次发射 5 颗
-                    this.burstDelay = 0;
-                    this.shootCooldown = 14;
+                    this.shootCooldown = 14; // 0.7 秒攻击间隔
+                    fireStraightBurstFromPlayer(player);
                 }
                 this.currentBurstTarget = null;
                 this.setShooting(true);
@@ -218,23 +249,19 @@ public class SuperElectricGatlingPeaEntity extends PathfinderMob {
     }
 
     /**
-     * 自动索敌启动连发脉冲（向指定目标发射 5 颗子弹，35% 概率开大招发射 24 颗子弹）
+     * 自动索敌启动连发脉冲（向指定目标发射直线 6 颗子弹，25% 概率开大招发射 210 颗子弹）
      */
     public void startBurstAt(LivingEntity target) {
         this.currentBurstTarget = target;
-        boolean triggerUlt = this.random.nextFloat() < 0.35F;
+        boolean triggerUlt = this.random.nextFloat() < 0.25F;
 
         if (triggerUlt) {
-            this.isUltBurst = true;
-            this.burstShotsRemaining = 24; // 开大招：倾泻 24 发雷霆暴风！
-            this.burstDelay = 0;
-            this.shootCooldown = 32;       // 大招爆发循环
+            this.ultTicksRemaining = 70;
+            this.shootCooldown = 70 + 14;
             playUltSound(this.getX(), this.getY(), this.getZ(), SoundSource.NEUTRAL);
         } else {
-            this.isUltBurst = false;
-            this.burstShotsRemaining = 5;  // 基础：一次 5 颗
-            this.burstDelay = 0;
-            this.shootCooldown = 24;       // 普攻点射循环
+            this.shootCooldown = 14;
+            fireStraightBurstAtTarget(target);
         }
         this.setShooting(true);
     }
@@ -244,75 +271,108 @@ public class SuperElectricGatlingPeaEntity extends PathfinderMob {
             this.shootCooldown--;
         }
 
-        if (this.burstShotsRemaining > 0) {
-            if (this.burstDelay <= 0) {
-                if (this.isPassenger() && this.getVehicle() instanceof Player player) {
-                    fireBulletFromPlayer(player);
-                } else {
-                    fireSingleBulletAtTarget(this.currentBurstTarget);
+        if (this.ultTicksRemaining > 0) {
+            if (this.isCarried()) {
+                Player carrier = getCarrier();
+                if (carrier != null) {
+                    fireScatterBulletsFromPlayer(carrier, 3);
                 }
-                this.burstShotsRemaining--;
-                // 大招每发间隔 2 tick，普攻每发间隔 3 tick
-                this.burstDelay = this.isUltBurst ? 2 : 3;
             } else {
-                this.burstDelay--;
+                fireScatterBulletsAtTarget(this.currentBurstTarget, 3);
             }
-        } else if (this.shootCooldown <= 6 && this.isShooting()) {
+            this.ultTicksRemaining--;
+            this.setShooting(true);
+        } else if (this.shootCooldown <= 10 && this.isShooting()) {
             this.setShooting(false);
-            this.isUltBurst = false;
         }
     }
 
-    private void fireBulletFromPlayer(Player player) {
+    private void fireStraightBurstFromPlayer(Player player) {
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
         Vec3 look = player.getLookAngle();
         Vec3 eyePos = player.getEyePosition().add(look.scale(0.55D));
 
-        ElectroPeaBulletEntity bullet = new ElectroPeaBulletEntity(serverLevel, player);
-        bullet.setPos(eyePos.x, eyePos.y - 0.1D, eyePos.z);
-        float speed = this.isUltBurst ? 2.6F : 2.2F;
-        float spread = this.isUltBurst ? 2.5F : 1.0F; // 大招带有些微扇形暴雨散射
-        bullet.shoot(look.x, look.y, look.z, speed, spread);
-        serverLevel.addFreshEntity(bullet);
+        // 一瞬间射出 6 颗直线纵深弹链子弹（无散射，梯度速度拉开纵深）
+        float[] speeds = {2.0F, 2.15F, 2.3F, 2.45F, 2.6F, 2.75F};
+        for (float spd : speeds) {
+            ElectroPeaBulletEntity bullet = new ElectroPeaBulletEntity(serverLevel, player);
+            bullet.setPos(eyePos.x, eyePos.y - 0.1D, eyePos.z);
+            bullet.shoot(look.x, look.y, look.z, spd, 0.0F);
+            serverLevel.addFreshEntity(bullet);
+        }
 
         playShootEffects(eyePos, SoundSource.PLAYERS);
     }
 
-    private void fireSingleBulletAtTarget(LivingEntity target) {
+    private void fireStraightBurstAtTarget(LivingEntity target) {
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
         if (target != null && !target.isAlive()) return;
 
         Vec3 snoutPos = this.position().add(0, 0.95D, 0).add(this.getLookAngle().scale(0.65D));
-        ElectroPeaBulletEntity bullet = new ElectroPeaBulletEntity(serverLevel, this);
-        bullet.setPos(snoutPos.x, snoutPos.y, snoutPos.z);
-
-        float speed = this.isUltBurst ? 2.5F : 2.1F;
-        float spread = this.isUltBurst ? 2.2F : 1.2F;
-
+        Vec3 shootDir;
         if (target != null) {
-            double dx = target.getX() - snoutPos.x;
-            double dy = target.getY(0.5D) - snoutPos.y;
-            double dz = target.getZ() - snoutPos.z;
-            bullet.shoot(dx, dy, dz, speed, spread);
+            shootDir = new Vec3(target.getX() - snoutPos.x, target.getY(0.5D) - snoutPos.y, target.getZ() - snoutPos.z).normalize();
         } else {
-            Vec3 look = this.getLookAngle();
-            bullet.shoot(look.x, look.y, look.z, speed, spread);
+            shootDir = this.getLookAngle();
         }
 
-        serverLevel.addFreshEntity(bullet);
+        float[] speeds = {2.0F, 2.15F, 2.3F, 2.45F, 2.6F, 2.75F};
+        for (float spd : speeds) {
+            ElectroPeaBulletEntity bullet = new ElectroPeaBulletEntity(serverLevel, this);
+            bullet.setPos(snoutPos.x, snoutPos.y, snoutPos.z);
+            bullet.shoot(shootDir.x, shootDir.y, shootDir.z, spd, 0.0F);
+            serverLevel.addFreshEntity(bullet);
+        }
 
         playShootEffects(snoutPos, SoundSource.NEUTRAL);
+    }
+
+    private void fireScatterBulletsFromPlayer(Player player, int count) {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+        Vec3 look = player.getLookAngle();
+        Vec3 eyePos = player.getEyePosition().add(look.scale(0.55D));
+
+        for (int i = 0; i < count; i++) {
+            ElectroPeaBulletEntity bullet = new ElectroPeaBulletEntity(serverLevel, player);
+            bullet.setPos(eyePos.x, eyePos.y - 0.1D, eyePos.z);
+            bullet.shoot(look.x, look.y, look.z, 2.6F, 10.0F); // 扇形散射
+            serverLevel.addFreshEntity(bullet);
+        }
+
+        if (this.ultTicksRemaining % 3 == 0) {
+            playShootEffects(eyePos, SoundSource.PLAYERS);
+        }
+    }
+
+    private void fireScatterBulletsAtTarget(LivingEntity target, int count) {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+        Vec3 snoutPos = this.position().add(0, 0.95D, 0).add(this.getLookAngle().scale(0.65D));
+        Vec3 shootDir;
+        if (target != null && target.isAlive()) {
+            shootDir = new Vec3(target.getX() - snoutPos.x, target.getY(0.5D) - snoutPos.y, target.getZ() - snoutPos.z).normalize();
+        } else {
+            shootDir = this.getLookAngle();
+        }
+
+        for (int i = 0; i < count; i++) {
+            ElectroPeaBulletEntity bullet = new ElectroPeaBulletEntity(serverLevel, this);
+            bullet.setPos(snoutPos.x, snoutPos.y, snoutPos.z);
+            bullet.shoot(shootDir.x, shootDir.y, shootDir.z, 2.5F, 10.0F);
+            serverLevel.addFreshEntity(bullet);
+        }
+
+        if (this.ultTicksRemaining % 3 == 0) {
+            playShootEffects(snoutPos, SoundSource.NEUTRAL);
+        }
     }
 
     private void playShootEffects(Vec3 pos, SoundSource source) {
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
 
-        // 强电离火花与闪电微光
-        int count = this.isUltBurst ? 10 : 5;
+        int count = this.ultTicksRemaining > 0 ? 10 : 5;
         serverLevel.sendParticles(ParticleTypes.ELECTRIC_SPARK,
                 pos.x, pos.y, pos.z, count, 0.12D, 0.12D, 0.12D, 0.08D);
 
-        // 电流滋滋声与能量脉冲音效（结合定制音效与高音调高频电弧声）
         float pitch = 1.3F + (this.random.nextFloat() * 0.4F);
         serverLevel.playSound(null, pos.x, pos.y, pos.z,
                 SoundRegistry.SUPER_GATLING_PEA_SHOOT.get(), source, 0.85F, pitch);
@@ -339,7 +399,7 @@ public class SuperElectricGatlingPeaEntity extends PathfinderMob {
         @Override
         public boolean canUse() {
             // 当被玩家抱在手上时不自主开火，由玩家手动操控
-            if (this.pea.isPassenger()) return false;
+            if (this.pea.isCarried()) return false;
             LivingEntity target = this.pea.getTarget();
             return target != null && target.isAlive() && this.pea.distanceToSqr(target) <= 32.0D * 32.0D;
         }
@@ -352,10 +412,9 @@ public class SuperElectricGatlingPeaEntity extends PathfinderMob {
             // 头部精准追踪瞄准目标
             this.pea.getLookControl().setLookAt(target, 35.0F, 35.0F);
 
-            if (this.pea.shootCooldown <= 0 && this.pea.burstShotsRemaining <= 0) {
+            if (this.pea.shootCooldown <= 0 && this.pea.ultTicksRemaining <= 0) {
                 this.pea.startBurstAt(target);
             }
         }
     }
 }
-

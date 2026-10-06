@@ -98,18 +98,23 @@ public class ElectroPeaBulletEntity extends ThrowableProjectile {
                     ? (owner instanceof Player player ? this.damageSources().playerAttack(player) : this.damageSources().mobProjectile(this, owner))
                     : this.damageSources().magic();
 
+           // 重置受击无敌帧，确保 6 发直线子弹与 210 发弹幕扫射能打满连击伤害
+           target.setInvulnerableTime(0);
+
             // 结算主体伤害
             target.hurtServer(serverLevel, damageSource, BASE_DAMAGE);
 
-            // 电击音效与高亮火花
-            serverLevel.playSound(null, target.getX(), target.getY(), target.getZ(),
-                    SoundEvents.LIGHTNING_BOLT_IMPACT, SoundSource.NEUTRAL, 0.8F, 1.6F);
-            serverLevel.playSound(null, target.getX(), target.getY(), target.getZ(),
-                    SoundEvents.TRIDENT_THUNDER.value(), SoundSource.NEUTRAL, 0.6F, 1.8F);
+           // 音效节流：20% 概率播放震耳雷声，避免大招 210 发密集命中导致爆音卡顿
+           if (this.random.nextFloat() < 0.2F) {
+               serverLevel.playSound(null, target.getX(), target.getY(), target.getZ(),
+                       SoundEvents.LIGHTNING_BOLT_IMPACT, SoundSource.NEUTRAL, 0.7F, 1.6F);
+               serverLevel.playSound(null, target.getX(), target.getY(), target.getZ(),
+                       SoundEvents.TRIDENT_THUNDER.value(), SoundSource.NEUTRAL, 0.5F, 1.8F);
+           }
 
             serverLevel.sendParticles(ParticleTypes.ELECTRIC_SPARK,
                     target.getX(), target.getY() + target.getBbHeight() * 0.5D, target.getZ(),
-                    25, 0.3D, 0.3D, 0.3D, 0.15D);
+                   8, 0.25D, 0.25D, 0.25D, 0.1D);
 
             // 连锁闪电（Chain Lightning）
             triggerChainLightning(serverLevel, target, owner, damageSource);

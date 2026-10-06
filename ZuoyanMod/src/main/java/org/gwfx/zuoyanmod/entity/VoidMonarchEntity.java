@@ -81,7 +81,7 @@ public class VoidMonarchEntity extends Monster {
     public final AnimationState attackBarrageAnimationState = new AnimationState();
 
     /** 触发觉醒的玩家接近半径（格） */
-    private static final double AWAKEN_RADIUS = 6.0D;
+    private static final double AWAKEN_RADIUS = 24.0D;
     /** 横扫半径与伤害 */
     private static final double SWEEP_RADIUS = 4.0D;
     private static final float SWEEP_DAMAGE = 50.0F;
@@ -173,7 +173,7 @@ public class VoidMonarchEntity extends Monster {
         this.goalSelector.addGoal(9, new RandomLookAroundGoal(this));
 
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, false));
     }
 
     @Override
@@ -188,10 +188,23 @@ public class VoidMonarchEntity extends Monster {
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
-        if ((!isAwakened() || isAwakening() || isDying()) && !source.is(DamageTypes.GENERIC_KILL)) {
+        if (isDying()) {
             return false;
         }
-        return super.hurtServer(level, source, damage);
+        // 受到攻击立即打破沉睡强制苏醒，并反击攻击者
+        if (!isAwakened() || isAwakening()) {
+            if (!isAwakened()) {
+                awaken();
+            }
+            if (source.getEntity() instanceof LivingEntity attacker) {
+                this.setTarget(attacker);
+            }
+        }
+        boolean hurt = super.hurtServer(level, source, damage);
+        if (hurt && source.getEntity() instanceof LivingEntity attacker) {
+            this.setTarget(attacker);
+        }
+        return hurt;
     }
 
     @Override
@@ -207,10 +220,11 @@ public class VoidMonarchEntity extends Monster {
             if (this.getHealth() < this.getMaxHealth()) {
                 this.heal(DORMANT_HEAL_PER_TICK);
             }
-            if (this.tickCount % 10 == 0) {
+            if (this.tickCount % 5 == 0) {
                 Player nearby = this.level().getNearestPlayer(this, AWAKEN_RADIUS);
                 if (nearby != null) {
                     awaken();
+                    this.setTarget(nearby);
                 }
             }
             return;
@@ -502,68 +516,87 @@ public class VoidMonarchEntity extends Monster {
             if (!VoidMonarchEntity.this.isAwakened() || VoidMonarchEntity.this.isAwakening() || VoidMonarchEntity.this.isDying()) {
                 return false;
             }
-            // 二阶段纯施法者：君主之刃近战只在常态使用
-            if (VoidMonarchEntity.this.isEnraged()) {
-                return false;
-            }
-            if (VoidMonarchEntity.this.phase2RoarTicks > 0 || this.cooldown > 0) {
-                if (this.cooldown > 0) {
-                    this.cooldown--;
-                }
+            if (VoidMonarchEntity.this.phase2RoarTicks > 0) {
                 return false;
             }
             LivingEntity target = VoidMonarchEntity.this.getTarget();
-            if (target == null || !target.isAlive()) {
-                return false;
-            }
-            return VoidMonarchEntity.this.distanceToSqr(target) <= 25.0D;
+            return target != null && target.isAlive();
         }
 
         @Override
         public void start() {
             this.attackTicks = 0;
-            if (VoidMonarchEntity.this.isEnraged() && VoidMonarchEntity.this.random.nextBoolean()) {
-                this.chosenType = 2;
-            } else {
-                this.chosenType = 1;
-            }
-            VoidMonarchEntity.this.entityData.set(DATA_ATTACK_STATE, this.chosenType);
         }
 
         @Override
         public boolean canContinueToUse() {
-            return this.attackTicks < (this.chosenType == 2 ? 24 : 20);
+            LivingEntity target = VoidMonarchEntity.this.getTarget();
+            return target != null && target.isAlive() && !VoidMonarchEntity.this.isDying();
         }
 
         @Override
         public void tick() {
             LivingEntity target = VoidMonarchEntity.this.getTarget();
-            if (target != null) {
-                VoidMonarchEntity.this.getLookControl().setLookAt(target, 30.0F, 30.0F);
+            if (target == null) return;
+
+            VoidMonarchEntity.this.getLookControl().setLookAt(target, 35.0F, 35.0F);
+            double distSq = VoidMonarchEntity.this.distanceToSqr(target);
+
+            if (this.cooldown > 0) {
+                this.cooldown--;
             }
 
-            this.attackTicks++;
+            // 若当前处于攻击挥砍动作周期内
+            if (this.attackTicks > 0) {
+                this.attackTicks++;
+                VoidMonarchEntity.this.getNavigation().stop();
 
-            int hitFrame = (this.chosenType == 2) ? 11 : 8;
-            if (this.attackTicks == hitFrame && target != null) {
-                if (VoidMonarchEntity.this.distanceToSqr(target) <= 36.0D && VoidMonarchEntity.this.level() instanceof ServerLevel serverLevel) {
-                    if (this.chosenType == 2) {
-                        VoidMonarchEntity.this.doHurtTarget(serverLevel, target);
-                        target.hurtServer(serverLevel, VoidMonarchEntity.this.damageSources().mobAttack(VoidMonarchEntity.this), 40.0F);
-                        VoidMonarchEntity.this.playSound(SoundEvents.GENERIC_EXPLODE.value(), 1.5F, 1.2F);
-                        serverLevel.sendParticles(ParticleTypes.EXPLOSION, target.getX(), target.getY() + 0.2D, target.getZ(), 5, 0.5D, 0.2D, 0.5D, 0.05D);
-                    } else {
-                        VoidMonarchEntity.this.doHurtTarget(serverLevel, target);
-                        VoidMonarchEntity.this.playSound(SoundEvents.PLAYER_ATTACK_SWEEP, 2.0F, 0.8F);
+                int hitFrame = (this.chosenType == 2) ? 11 : 8;
+                if (this.attackTicks == hitFrame) {
+                    if (distSq <= 36.0D && VoidMonarchEntity.this.level() instanceof ServerLevel serverLevel) {
+                        if (this.chosenType == 2) {
+                            VoidMonarchEntity.this.doHurtTarget(serverLevel, target);
+                            target.hurtServer(serverLevel, VoidMonarchEntity.this.damageSources().mobAttack(VoidMonarchEntity.this), 60.0F);
+                            VoidMonarchEntity.this.playSound(SoundEvents.GENERIC_EXPLODE.value(), 1.5F, 1.2F);
+                            serverLevel.sendParticles(ParticleTypes.EXPLOSION, target.getX(), target.getY() + 0.2D, target.getZ(), 5, 0.5D, 0.2D, 0.5D, 0.05D);
+                        } else {
+                            VoidMonarchEntity.this.doHurtTarget(serverLevel, target);
+                            target.hurtServer(serverLevel, VoidMonarchEntity.this.damageSources().mobAttack(VoidMonarchEntity.this), 45.0F);
+                            VoidMonarchEntity.this.playSound(SoundEvents.PLAYER_ATTACK_SWEEP, 2.0F, 0.8F);
+                        }
                     }
                 }
+
+                int maxAnimTicks = (this.chosenType == 2) ? 24 : 20;
+                if (this.attackTicks >= maxAnimTicks) {
+                    this.attackTicks = 0;
+                    VoidMonarchEntity.this.entityData.set(DATA_ATTACK_STATE, (byte) 0);
+                    this.cooldown = VoidMonarchEntity.this.isEnraged() ? 8 : 14;
+                }
+                return;
+            }
+
+            // 尚未出刀：判断距离是否处于近战攻击范围内（<= 4.5 格）
+            double reachSq = 20.0D;
+            if (distSq <= reachSq && this.cooldown <= 0) {
+                this.attackTicks = 1;
+                if (VoidMonarchEntity.this.isEnraged()) {
+                    this.chosenType = VoidMonarchEntity.this.random.nextFloat() < 0.6F ? (byte) 2 : (byte) 1;
+                } else {
+                    this.chosenType = VoidMonarchEntity.this.random.nextFloat() < 0.3F ? (byte) 2 : (byte) 1;
+                }
+                VoidMonarchEntity.this.entityData.set(DATA_ATTACK_STATE, this.chosenType);
+            } else {
+                // 距离稍远：全力高速追击目标！
+                double speed = VoidMonarchEntity.this.isEnraged() ? 1.45D : 1.25D;
+                VoidMonarchEntity.this.getNavigation().moveTo(target, speed);
             }
         }
 
         @Override
         public void stop() {
+            this.attackTicks = 0;
             VoidMonarchEntity.this.entityData.set(DATA_ATTACK_STATE, (byte) 0);
-            this.cooldown = VoidMonarchEntity.this.isEnraged() ? 8 : 16;
         }
     }
 

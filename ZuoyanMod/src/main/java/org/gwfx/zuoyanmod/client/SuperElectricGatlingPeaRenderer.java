@@ -32,7 +32,7 @@ public class SuperElectricGatlingPeaRenderer extends MobRenderer<SuperElectricGa
     public void extractRenderState(SuperElectricGatlingPeaEntity entity, SuperElectricGatlingPeaRenderState state, float partialTicks) {
         super.extractRenderState(entity, state, partialTicks);
         state.isShooting = entity.isShooting();
-        state.isCarried = entity.isPassenger();
+       state.isCarried = entity.isCarried();
         state.idleAnimation.copyFrom(entity.idleAnimationState);
         state.shootAnimation.copyFrom(entity.shootAnimationState);
     }

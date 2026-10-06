@@ -1,5 +1,10 @@
 # WorkBuddy
 .workbuddy/
+.dsh/
+.trae/
+open_monarch_in_blockbench.bat
+web/
+tools/find-locking-process.ps1
 
 # 生成工具脚本（美术资源/代码为程序生成，脚本仅在本机留存，不进仓库）
 *.py
